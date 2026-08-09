@@ -1,0 +1,6 @@
+.worktrees/
+.superpowers/
+.DS_Store
+Derived/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
