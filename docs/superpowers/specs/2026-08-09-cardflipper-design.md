@@ -1,7 +1,7 @@
 # CardFlipper Design Specification
 
 Date: 2026-08-09
-Status: Approved design, awaiting written-spec review
+Status: Approved
 
 ## Product Goal
 
