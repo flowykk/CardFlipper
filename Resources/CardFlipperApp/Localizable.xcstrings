@@ -35,7 +35,28 @@
     "study.russianToEnglish" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Russian to English" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "С русского на английский" } } } },
     "study.englishToRussian" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "English to Russian" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "С английского на русский" } } } },
     "study.allCards" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "All Cards" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Все карточки" } } } },
-    "study.matchingCount" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld cards" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточек" } } } },
+    "study.matchingCount" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld card" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld cards" } }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточка" } },
+              "few" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки" } },
+              "many" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточек" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки" } }
+            }
+          }
+        }
+      }
+    },
     "study.start" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Start" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начать" } } } },
     "study.remaining" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld Remaining" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Осталось: %lld" } } } },
     "study.flipHint" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Tap the card to reveal the answer" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Нажмите на карточку, чтобы увидеть ответ" } } } },
@@ -44,8 +65,50 @@
     "study.exit.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "End Study Session?" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Завершить занятие?" } } } },
     "study.exit.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Your current progress will be lost." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Текущий прогресс будет потерян." } } } },
     "study.result.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Session Complete" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Занятие завершено" } } } },
-    "study.result.cards" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld Cards Reviewed" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторено карточек: %lld" } } } },
-    "study.result.forgotten" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld Forgotten" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не вспомнено: %lld" } } } },
+    "study.result.cards" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld card reviewed" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld cards reviewed" } }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточка повторена" } },
+              "few" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки повторены" } },
+              "many" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточек повторено" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки повторено" } }
+            }
+          }
+        }
+      }
+    },
+    "study.result.forgotten" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld card forgotten" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld cards forgotten" } }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточка не вспомнена" } },
+              "few" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки не вспомнены" } },
+              "many" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточек не вспомнено" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки не вспомнено" } }
+            }
+          }
+        }
+      }
+    },
     "study.result.repeat" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Study Again" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторить занятие" } } } },
     "study.result.library" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Back to Library" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вернуться в библиотеку" } } } },
     "data.load.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Load Your Cards" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось загрузить карточки" } } } },
