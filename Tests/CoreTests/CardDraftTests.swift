@@ -60,3 +60,82 @@ import Testing
         ),
     ])
 }
+
+@Test func usageExamplesAreTrimmedOrderedAndKeepSuppliedIDs() throws {
+    let firstExampleID = UUID(uuidString: "00000000-0000-0000-0000-000000000011")!
+    let blankExampleID = UUID(uuidString: "00000000-0000-0000-0000-000000000012")!
+    let draft = CardDraft(
+        russianMeanings: ["слово"],
+        englishVariants: [
+            .init(
+                text: "word",
+                partsOfSpeech: [.noun],
+                usageExamples: [
+                    .init(text: "  This word matters.  ", partOfSpeech: .noun),
+                    .init(text: "   ", partOfSpeech: nil),
+                ]
+            ),
+        ],
+        tagIDs: []
+    )
+
+    let card = try draft.makeCard(
+        id: UUID(),
+        russianMeaningIDs: [UUID()],
+        englishVariantIDs: [UUID()],
+        usageExampleIDsByVariant: [[firstExampleID, blankExampleID]],
+        now: Date(timeIntervalSince1970: 1)
+    )
+
+    #expect(card.englishVariants[0].usageExamples == [
+        UsageExample(
+            id: firstExampleID,
+            text: "This word matters.",
+            partOfSpeech: .noun
+        ),
+    ])
+    #expect(card.searchableValues.contains("This word matters."))
+}
+
+@Test func nonemptyUsageExampleRequiresPartSelectedOnItsVariant() {
+    let missingSelection = CardDraft(
+        russianMeanings: ["слово"],
+        englishVariants: [
+            .init(
+                text: "word",
+                partsOfSpeech: [.noun],
+                usageExamples: [.init(text: "An example.", partOfSpeech: nil)]
+            ),
+        ],
+        tagIDs: []
+    )
+    let unavailableSelection = CardDraft(
+        russianMeanings: ["слово"],
+        englishVariants: [
+            .init(
+                text: "word",
+                partsOfSpeech: [.noun],
+                usageExamples: [.init(text: "An example.", partOfSpeech: .verb)]
+            ),
+        ],
+        tagIDs: []
+    )
+
+    #expect(missingSelection.validationErrors == [.missingUsageExamplePartOfSpeech])
+    #expect(unavailableSelection.validationErrors == [.missingUsageExamplePartOfSpeech])
+}
+
+@Test func blankUsageExampleDoesNotRequirePartOfSpeech() {
+    let draft = CardDraft(
+        russianMeanings: ["слово"],
+        englishVariants: [
+            .init(
+                text: "word",
+                usageExamples: [.init(text: "  ", partOfSpeech: nil)]
+            ),
+        ],
+        tagIDs: []
+    )
+
+    #expect(draft.validationErrors.isEmpty)
+}

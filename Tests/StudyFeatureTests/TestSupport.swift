@@ -55,6 +55,7 @@ extension VocabularyCard {
         english: String = "word",
         ipa: String? = "/wɜːd/",
         partsOfSpeech: [PartOfSpeech] = [.noun],
+        usageExamples: [UsageExample] = [],
         tags: [Tag] = []
     ) -> VocabularyCard {
         VocabularyCard(
@@ -65,7 +66,8 @@ extension VocabularyCard {
                     id: .fixture(id + 2_000),
                     text: english,
                     ipa: ipa,
-                    partsOfSpeech: partsOfSpeech
+                    partsOfSpeech: partsOfSpeech,
+                    usageExamples: usageExamples
                 )
             ],
             tags: tags,

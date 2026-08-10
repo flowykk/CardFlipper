@@ -109,6 +109,18 @@ public final class StudySessionViewModel {
         speech.speak(variant.text)
     }
 
+    public func speakUsageExample(variantID: UUID, exampleID: UUID) {
+        guard isEnglishSideVisible,
+              let variant = session.currentCard?.englishVariants.first(
+                where: { $0.id == variantID }
+              ),
+              let example = variant.usageExamples.first(where: { $0.id == exampleID }) else {
+            return
+        }
+
+        speech.speak(example.text)
+    }
+
     public func requestExit() {
         isExitConfirmationPresented = true
     }

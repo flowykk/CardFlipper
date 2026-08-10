@@ -25,7 +25,9 @@ public struct VocabularyCard: Equatable, Identifiable, Sendable {
     }
 
     public var searchableValues: [String] {
-        russianMeanings.map(\.text) + englishVariants.map(\.text)
+        russianMeanings.map(\.text)
+            + englishVariants.map(\.text)
+            + englishVariants.flatMap { $0.usageExamples.map(\.text) }
     }
 }
 
@@ -44,16 +46,35 @@ public struct EnglishVariant: Equatable, Identifiable, Sendable {
     public let text: String
     public let ipa: String?
     public let partsOfSpeech: [PartOfSpeech]
+    public let usageExamples: [UsageExample]
 
     public init(
         id: UUID,
         text: String,
         ipa: String?,
-        partsOfSpeech: [PartOfSpeech]
+        partsOfSpeech: [PartOfSpeech],
+        usageExamples: [UsageExample] = []
     ) {
         self.id = id
         self.text = text
         self.ipa = ipa
         self.partsOfSpeech = partsOfSpeech
+        self.usageExamples = usageExamples
+    }
+}
+
+public struct UsageExample: Equatable, Identifiable, Sendable {
+    public let id: UUID
+    public let text: String
+    public let partOfSpeech: PartOfSpeech
+
+    public init(
+        id: UUID,
+        text: String,
+        partOfSpeech: PartOfSpeech
+    ) {
+        self.id = id
+        self.text = text
+        self.partOfSpeech = partOfSpeech
     }
 }

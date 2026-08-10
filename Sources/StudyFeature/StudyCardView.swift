@@ -7,19 +7,32 @@ public enum StudyLanguage: Equatable, Sendable {
     case english
 }
 
+public struct StudyUsageExampleContent: Equatable, Sendable {
+    public let text: String
+    public let partOfSpeech: PartOfSpeech
+
+    public init(text: String, partOfSpeech: PartOfSpeech) {
+        self.text = text
+        self.partOfSpeech = partOfSpeech
+    }
+}
+
 public struct StudyCardFace: Equatable, Sendable {
     public let language: StudyLanguage
     public let values: [String]
     public let englishMetadata: [String]
+    public let usageExamples: [StudyUsageExampleContent]
 
     public init(
         language: StudyLanguage,
         values: [String],
-        englishMetadata: [String] = []
+        englishMetadata: [String] = [],
+        usageExamples: [StudyUsageExampleContent] = []
     ) {
         self.language = language
         self.values = values
         self.englishMetadata = englishMetadata
+        self.usageExamples = usageExamples
     }
 }
 
@@ -41,6 +54,14 @@ public struct StudyCardContent: Equatable, Sendable {
                         guard let value, !value.isEmpty else { return nil }
                         return value
                     }
+            },
+            usageExamples: card.englishVariants.flatMap { variant in
+                variant.usageExamples.map {
+                    StudyUsageExampleContent(
+                        text: $0.text,
+                        partOfSpeech: $0.partOfSpeech
+                    )
+                }
             }
         )
 
@@ -106,6 +127,7 @@ public struct StudyCardView: View {
     private let reduceMotion: Bool
     private let onToggle: () -> Void
     private let onSpeak: (UUID) -> Void
+    private let onSpeakUsageExample: (UUID, UUID) -> Void
 
     @AccessibilityFocusState private var focusedFace: FocusedFace?
 
@@ -115,7 +137,8 @@ public struct StudyCardView: View {
         isShowingAnswer: Bool,
         reduceMotion: Bool,
         onToggle: @escaping () -> Void,
-        onSpeak: @escaping (UUID) -> Void
+        onSpeak: @escaping (UUID) -> Void,
+        onSpeakUsageExample: @escaping (UUID, UUID) -> Void
     ) {
         self.card = card
         self.direction = direction
@@ -123,6 +146,7 @@ public struct StudyCardView: View {
         self.reduceMotion = reduceMotion
         self.onToggle = onToggle
         self.onSpeak = onSpeak
+        self.onSpeakUsageExample = onSpeakUsageExample
     }
 
     public var body: some View {
@@ -263,6 +287,43 @@ public struct StudyCardView: View {
                             .foregroundStyle(.secondary)
                             .accessibilityLabel("card.partsOfSpeech")
                             .accessibilityValue(Text(verbatim: partsOfSpeechText))
+                    }
+
+                    if !variant.usageExamples.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("study.examples.title")
+                                .font(.headline)
+
+                            ForEach(variant.usageExamples) { example in
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(verbatim: example.partOfSpeech.localizedName())
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(.secondary)
+
+                                    Text(verbatim: example.text)
+                                        .font(.body)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .accessibilityIdentifier("study.usageExample")
+
+                                    Button {
+                                        onSpeakUsageExample(variant.id, example.id)
+                                    } label: {
+                                        Label("card.speak", systemImage: "speaker.wave.2.fill")
+                                            .frame(minHeight: 44)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .accessibilityIdentifier("study.usageExample.speak")
+                                    .accessibilityHint(Text(verbatim: example.text))
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(12)
+                                .background(
+                                    .quaternary.opacity(0.5),
+                                    in: RoundedRectangle(cornerRadius: 12)
+                                )
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
 
                     Button {

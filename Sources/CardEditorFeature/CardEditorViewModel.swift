@@ -12,22 +12,41 @@ public struct RussianMeaningInput: Equatable, Identifiable, Sendable {
     }
 }
 
+public struct UsageExampleInput: Equatable, Identifiable, Sendable {
+    public let id: UUID
+    public var text: String
+    public var partOfSpeech: PartOfSpeech?
+
+    public init(
+        id: UUID = UUID(),
+        text: String = "",
+        partOfSpeech: PartOfSpeech? = nil
+    ) {
+        self.id = id
+        self.text = text
+        self.partOfSpeech = partOfSpeech
+    }
+}
+
 public struct EnglishVariantInput: Equatable, Identifiable, Sendable {
     public let id: UUID
     public var text: String
     public var ipa: String
     public var partsOfSpeech: [PartOfSpeech]
+    public var usageExamples: [UsageExampleInput]
 
     public init(
         id: UUID = UUID(),
         text: String = "",
         ipa: String? = nil,
-        partsOfSpeech: [PartOfSpeech] = []
+        partsOfSpeech: [PartOfSpeech] = [],
+        usageExamples: [UsageExampleInput] = []
     ) {
         self.id = id
         self.text = text
         self.ipa = ipa ?? ""
         self.partsOfSpeech = partsOfSpeech
+        self.usageExamples = usageExamples
     }
 }
 
@@ -113,7 +132,14 @@ public final class CardEditorViewModel {
                     id: $0.id,
                     text: $0.text,
                     ipa: $0.ipa,
-                    partsOfSpeech: $0.partsOfSpeech
+                    partsOfSpeech: $0.partsOfSpeech,
+                    usageExamples: $0.usageExamples.map {
+                        UsageExampleInput(
+                            id: $0.id,
+                            text: $0.text,
+                            partOfSpeech: $0.partOfSpeech
+                        )
+                    }
                 )
             }
             selectedTagIDs = Set(card.tags.map(\.id))
@@ -185,6 +211,42 @@ public final class CardEditorViewModel {
         englishVariants.removeAll { $0.id == id }
     }
 
+    public func addUsageExample(variantID: UUID) {
+        guard let index = englishVariants.firstIndex(where: { $0.id == variantID }),
+              !englishVariants[index].partsOfSpeech.isEmpty else {
+            return
+        }
+
+        let selectedPart = englishVariants[index].partsOfSpeech.count == 1
+            ? englishVariants[index].partsOfSpeech.first
+            : nil
+        englishVariants[index].usageExamples.append(
+            UsageExampleInput(partOfSpeech: selectedPart)
+        )
+    }
+
+    public func removeUsageExample(id: UUID, variantID: UUID) {
+        guard let index = englishVariants.firstIndex(where: { $0.id == variantID }) else {
+            return
+        }
+        englishVariants[index].usageExamples.removeAll { $0.id == id }
+    }
+
+    public func chooseUsageExamplePartOfSpeech(
+        _ partOfSpeech: PartOfSpeech,
+        exampleID: UUID,
+        variantID: UUID
+    ) {
+        guard let variantIndex = englishVariants.firstIndex(where: { $0.id == variantID }),
+              englishVariants[variantIndex].partsOfSpeech.contains(partOfSpeech),
+              let exampleIndex = englishVariants[variantIndex].usageExamples.firstIndex(
+                where: { $0.id == exampleID }
+              ) else {
+            return
+        }
+        englishVariants[variantIndex].usageExamples[exampleIndex].partOfSpeech = partOfSpeech
+    }
+
     public func togglePartOfSpeech(
         _ partOfSpeech: PartOfSpeech,
         variantID: UUID
@@ -195,6 +257,10 @@ public final class CardEditorViewModel {
 
         if let partIndex = englishVariants[index].partsOfSpeech.firstIndex(of: partOfSpeech) {
             englishVariants[index].partsOfSpeech.remove(at: partIndex)
+            for exampleIndex in englishVariants[index].usageExamples.indices
+            where englishVariants[index].usageExamples[exampleIndex].partOfSpeech == partOfSpeech {
+                englishVariants[index].usageExamples[exampleIndex].partOfSpeech = nil
+            }
         } else {
             englishVariants[index].partsOfSpeech.append(partOfSpeech)
         }
@@ -311,6 +377,16 @@ public final class CardEditorViewModel {
         speechService.speak(text)
     }
 
+    public func speakUsageExample(id: UUID, variantID: UUID) {
+        guard let variant = englishVariants.first(where: { $0.id == variantID }),
+              let example = variant.usageExamples.first(where: { $0.id == id }) else {
+            return
+        }
+        let text = example.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        speechService.speak(text)
+    }
+
     public func cancel() {
         cancelLookupOperations()
         isPresented = false
@@ -333,7 +409,13 @@ public final class CardEditorViewModel {
                 EnglishVariantDraft(
                     text: $0.text,
                     ipa: $0.ipa,
-                    partsOfSpeech: $0.partsOfSpeech
+                    partsOfSpeech: $0.partsOfSpeech,
+                    usageExamples: $0.usageExamples.map {
+                        UsageExampleDraft(
+                            text: $0.text,
+                            partOfSpeech: $0.partOfSpeech
+                        )
+                    }
                 )
             },
             tagIDs: availableTags
@@ -347,6 +429,9 @@ public final class CardEditorViewModel {
             draft: draft,
             russianMeaningIDs: russianMeanings.map(\.id),
             englishVariantIDs: englishVariants.map(\.id),
+            usageExampleIDsByVariant: englishVariants.map { variant in
+                variant.usageExamples.map(\.id)
+            },
             resolvedTags: availableTags.filter { selectedTagIDs.contains($0.id) },
             cardID: existingCard?.id ?? UUID(),
             createdAt: existingCard?.createdAt,
@@ -360,6 +445,7 @@ public final class CardEditorViewModel {
                 id: snapshot.cardID,
                 russianMeaningIDs: snapshot.russianMeaningIDs,
                 englishVariantIDs: snapshot.englishVariantIDs,
+                usageExampleIDsByVariant: snapshot.usageExampleIDsByVariant,
                 now: snapshot.timestamp
             )
             let card = VocabularyCard(
@@ -386,6 +472,7 @@ public final class CardEditorViewModel {
         let draft: CardDraft
         let russianMeaningIDs: [UUID]
         let englishVariantIDs: [UUID]
+        let usageExampleIDsByVariant: [[UUID]]
         let resolvedTags: [Tag]
         let cardID: UUID
         let createdAt: Date?

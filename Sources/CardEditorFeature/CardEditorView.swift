@@ -41,7 +41,11 @@ public struct CardEditorView: View {
                         Task { await model.lookup(variantID: variantID) }
                     },
                     onSpeak: model.speak,
-                    onTogglePartOfSpeech: model.togglePartOfSpeech
+                    onTogglePartOfSpeech: model.togglePartOfSpeech,
+                    onAddUsageExample: model.addUsageExample,
+                    onRemoveUsageExample: model.removeUsageExample,
+                    onSpeakUsageExample: model.speakUsageExample,
+                    onChooseUsageExamplePart: model.chooseUsageExamplePartOfSpeech
                 )
 
                 TagPickerSection(

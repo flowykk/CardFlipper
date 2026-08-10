@@ -16,7 +16,18 @@ enum VocabularyCardMapper {
                         ipa: $0.ipa,
                         partsOfSpeech: $0.partOfSpeechRawValues.map {
                             PartOfSpeech(rawValue: $0) ?? .other
-                        }
+                        },
+                        usageExamples: $0.usageExamples
+                            .sorted { $0.sortIndex < $1.sortIndex }
+                            .map {
+                                UsageExample(
+                                    id: $0.id,
+                                    text: $0.text,
+                                    partOfSpeech: PartOfSpeech(
+                                        rawValue: $0.partOfSpeechRawValue
+                                    ) ?? .other
+                                )
+                            }
                     )
                 },
             tags: entity.tags
@@ -74,7 +85,16 @@ enum VocabularyCardMapper {
                 text: variant.text,
                 ipa: variant.ipa,
                 partOfSpeechRawValues: variant.partsOfSpeech.map(\.rawValue),
-                sortIndex: sortIndex
+                sortIndex: sortIndex,
+                usageExamples: variant.usageExamples.enumerated().map {
+                    exampleIndex, example in
+                    UsageExampleEntity(
+                        id: example.id,
+                        text: example.text,
+                        partOfSpeechRawValue: example.partOfSpeech.rawValue,
+                        sortIndex: exampleIndex
+                    )
+                }
             )
         }
     }

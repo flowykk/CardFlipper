@@ -36,7 +36,74 @@ import Testing
     #expect(model.englishVariants.map(\.text) == ["word"])
     #expect(model.englishVariants[0].ipa == "wɜːd")
     #expect(model.englishVariants[0].partsOfSpeech == [.noun])
+    #expect(model.englishVariants[0].usageExamples == [
+        UsageExampleInput(
+            id: .editorFixture(103),
+            text: "This word is useful.",
+            partOfSpeech: .noun
+        ),
+    ])
     #expect(model.selectedTagIDs == [Tag.work.id])
+}
+
+@MainActor
+@Test func addingUsageExampleRequiresAvailablePartAndAutoselectsSinglePart() {
+    let model = makeNewEditor()
+    let variantID = model.englishVariants[0].id
+
+    model.addUsageExample(variantID: variantID)
+    #expect(model.englishVariants[0].usageExamples.isEmpty)
+
+    model.englishVariants[0].partsOfSpeech = [.noun]
+    model.addUsageExample(variantID: variantID)
+
+    #expect(model.englishVariants[0].usageExamples.count == 1)
+    #expect(model.englishVariants[0].usageExamples[0].partOfSpeech == .noun)
+}
+
+@MainActor
+@Test func addingUsageExampleWithMultiplePartsRequiresExplicitSelection() {
+    let model = makeNewEditor()
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0].partsOfSpeech = [.noun, .verb]
+
+    model.addUsageExample(variantID: variantID)
+
+    #expect(model.englishVariants[0].usageExamples[0].partOfSpeech == nil)
+    #expect(model.validationErrors.contains(.missingUsageExamplePartOfSpeech) == false)
+    model.englishVariants[0].usageExamples[0].text = "They work together."
+    #expect(model.validationErrors.contains(.missingUsageExamplePartOfSpeech))
+}
+
+@MainActor
+@Test func removingReferencedPartClearsSelectionAndPreservesSentence() {
+    let model = makeNewEditor()
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0].partsOfSpeech = [.noun, .verb]
+    model.addUsageExample(variantID: variantID)
+    let exampleID = model.englishVariants[0].usageExamples[0].id
+    model.englishVariants[0].usageExamples[0].text = "They work together."
+    model.chooseUsageExamplePartOfSpeech(.verb, exampleID: exampleID, variantID: variantID)
+
+    model.togglePartOfSpeech(.verb, variantID: variantID)
+
+    #expect(model.englishVariants[0].usageExamples[0].text == "They work together.")
+    #expect(model.englishVariants[0].usageExamples[0].partOfSpeech == nil)
+}
+
+@MainActor
+@Test func usageExampleSpeechUsesTrimmedCurrentSentence() {
+    let speech = SpeechServiceSpy()
+    let model = makeNewEditor(speech: speech)
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0].partsOfSpeech = [.noun]
+    model.addUsageExample(variantID: variantID)
+    let exampleID = model.englishVariants[0].usageExamples[0].id
+    model.englishVariants[0].usageExamples[0].text = "  This word is useful.  "
+
+    model.speakUsageExample(id: exampleID, variantID: variantID)
+
+    #expect(speech.spokenTexts == ["This word is useful."])
 }
 
 @MainActor
@@ -83,7 +150,19 @@ import Testing
         .init(id: secondMeaningID, text: "второй"),
     ]
     model.englishVariants = [
-        .init(id: firstVariantID, text: " first ", ipa: " fɜːst ", partsOfSpeech: [.noun]),
+        .init(
+            id: firstVariantID,
+            text: " first ",
+            ipa: " fɜːst ",
+            partsOfSpeech: [.noun],
+            usageExamples: [
+                .init(
+                    id: .editorFixture(207),
+                    text: "  The first example.  ",
+                    partOfSpeech: .noun
+                ),
+            ]
+        ),
         .init(id: secondVariantID, text: "second", partsOfSpeech: [.adj]),
     ]
     model.selectedTagIDs = [Tag.work.id]
@@ -113,7 +192,14 @@ import Testing
             id: firstVariantID,
             text: "first",
             ipa: "fɜːst",
-            partsOfSpeech: [.noun]
+            partsOfSpeech: [.noun],
+            usageExamples: [
+                UsageExample(
+                    id: .editorFixture(207),
+                    text: "The first example.",
+                    partOfSpeech: .noun
+                ),
+            ]
         ),
         EnglishVariant(
             id: secondVariantID,

@@ -23,7 +23,35 @@ struct EditorAccessibilityLabels {
         label(for: "editor.english.speak.position", position: position)
     }
 
+    func removeUsageExample(variantPosition: Int, examplePosition: Int) -> String {
+        label(
+            for: "editor.example.remove.position",
+            variantPosition: variantPosition,
+            examplePosition: examplePosition
+        )
+    }
+
+    func speakUsageExample(variantPosition: Int, examplePosition: Int) -> String {
+        label(
+            for: "editor.example.speak.position",
+            variantPosition: variantPosition,
+            examplePosition: examplePosition
+        )
+    }
+
     private func label(for key: String, position: Int) -> String {
         String.localizedStringWithFormat(localize(key), position)
+    }
+
+    private func label(
+        for key: String,
+        variantPosition: Int,
+        examplePosition: Int
+    ) -> String {
+        String.localizedStringWithFormat(
+            localize(key),
+            variantPosition,
+            examplePosition
+        )
     }
 }

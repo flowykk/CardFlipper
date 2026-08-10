@@ -35,6 +35,24 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(noun.waitForExistence(timeout: 3))
         XCTAssertTrue(noun.label.contains("Noun"), "Expected localized POS label, got \(noun.label)")
         XCTAssertFalse(noun.label.contains("partOfSpeech.noun"))
+        tap("editor.english.0.example.add")
+        let newExample = app.descendants(matching: .any)["editor.english.0.example.1.text"]
+        scrollToHittable(newExample)
+        newExample.tap()
+        newExample.typeText("This is another useful example.")
+        dismissKeyboard()
+        let save = app.navigationBars.buttons["Save"]
+        XCTAssertTrue(save.waitForExistence(timeout: 3))
+        save.tap()
+        assertExists("library.card")
+
+        let savedCard = app.buttons.matching(identifier: "library.card").firstMatch
+        tapTrailingEmptySpace(in: savedCard)
+        let reopenedExample = app.descendants(matching: .any)[
+            "editor.english.0.example.1.text"
+        ]
+        XCTAssertTrue(reopenedExample.waitForExistence(timeout: 5))
+        XCTAssertEqual(reopenedExample.value as? String, "This is another useful example.")
         snap("F1-05-reopened-editor")
     }
 
@@ -107,6 +125,30 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("F3-02-library-refreshed")
     }
 
+    func testF4SeededUsageExampleAppearsOnEnglishStudyFace() throws {
+        launch(seed: true)
+        tap("library.study")
+        assertExists("study.setup")
+        tap("study.start")
+
+        for _ in 0..<3 {
+            assertExists("study.card.prompt")
+            let example = app.descendants(matching: .any)["study.usageExample"]
+            if example.waitForExistence(timeout: 1) {
+                XCTAssertEqual(example.label, "This book is easy to read.")
+                assertExists("study.usageExample.speak")
+                snap("F4-01-usage-example-on-english-face")
+                return
+            }
+
+            tapEmptyCardSpace("study.card.prompt")
+            assertExists("study.remember")
+            tap("study.remember")
+        }
+
+        XCTFail("Expected seeded usage example within the study queue")
+    }
+
     private func launch(seed: Bool) {
         continueAfterFailure = false
         app.launchArguments = [
@@ -139,6 +181,19 @@ final class CardFlipperFlowTests: XCTestCase {
         appOrigin.withOffset(
             CGVector(dx: app.frame.width - 24, dy: row.frame.midY)
         ).tap()
+    }
+
+    private func dismissKeyboard() {
+        guard app.keyboards.firstMatch.exists else { return }
+
+        let hideKeyboard = app.keyboards.buttons["Hide keyboard"]
+        if hideKeyboard.exists {
+            hideKeyboard.tap()
+        } else {
+            app.navigationBars.firstMatch.coordinate(
+                withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)
+            ).tap()
+        }
     }
 
     private func waitForStablePromptAfterAssessment() {

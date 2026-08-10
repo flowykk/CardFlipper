@@ -81,6 +81,8 @@ enum TestIDs {
     static let russianMeaningTwo = UUID(uuidString: "00000000-0000-0000-0000-000000000103")!
     static let englishVariantOne = UUID(uuidString: "00000000-0000-0000-0000-000000000104")!
     static let englishVariantTwo = UUID(uuidString: "00000000-0000-0000-0000-000000000105")!
+    static let usageExampleOne = UUID(uuidString: "00000000-0000-0000-0000-000000000106")!
+    static let usageExampleTwo = UUID(uuidString: "00000000-0000-0000-0000-000000000107")!
     static let secondCard = UUID(uuidString: "00000000-0000-0000-0000-000000000108")!
     static let secondRussianMeaning = UUID(uuidString: "00000000-0000-0000-0000-000000000109")!
     static let secondEnglishVariant = UUID(uuidString: "00000000-0000-0000-0000-000000000110")!
@@ -107,7 +109,19 @@ extension VocabularyCard {
                     id: TestIDs.englishVariantOne,
                     text: "work",
                     ipa: "wɜːk",
-                    partsOfSpeech: [.noun, .verb]
+                    partsOfSpeech: [.noun, .verb],
+                    usageExamples: [
+                        UsageExample(
+                            id: TestIDs.usageExampleOne,
+                            text: "This work takes time.",
+                            partOfSpeech: .noun
+                        ),
+                        UsageExample(
+                            id: TestIDs.usageExampleTwo,
+                            text: "They work together.",
+                            partOfSpeech: .verb
+                        ),
+                    ]
                 ),
                 EnglishVariant(
                     id: TestIDs.englishVariantTwo,

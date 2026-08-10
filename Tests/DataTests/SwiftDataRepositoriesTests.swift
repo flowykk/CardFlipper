@@ -108,7 +108,14 @@ import Testing
                 id: TestIDs.englishVariantOne,
                 text: "business",
                 ipa: "ˈbɪznəs",
-                partsOfSpeech: [.noun]
+                partsOfSpeech: [.noun],
+                usageExamples: [
+                    UsageExample(
+                        id: TestIDs.usageExampleOne,
+                        text: "Business is growing.",
+                        partOfSpeech: .noun
+                    ),
+                ]
             ),
         ],
         tags: [],
@@ -121,6 +128,7 @@ import Testing
     #expect(try await repository.fetchCards() == [replacement])
     #expect(try container.mainContext.fetchCount(FetchDescriptor<RussianMeaningEntity>()) == 1)
     #expect(try container.mainContext.fetchCount(FetchDescriptor<EnglishVariantEntity>()) == 1)
+    #expect(try container.mainContext.fetchCount(FetchDescriptor<UsageExampleEntity>()) == 1)
 }
 
 @MainActor
@@ -136,6 +144,26 @@ import Testing
     #expect(try await repositories.tags.fetchTags() == [tag])
     #expect(try container.mainContext.fetchCount(FetchDescriptor<RussianMeaningEntity>()) == 0)
     #expect(try container.mainContext.fetchCount(FetchDescriptor<EnglishVariantEntity>()) == 0)
+    #expect(try container.mainContext.fetchCount(FetchDescriptor<UsageExampleEntity>()) == 0)
+}
+
+@MainActor
+@Test func cardWithoutUsageExamplesRoundTripsWithEmptyExamples() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let repository = SwiftDataCardRepository(container: container)
+    let card = VocabularyCard.singleValueFixture(
+        id: TestIDs.secondCard,
+        russianMeaningID: TestIDs.secondRussianMeaning,
+        englishVariantID: TestIDs.secondEnglishVariant,
+        russian: "дом",
+        english: "home",
+        updatedAt: TestDates.updated
+    )
+
+    try await repository.save(card)
+
+    #expect(try await repository.fetchCards() == [card])
+    #expect(try container.mainContext.fetchCount(FetchDescriptor<UsageExampleEntity>()) == 0)
 }
 
 @MainActor

@@ -11,6 +11,10 @@ public struct EnglishVariantsSection: View {
     private let onLookup: (UUID) -> Void
     private let onSpeak: (UUID) -> Void
     private let onTogglePartOfSpeech: (PartOfSpeech, UUID) -> Void
+    private let onAddUsageExample: (UUID) -> Void
+    private let onRemoveUsageExample: (UUID, UUID) -> Void
+    private let onSpeakUsageExample: (UUID, UUID) -> Void
+    private let onChooseUsageExamplePart: (PartOfSpeech, UUID, UUID) -> Void
     private let accessibilityLabels = EditorAccessibilityLabels()
 
     public init(
@@ -22,7 +26,11 @@ public struct EnglishVariantsSection: View {
         onTextChanged: @escaping (UUID) -> Void,
         onLookup: @escaping (UUID) -> Void,
         onSpeak: @escaping (UUID) -> Void,
-        onTogglePartOfSpeech: @escaping (PartOfSpeech, UUID) -> Void
+        onTogglePartOfSpeech: @escaping (PartOfSpeech, UUID) -> Void,
+        onAddUsageExample: @escaping (UUID) -> Void,
+        onRemoveUsageExample: @escaping (UUID, UUID) -> Void,
+        onSpeakUsageExample: @escaping (UUID, UUID) -> Void,
+        onChooseUsageExamplePart: @escaping (PartOfSpeech, UUID, UUID) -> Void
     ) {
         _variants = variants
         self.lookupState = lookupState
@@ -33,6 +41,10 @@ public struct EnglishVariantsSection: View {
         self.onLookup = onLookup
         self.onSpeak = onSpeak
         self.onTogglePartOfSpeech = onTogglePartOfSpeech
+        self.onAddUsageExample = onAddUsageExample
+        self.onRemoveUsageExample = onRemoveUsageExample
+        self.onSpeakUsageExample = onSpeakUsageExample
+        self.onChooseUsageExamplePart = onChooseUsageExamplePart
     }
 
     public var body: some View {
@@ -91,6 +103,17 @@ public struct EnglishVariantsSection: View {
                         }
                     }
                     .scrollIndicators(.hidden)
+
+                    UsageExamplesEditor(
+                        variant: $variant,
+                        variantPosition: position(of: variant.id),
+                        onAdd: { onAddUsageExample(variant.id) },
+                        onRemove: { onRemoveUsageExample($0, variant.id) },
+                        onSpeak: { onSpeakUsageExample($0, variant.id) },
+                        onChoosePartOfSpeech: {
+                            onChooseUsageExamplePart($0, $1, variant.id)
+                        }
+                    )
 
                     HStack {
                         lookupStatus(for: variant.id)

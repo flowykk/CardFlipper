@@ -5,6 +5,7 @@ enum CardFlipperSchema {
         CardEntity.self,
         RussianMeaningEntity.self,
         EnglishVariantEntity.self,
+        UsageExampleEntity.self,
         TagEntity.self,
     ])
 }

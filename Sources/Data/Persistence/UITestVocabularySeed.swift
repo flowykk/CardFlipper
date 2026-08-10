@@ -36,7 +36,17 @@ public enum UITestVocabularySeed {
                         text: english,
                         ipa: ipa,
                         partOfSpeechRawValues: [partOfSpeech],
-                        sortIndex: 0
+                        sortIndex: 0,
+                        usageExamples: id == 1
+                            ? [
+                                UsageExampleEntity(
+                                    id: seedID(3_000 + id),
+                                    text: "This book is easy to read.",
+                                    partOfSpeechRawValue: partOfSpeech,
+                                    sortIndex: 0
+                                ),
+                            ]
+                            : []
                     ),
                 ],
                 tags: [tag]

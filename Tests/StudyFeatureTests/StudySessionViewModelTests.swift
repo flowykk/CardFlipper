@@ -160,6 +160,49 @@ import Testing
 }
 
 @MainActor
+@Test func usageExampleSpeechIsLimitedToOwningVariantAndVisibleEnglishSide() {
+    let speech = SpeechServiceSpy()
+    let example = UsageExample(
+        id: .fixture(3_001),
+        text: "This word is useful.",
+        partOfSpeech: .noun
+    )
+    let russianToEnglishConfiguration = StudyConfiguration(
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        cards: [.fixture(id: 1, usageExamples: [example])]
+    )
+    let russianToEnglish = makeSession(
+        configuration: russianToEnglishConfiguration,
+        speech: speech
+    )
+    let variantID = russianToEnglishConfiguration.cards[0].englishVariants[0].id
+
+    russianToEnglish.speakUsageExample(variantID: variantID, exampleID: example.id)
+    russianToEnglish.toggleCardSide()
+    russianToEnglish.speakUsageExample(variantID: variantID, exampleID: example.id)
+    russianToEnglish.speakUsageExample(variantID: .fixture(999), exampleID: example.id)
+    russianToEnglish.toggleCardSide()
+    russianToEnglish.speakUsageExample(variantID: variantID, exampleID: example.id)
+
+    let englishToRussianConfiguration = StudyConfiguration(
+        direction: .englishToRussian,
+        selectedTagIDs: [],
+        cards: [.fixture(id: 2, usageExamples: [example])]
+    )
+    let englishToRussian = makeSession(
+        configuration: englishToRussianConfiguration,
+        speech: speech
+    )
+    let frontVariantID = englishToRussianConfiguration.cards[0].englishVariants[0].id
+    englishToRussian.speakUsageExample(variantID: frontVariantID, exampleID: example.id)
+    englishToRussian.toggleCardSide()
+    englishToRussian.speakUsageExample(variantID: frontVariantID, exampleID: example.id)
+
+    #expect(speech.spokenTexts == ["This word is useful.", "This word is useful."])
+}
+
+@MainActor
 @Test func exitRequiresAnExplicitConfirmationState() {
     let model = makeSession()
 
@@ -234,7 +277,19 @@ import Testing
         russian: "слово",
         english: "word",
         ipa: "/wɜːd/",
-        partsOfSpeech: [.noun, .verb]
+        partsOfSpeech: [.noun, .verb],
+        usageExamples: [
+            UsageExample(
+                id: .fixture(3_001),
+                text: "This word matters.",
+                partOfSpeech: .noun
+            ),
+            UsageExample(
+                id: .fixture(3_002),
+                text: "They worded it carefully.",
+                partOfSpeech: .verb
+            ),
+        ]
     )
     let russianToEnglish = StudyCardContent(card: card, direction: .russianToEnglish)
     let englishToRussian = StudyCardContent(card: card, direction: .englishToRussian)
@@ -244,6 +299,10 @@ import Testing
     #expect(russianToEnglish.back.language == .english)
     #expect(russianToEnglish.back.values == ["word"])
     #expect(russianToEnglish.back.englishMetadata == ["/wɜːd/", "noun, verb"])
+    #expect(russianToEnglish.back.usageExamples == [
+        StudyUsageExampleContent(text: "This word matters.", partOfSpeech: .noun),
+        StudyUsageExampleContent(text: "They worded it carefully.", partOfSpeech: .verb),
+    ])
     #expect(englishToRussian.front == russianToEnglish.back)
     #expect(englishToRussian.back == russianToEnglish.front)
 }

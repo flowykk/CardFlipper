@@ -203,7 +203,14 @@ extension VocabularyCard {
                 id: .editorFixture(102),
                 text: "word",
                 ipa: "wɜːd",
-                partsOfSpeech: [.noun]
+                partsOfSpeech: [.noun],
+                usageExamples: [
+                    UsageExample(
+                        id: .editorFixture(103),
+                        text: "This word is useful.",
+                        partOfSpeech: .noun
+                    ),
+                ]
             ),
         ],
         tags: [.work],
