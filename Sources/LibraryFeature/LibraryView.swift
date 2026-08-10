@@ -5,6 +5,7 @@ public struct LibraryView: View {
     @State private var model: LibraryViewModel
     @State private var showingCardDeletion = false
     @State private var showingTagDeletion = false
+    @State private var showsRussianMeanings = false
 
     private let onAddCard: () -> Void
     private let onEditCard: (VocabularyCard) -> Void
@@ -150,6 +151,14 @@ public struct LibraryView: View {
 
     private var cardList: some View {
         List {
+            Section {
+                Toggle(
+                    "library.translations.show",
+                    isOn: $showsRussianMeanings
+                )
+                .accessibilityIdentifier("library.translations.toggle")
+            }
+
             if !model.tags.isEmpty {
                 Section {
                     TagFilterView(
@@ -168,7 +177,10 @@ public struct LibraryView: View {
                 Button {
                     onEditCard(card)
                 } label: {
-                    VocabularyCardRow(card: card)
+                    VocabularyCardRow(
+                        card: card,
+                        showRussianMeanings: showsRussianMeanings
+                    )
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("library.card")

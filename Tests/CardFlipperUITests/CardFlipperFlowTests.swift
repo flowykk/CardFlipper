@@ -56,6 +56,24 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("F1-05-reopened-editor")
     }
 
+    func testLibraryHidesTranslationsUntilToggleIsEnabled() throws {
+        launch(seed: true)
+
+        let firstCard = app.buttons.matching(identifier: "library.card").firstMatch
+        XCTAssertTrue(firstCard.waitForExistence(timeout: 5))
+        XCTAssertTrue(firstCard.staticTexts["book"].exists)
+        XCTAssertFalse(firstCard.staticTexts["книга"].exists)
+
+        let translationsToggle = app.switches["library.translations.toggle"]
+        XCTAssertTrue(translationsToggle.waitForExistence(timeout: 3))
+        translationsToggle.coordinate(
+            withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)
+        ).tap()
+
+        XCTAssertTrue(firstCard.staticTexts["book"].waitForExistence(timeout: 3))
+        XCTAssertTrue(firstCard.staticTexts["книга"].waitForExistence(timeout: 3))
+    }
+
     func testF2StudyForgetRememberRepeatAndFinish() throws {
         launch(seed: true)
 

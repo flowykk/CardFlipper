@@ -3,23 +3,28 @@ import SwiftUI
 
 public struct VocabularyCardRow: View {
     private let card: VocabularyCard
+    private let showRussianMeanings: Bool
 
-    public init(card: VocabularyCard) {
+    public init(card: VocabularyCard, showRussianMeanings: Bool) {
         self.card = card
+        self.showRussianMeanings = showRussianMeanings
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             languageValues(
-                label: "card.russian",
-                values: card.russianMeanings.map(\.text),
-                font: .headline
-            )
-            languageValues(
                 label: "card.english",
                 values: card.englishVariants.map(\.text),
-                font: .body
+                font: .headline
             )
+
+            if showRussianMeanings {
+                languageValues(
+                    label: "card.russian",
+                    values: card.russianMeanings.map(\.text),
+                    font: .body
+                )
+            }
 
             if !card.tags.isEmpty {
                 ViewThatFits(in: .horizontal) {
