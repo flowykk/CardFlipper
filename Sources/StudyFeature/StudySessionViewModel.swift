@@ -36,6 +36,7 @@ public final class SystemStudyFeedback: StudyFeedback {
 public final class StudySessionViewModel {
     public private(set) var session: StudySession
     public private(set) var result: StudyResult?
+    public private(set) var isShowingAnswer = false
     public var isExitConfirmationPresented = false
 
     public let repeatConfiguration: StudyConfiguration
@@ -66,14 +67,20 @@ public final class StudySessionViewModel {
         session.initialCardCount - session.remainingCount
     }
 
-    public func reveal() {
-        guard !session.isComplete, !session.isRevealed else { return }
-        session.reveal()
+    public func toggleCardSide() {
+        guard !session.isComplete else { return }
+
+        if !session.isRevealed {
+            session.reveal()
+        }
+
+        isShowingAnswer.toggle()
         feedback.perform(.reveal)
     }
 
     public func remember() throws {
         try session.remember()
+        isShowingAnswer = false
 
         if session.isComplete {
             result = StudyResult(
@@ -88,6 +95,7 @@ public final class StudySessionViewModel {
 
     public func forget() throws {
         try session.forget()
+        isShowingAnswer = false
         feedback.perform(.forget)
     }
 
@@ -112,9 +120,9 @@ public final class StudySessionViewModel {
     private var isEnglishSideVisible: Bool {
         switch session.direction {
         case .russianToEnglish:
-            session.isRevealed
+            isShowingAnswer
         case .englishToRussian:
-            !session.isRevealed
+            !isShowingAnswer
         }
     }
 }

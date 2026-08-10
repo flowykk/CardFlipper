@@ -67,27 +67,27 @@ public enum StudyCardAnimationStyle: Equatable, Sendable {
 
 public struct StudyCardPresentation: Equatable, Sendable {
     public let cardID: UUID
-    public let isRevealed: Bool
+    public let isShowingAnswer: Bool
     public let reduceMotion: Bool
 
-    public init(cardID: UUID, isRevealed: Bool, reduceMotion: Bool) {
+    public init(cardID: UUID, isShowingAnswer: Bool, reduceMotion: Bool) {
         self.cardID = cardID
-        self.isRevealed = isRevealed
+        self.isShowingAnswer = isShowingAnswer
         self.reduceMotion = reduceMotion
     }
 
     public var frontRotationDegrees: Double {
-        reduceMotion ? 0 : (isRevealed ? 180 : 0)
+        reduceMotion ? 0 : (isShowingAnswer ? 180 : 0)
     }
 
     public var backRotationDegrees: Double {
-        reduceMotion ? 0 : (isRevealed ? 0 : -180)
+        reduceMotion ? 0 : (isShowingAnswer ? 0 : -180)
     }
 
-    public var frontOpacity: Double { isRevealed ? 0 : 1 }
-    public var backOpacity: Double { isRevealed ? 1 : 0 }
-    public var isFrontAccessibilityHidden: Bool { isRevealed }
-    public var isBackAccessibilityHidden: Bool { !isRevealed }
+    public var frontOpacity: Double { isShowingAnswer ? 0 : 1 }
+    public var backOpacity: Double { isShowingAnswer ? 1 : 0 }
+    public var isFrontAccessibilityHidden: Bool { isShowingAnswer }
+    public var isBackAccessibilityHidden: Bool { !isShowingAnswer }
     public var viewIdentity: UUID { cardID }
     public var animationStyle: StudyCardAnimationStyle {
         reduceMotion ? .crossfade : .flip3D
@@ -102,9 +102,9 @@ public struct StudyCardView: View {
 
     private let card: VocabularyCard
     private let direction: StudyDirection
-    private let isRevealed: Bool
+    private let isShowingAnswer: Bool
     private let reduceMotion: Bool
-    private let onReveal: () -> Void
+    private let onToggle: () -> Void
     private let onSpeak: (UUID) -> Void
 
     @AccessibilityFocusState private var focusedFace: FocusedFace?
@@ -112,16 +112,16 @@ public struct StudyCardView: View {
     public init(
         card: VocabularyCard,
         direction: StudyDirection,
-        isRevealed: Bool,
+        isShowingAnswer: Bool,
         reduceMotion: Bool,
-        onReveal: @escaping () -> Void,
+        onToggle: @escaping () -> Void,
         onSpeak: @escaping (UUID) -> Void
     ) {
         self.card = card
         self.direction = direction
-        self.isRevealed = isRevealed
+        self.isShowingAnswer = isShowingAnswer
         self.reduceMotion = reduceMotion
-        self.onReveal = onReveal
+        self.onToggle = onToggle
         self.onSpeak = onSpeak
     }
 
@@ -129,7 +129,7 @@ public struct StudyCardView: View {
         let content = StudyCardContent(card: card, direction: direction)
         let presentation = StudyCardPresentation(
             cardID: card.id,
-            isRevealed: isRevealed,
+            isShowingAnswer: isShowingAnswer,
             reduceMotion: reduceMotion
         )
 
@@ -141,13 +141,13 @@ public struct StudyCardView: View {
                 opacity: presentation.frontOpacity,
                 animationStyle: presentation.animationStyle
             )
-            .allowsHitTesting(!isRevealed)
+            .allowsHitTesting(!isShowingAnswer)
             .accessibilityHidden(presentation.isFrontAccessibilityHidden)
             .accessibilityFocused($focusedFace, equals: .prompt)
             .accessibilityAddTraits(.isButton)
             .accessibilityHint("study.flipHint")
             .accessibilityAction(.default) {
-                onReveal()
+                onToggle()
             }
             .accessibilityIdentifier("study.card.prompt")
 
@@ -158,19 +158,22 @@ public struct StudyCardView: View {
                 opacity: presentation.backOpacity,
                 animationStyle: presentation.animationStyle
             )
-            .allowsHitTesting(isRevealed)
+            .allowsHitTesting(isShowingAnswer)
             .accessibilityHidden(presentation.isBackAccessibilityHidden)
             .accessibilityFocused($focusedFace, equals: .answer)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint("study.flipHint")
+            .accessibilityAction(.default) {
+                onToggle()
+            }
             .accessibilityIdentifier("study.card.answer")
         }
         .id(presentation.viewIdentity)
+        .frame(maxWidth: .infinity, minHeight: 320)
         .contentShape(Rectangle())
-        .onTapGesture {
-            guard !isRevealed else { return }
-            onReveal()
-        }
-        .onChange(of: isRevealed) { _, revealed in
-            focusedFace = revealed ? .answer : .prompt
+        .onTapGesture(perform: onToggle)
+        .onChange(of: isShowingAnswer) { _, showingAnswer in
+            focusedFace = showingAnswer ? .answer : .prompt
         }
         .onChange(of: card.id) {
             focusedFace = .prompt

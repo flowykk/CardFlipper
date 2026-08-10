@@ -52,9 +52,18 @@ final class CardFlipperFlowTests: XCTestCase {
         assertExists("study.card.prompt")
         snap("F2-03-first-prompt")
 
-        tap("study.card.prompt")
+        tapEmptyCardSpace("study.card.prompt")
         assertExists("study.forget")
         snap("F2-04-first-answer")
+
+        tapEmptyCardSpace("study.card.answer")
+        assertExists("study.card.prompt")
+        assertExists("study.forget")
+        assertExists("study.remember")
+        snap("F2-04b-returned-prompt-assessment-unlocked")
+
+        tapEmptyCardSpace("study.card.prompt")
+        assertExists("study.card.answer")
         tap("study.forget")
         waitForStablePromptAfterAssessment()
         snap("F2-05-forgotten-card-requeued")
@@ -113,9 +122,15 @@ final class CardFlipperFlowTests: XCTestCase {
     }
 
     private func rememberCurrentCard() {
-        tap("study.card.prompt")
+        tapEmptyCardSpace("study.card.prompt")
         assertExists("study.remember")
         tap("study.remember")
+    }
+
+    private func tapEmptyCardSpace(_ identifier: String) {
+        let card = app.descendants(matching: .any)[identifier]
+        scrollToHittable(card)
+        card.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.15)).tap()
     }
 
     private func waitForStablePromptAfterAssessment() {

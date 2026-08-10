@@ -26,10 +26,26 @@ import Testing
     #expect(throws: StudySessionError.answerNotRevealed) { try model.remember() }
     #expect(feedback.events.isEmpty)
 
-    model.reveal()
+    model.toggleCardSide()
 
     #expect(model.canAssess)
+    #expect(model.isShowingAnswer)
     #expect(feedback.events == [.reveal])
+}
+
+@MainActor
+@Test func cardCanReturnToPromptWithoutLockingAssessment() {
+    let feedback = StudyFeedbackSpy()
+    let model = makeSession(feedback: feedback)
+
+    model.toggleCardSide()
+    #expect(model.isShowingAnswer)
+    #expect(model.canAssess)
+
+    model.toggleCardSide()
+    #expect(model.isShowingAnswer == false)
+    #expect(model.canAssess)
+    #expect(feedback.events == [.reveal, .reveal])
 }
 
 @MainActor
@@ -38,11 +54,12 @@ import Testing
     let model = makeSession(feedback: feedback)
     let secondCardID = StudyConfiguration.fixture.cards[1].id
 
-    model.reveal()
+    model.toggleCardSide()
     try model.remember()
 
     #expect(model.session.currentCard?.id == secondCardID)
     #expect(model.session.remainingCount == 1)
+    #expect(model.isShowingAnswer == false)
     #expect(model.canAssess == false)
     #expect(model.result == nil)
     #expect(feedback.events == [.reveal, .remember])
@@ -55,11 +72,12 @@ import Testing
     let firstCardID = StudyConfiguration.fixture.cards[0].id
     let secondCardID = StudyConfiguration.fixture.cards[1].id
 
-    model.reveal()
+    model.toggleCardSide()
     try model.forget()
 
     #expect(model.session.queue.map(\.id) == [secondCardID, firstCardID])
     #expect(model.session.forgottenCount == 1)
+    #expect(model.isShowingAnswer == false)
     #expect(model.result == nil)
     #expect(feedback.events == [.reveal, .forget])
 }
@@ -69,12 +87,12 @@ import Testing
     let feedback = StudyFeedbackSpy()
     let model = makeSession(feedback: feedback)
 
-    model.reveal()
+    model.toggleCardSide()
     try model.forget()
-    model.reveal()
+    model.toggleCardSide()
     try model.remember()
     #expect(model.result == nil)
-    model.reveal()
+    model.toggleCardSide()
     try model.remember()
 
     #expect(model.result == StudyResult(uniqueCardCount: 2, forgottenCount: 1))
@@ -115,7 +133,9 @@ import Testing
 
     russianToEnglish.speakEnglish(variantID: englishVariantID)
     #expect(speech.spokenTexts.isEmpty)
-    russianToEnglish.reveal()
+    russianToEnglish.toggleCardSide()
+    russianToEnglish.speakEnglish(variantID: englishVariantID)
+    russianToEnglish.toggleCardSide()
     russianToEnglish.speakEnglish(variantID: englishVariantID)
     russianToEnglish.speakEnglish(variantID: .fixture(999))
     #expect(speech.spokenTexts == ["word"])
@@ -131,10 +151,12 @@ import Testing
     )
     let frontVariantID = englishToRussianConfiguration.cards[0].englishVariants[0].id
     englishToRussian.speakEnglish(variantID: frontVariantID)
-    englishToRussian.reveal()
+    englishToRussian.toggleCardSide()
+    englishToRussian.speakEnglish(variantID: frontVariantID)
+    englishToRussian.toggleCardSide()
     englishToRussian.speakEnglish(variantID: frontVariantID)
 
-    #expect(speech.spokenTexts == ["word", "speak"])
+    #expect(speech.spokenTexts == ["word", "speak", "speak"])
 }
 
 @MainActor
@@ -150,17 +172,17 @@ import Testing
 @Test func cardPresentationUsesRotationOrReduceMotionReplacement() {
     let prompt = StudyCardPresentation(
         cardID: .fixture(1),
-        isRevealed: false,
+        isShowingAnswer: false,
         reduceMotion: false
     )
     let answer = StudyCardPresentation(
         cardID: .fixture(1),
-        isRevealed: true,
+        isShowingAnswer: true,
         reduceMotion: false
     )
     let reducedAnswer = StudyCardPresentation(
         cardID: .fixture(1),
-        isRevealed: true,
+        isShowingAnswer: true,
         reduceMotion: true
     )
 
@@ -181,22 +203,22 @@ import Testing
 @Test func changingCardsResetsFacesWithoutAnimatingTheNextAnswerOut() {
     let revealedFirstCard = StudyCardPresentation(
         cardID: .fixture(1),
-        isRevealed: true,
+        isShowingAnswer: true,
         reduceMotion: false
     )
     let nextPrompt = StudyCardPresentation(
         cardID: .fixture(2),
-        isRevealed: false,
+        isShowingAnswer: false,
         reduceMotion: false
     )
     let firstPrompt = StudyCardPresentation(
         cardID: .fixture(1),
-        isRevealed: false,
+        isShowingAnswer: false,
         reduceMotion: false
     )
     let reducedPrompt = StudyCardPresentation(
         cardID: .fixture(1),
-        isRevealed: false,
+        isShowingAnswer: false,
         reduceMotion: true
     )
 

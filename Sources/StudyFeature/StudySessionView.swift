@@ -82,9 +82,9 @@ public struct StudySessionView: View {
                     StudyCardView(
                         card: card,
                         direction: model.session.direction,
-                        isRevealed: model.session.isRevealed,
+                        isShowingAnswer: model.isShowingAnswer,
                         reduceMotion: reduceMotion,
-                        onReveal: model.reveal,
+                        onToggle: model.toggleCardSide,
                         onSpeak: model.speakEnglish
                     )
                 } else {
