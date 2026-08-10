@@ -58,6 +58,16 @@ import Testing
     #expect(abs(components.blue - 1.0) < 0.001)
 }
 
+@MainActor
+@Test func openingSettingsAppendsTheSettingsRouteOnlyOnce() {
+    let navigation = AppNavigationState()
+
+    navigation.openSettings()
+    navigation.openSettings()
+
+    #expect(navigation.path == [.settings])
+}
+
 #if DEBUG
 @Test func uiTestLaunchConfigurationSelectsIsolatedStoreAndSeed() {
     let configuration = AppLaunchConfiguration(arguments: [

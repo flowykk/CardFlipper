@@ -9,6 +9,7 @@ import SwiftUI
 enum AppRoute: Hashable {
     case studySetup
     case statistics
+    case settings
 }
 
 enum AppEditorPresentation: Equatable, Identifiable {
@@ -77,6 +78,12 @@ final class AppNavigationState {
     func openStudySetup() {
         if path.last != .studySetup {
             path.append(.studySetup)
+        }
+    }
+
+    func openSettings() {
+        if path.last != .settings {
+            path.append(.settings)
         }
     }
 
@@ -206,9 +213,14 @@ final class RootViewModel {
 
 struct RootView: View {
     @State private var model: RootViewModel
+    @State private var appearanceSettings: AppearanceSettings
 
-    init(container: AppContainer) {
+    init(
+        container: AppContainer,
+        appearanceSettings: AppearanceSettings = AppearanceSettings()
+    ) {
         _model = State(initialValue: RootViewModel(container: container))
+        _appearanceSettings = State(initialValue: appearanceSettings)
     }
 
     var body: some View {
@@ -223,7 +235,12 @@ struct RootView: View {
                 onDataChanged: model.libraryChanged
             )
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button(action: navigation.openSettings) {
+                        Label("settings.open", systemImage: "gearshape")
+                    }
+                    .accessibilityIdentifier("library.settings")
+
                     Button {
                         navigation.path.append(.statistics)
                     } label: {
@@ -244,6 +261,8 @@ struct RootView: View {
                     }
                 case .statistics:
                     StatisticsView(statistics: model.studyStatistics)
+                case .settings:
+                    SettingsView(settings: appearanceSettings)
                 }
             }
         }
@@ -271,6 +290,7 @@ struct RootView: View {
             }
             .id(presentation.sessionID)
         }
+        .tint(appearanceSettings.accentColor)
     }
 
     @ViewBuilder
