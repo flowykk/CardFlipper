@@ -2,8 +2,29 @@ import Core
 import DesignSystem
 import SwiftUI
 
+struct StudyResultMetric: Equatable, Sendable {
+    let localizationKey: String
+    let count: Int
+}
+
+struct StudyResultPresentation: Equatable, Sendable {
+    let reviewedCards: StudyResultMetric
+    let extraAttempts: StudyResultMetric
+
+    init(result: StudyResult) {
+        reviewedCards = StudyResultMetric(
+            localizationKey: "study.result.cards",
+            count: result.uniqueCardCount
+        )
+        extraAttempts = StudyResultMetric(
+            localizationKey: "study.result.extraAttempts",
+            count: result.forgottenCount
+        )
+    }
+}
+
 public struct StudyResultView: View {
-    private let result: StudyResult
+    private let presentation: StudyResultPresentation
     private let onRepeat: () -> Void
     private let onFinish: () -> Void
 
@@ -12,7 +33,7 @@ public struct StudyResultView: View {
         onRepeat: @escaping () -> Void,
         onFinish: @escaping () -> Void
     ) {
-        self.result = result
+        presentation = StudyResultPresentation(result: result)
         self.onRepeat = onRepeat
         self.onFinish = onFinish
     }
@@ -31,17 +52,11 @@ public struct StudyResultView: View {
 
                 VStack(spacing: 16) {
                     resultRow(
-                        title: Text(verbatim: localizedCount(
-                            "study.result.cards",
-                            result.uniqueCardCount
-                        )),
+                        title: Text(verbatim: localizedCount(presentation.reviewedCards)),
                         systemImage: "rectangle.stack.fill"
                     )
                     resultRow(
-                        title: Text(verbatim: localizedCount(
-                            "study.result.forgotten",
-                            result.forgottenCount
-                        )),
+                        title: Text(verbatim: localizedCount(presentation.extraAttempts)),
                         systemImage: "arrow.uturn.backward.circle.fill"
                     )
                 }
@@ -77,10 +92,10 @@ public struct StudyResultView: View {
         }
     }
 
-    private func localizedCount(_ key: String, _ count: Int) -> String {
+    private func localizedCount(_ metric: StudyResultMetric) -> String {
         String.localizedStringWithFormat(
-            String(localized: String.LocalizationValue(key)),
-            count
+            String(localized: String.LocalizationValue(metric.localizationKey)),
+            metric.count
         )
     }
 }

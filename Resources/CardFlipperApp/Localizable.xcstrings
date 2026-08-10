@@ -26,6 +26,20 @@
     "card.addEnglish" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add English Translation" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавить английский перевод" } } } },
     "card.ipa" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Pronunciation (IPA)" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Произношение (IPA)" } } } },
     "card.partsOfSpeech" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Part of Speech" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Часть речи" } } } },
+    "partOfSpeech.noun" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Noun" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Существительное" } } } },
+    "partOfSpeech.verb" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Verb" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Глагол" } } } },
+    "partOfSpeech.adj" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Adjective" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Прилагательное" } } } },
+    "partOfSpeech.adv" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Adverb" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Наречие" } } } },
+    "partOfSpeech.pronoun" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Pronoun" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Местоимение" } } } },
+    "partOfSpeech.preposition" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Preposition" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Предлог" } } } },
+    "partOfSpeech.conjunction" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Conjunction" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Союз" } } } },
+    "partOfSpeech.interjection" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Interjection" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Междометие" } } } },
+    "partOfSpeech.determiner" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Determiner" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Определитель" } } } },
+    "partOfSpeech.numeral" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Numeral" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Числительное" } } } },
+    "partOfSpeech.auxiliary" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Auxiliary verb" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вспомогательный глагол" } } } },
+    "partOfSpeech.modal" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Modal verb" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Модальный глагол" } } } },
+    "partOfSpeech.phrase" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Phrase" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Фраза" } } } },
+    "partOfSpeech.other" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Other" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Другое" } } } },
     "card.tags" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Tags" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Теги" } } } },
     "card.newTag" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "New Tag" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Новый тег" } } } },
     "card.lookup.notFound" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "No Definition Found" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Определение не найдено" } } } },
@@ -100,23 +114,23 @@
         }
       }
     },
-    "study.result.forgotten" : {
+    "study.result.extraAttempts" : {
       "localizations" : {
         "en" : {
           "variations" : {
             "plural" : {
-              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld card forgotten" } },
-              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld cards forgotten" } }
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld extra attempt" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld extra attempts" } }
             }
           }
         },
         "ru" : {
           "variations" : {
             "plural" : {
-              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточка не вспомнена" } },
-              "few" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки не вспомнены" } },
-              "many" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточек не вспомнено" } },
-              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки не вспомнено" } }
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld дополнительная попытка" } },
+              "few" : { "stringUnit" : { "state" : "translated", "value" : "%lld дополнительные попытки" } },
+              "many" : { "stringUnit" : { "state" : "translated", "value" : "%lld дополнительных попыток" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld дополнительной попытки" } }
             }
           }
         }

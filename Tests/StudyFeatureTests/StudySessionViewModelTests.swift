@@ -79,8 +79,29 @@ import Testing
 
     #expect(model.result == StudyResult(uniqueCardCount: 2, forgottenCount: 1))
     #expect(model.repeatConfiguration == .fixture)
-    #expect(feedback.events.last == .completion)
-    #expect(feedback.events.filter { $0 == .completion }.count == 1)
+    #expect(feedback.events == [
+        .reveal,
+        .forget,
+        .reveal,
+        .remember,
+        .reveal,
+        .completion,
+    ])
+}
+
+@Test func resultPresentationMapsDontRememberActionsToExtraAttempts() {
+    let presentation = StudyResultPresentation(
+        result: StudyResult(uniqueCardCount: 3, forgottenCount: 2)
+    )
+
+    #expect(presentation.reviewedCards == StudyResultMetric(
+        localizationKey: "study.result.cards",
+        count: 3
+    ))
+    #expect(presentation.extraAttempts == StudyResultMetric(
+        localizationKey: "study.result.extraAttempts",
+        count: 2
+    ))
 }
 
 @MainActor
@@ -173,9 +194,16 @@ import Testing
         isRevealed: false,
         reduceMotion: false
     )
+    let reducedPrompt = StudyCardPresentation(
+        cardID: .fixture(1),
+        isRevealed: false,
+        reduceMotion: true
+    )
 
-    #expect(nextPrompt.animation(from: revealedFirstCard) == .none)
-    #expect(revealedFirstCard.animation(from: firstPrompt) == .flip3D)
+    #expect(revealedFirstCard.viewIdentity == .fixture(1))
+    #expect(nextPrompt.viewIdentity == .fixture(2))
+    #expect(firstPrompt.animationStyle == .flip3D)
+    #expect(reducedPrompt.animationStyle == .crossfade)
 }
 
 @Test func cardContentFollowsDirectionAndIncludesEnglishMetadata() {

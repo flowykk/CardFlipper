@@ -61,7 +61,6 @@ public struct StudyCardContent: Equatable, Sendable {
 }
 
 public enum StudyCardAnimationStyle: Equatable, Sendable {
-    case none
     case flip3D
     case crossfade
 }
@@ -89,12 +88,9 @@ public struct StudyCardPresentation: Equatable, Sendable {
     public var backOpacity: Double { isRevealed ? 1 : 0 }
     public var isFrontAccessibilityHidden: Bool { isRevealed }
     public var isBackAccessibilityHidden: Bool { !isRevealed }
-
-    public func animation(from previous: StudyCardPresentation) -> StudyCardAnimationStyle {
-        guard cardID == previous.cardID, isRevealed != previous.isRevealed else {
-            return .none
-        }
-        return reduceMotion ? .crossfade : .flip3D
+    public var viewIdentity: UUID { cardID }
+    public var animationStyle: StudyCardAnimationStyle {
+        reduceMotion ? .crossfade : .flip3D
     }
 }
 
@@ -142,7 +138,8 @@ public struct StudyCardView: View {
                 content.front,
                 isAnswer: false,
                 rotationDegrees: presentation.frontRotationDegrees,
-                opacity: presentation.frontOpacity
+                opacity: presentation.frontOpacity,
+                animationStyle: presentation.animationStyle
             )
             .allowsHitTesting(!isRevealed)
             .accessibilityHidden(presentation.isFrontAccessibilityHidden)
@@ -157,13 +154,14 @@ public struct StudyCardView: View {
                 content.back,
                 isAnswer: true,
                 rotationDegrees: presentation.backRotationDegrees,
-                opacity: presentation.backOpacity
+                opacity: presentation.backOpacity,
+                animationStyle: presentation.animationStyle
             )
             .allowsHitTesting(isRevealed)
             .accessibilityHidden(presentation.isBackAccessibilityHidden)
             .accessibilityFocused($focusedFace, equals: .answer)
         }
-        .id(presentation.cardID)
+        .id(presentation.viewIdentity)
         .contentShape(Rectangle())
         .onTapGesture {
             guard !isRevealed else { return }
@@ -181,7 +179,8 @@ public struct StudyCardView: View {
         _ face: StudyCardFace,
         isAnswer: Bool,
         rotationDegrees: Double,
-        opacity: Double
+        opacity: Double,
+        animationStyle: StudyCardAnimationStyle
     ) -> some View {
         FlashcardSurface {
             ScrollView {
@@ -198,7 +197,7 @@ public struct StudyCardView: View {
         .frame(minHeight: 320)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(isAnswer ? "study.answer" : "study.prompt")
-        .animation(reduceMotion ? .easeInOut(duration: 0.18) : .smooth(duration: 0.4)) { view in
+        .animation(animation(for: animationStyle)) { view in
             view
                 .opacity(opacity)
                 .rotation3DEffect(
@@ -206,6 +205,15 @@ public struct StudyCardView: View {
                     axis: (x: 0, y: 1, z: 0),
                     perspective: 0.7
                 )
+        }
+    }
+
+    private func animation(for style: StudyCardAnimationStyle) -> Animation {
+        switch style {
+        case .flip3D:
+            .smooth(duration: 0.4)
+        case .crossfade:
+            .easeInOut(duration: 0.18)
         }
     }
 
