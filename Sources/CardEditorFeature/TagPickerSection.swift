@@ -30,22 +30,13 @@ public struct TagPickerSection: View {
 
     public var body: some View {
         Section {
-            ForEach(tags) { tag in
-                Button {
-                    toggle(tag.id)
-                } label: {
-                    HStack {
-                        Text(verbatim: tag.name)
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Image(systemName: selectedTagIDs.contains(tag.id) ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(selectedTagIDs.contains(tag.id) ? Color.accentColor : .secondary)
+            if !tags.isEmpty {
+                TagChipLayout(horizontalSpacing: 8, verticalSpacing: 8) {
+                    ForEach(tags) { tag in
+                        tagButton(tag)
                     }
-                    .frame(minHeight: 44)
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("editor.tag.\(tag.name)")
-                .accessibilityAddTraits(selectedTagIDs.contains(tag.id) ? .isSelected : [])
+                .padding(.vertical, 4)
             }
 
             HStack {
@@ -86,5 +77,34 @@ public struct TagPickerSection: View {
         } else {
             selectedTagIDs.insert(id)
         }
+    }
+
+    private func tagButton(_ tag: Tag) -> some View {
+        let isSelected = selectedTagIDs.contains(tag.id)
+
+        return Button {
+            toggle(tag.id)
+        } label: {
+            HStack(spacing: 6) {
+                if isSelected {
+                    Image(systemName: "checkmark")
+                }
+                Text(verbatim: tag.name)
+                    .lineLimit(1)
+            }
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(isSelected ? Color.accentColor : .primary)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 44)
+            .background {
+                Capsule()
+                    .fill(isSelected ? Color.accentColor.opacity(0.16) : Color.secondary.opacity(0.1))
+                Capsule()
+                    .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.3))
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("editor.tag.chip.\(tag.name)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

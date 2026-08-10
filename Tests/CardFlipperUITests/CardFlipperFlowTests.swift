@@ -169,6 +169,34 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTFail("Expected seeded usage example within the study queue")
     }
 
+    func testF5CreatedTagIsReusableInAnotherCard() throws {
+        launch(seed: false)
+
+        tap("library.add")
+        fillRequiredFields(russian: "первый", english: "first")
+
+        let newTag = app.textFields["editor.tag.new"]
+        scrollToHittable(newTag)
+        newTag.tap()
+        newTag.typeText("Reusable")
+        dismissKeyboard()
+        tap("editor.tag.create")
+        assertExists("editor.tag.chip.Reusable")
+
+        app.navigationBars.buttons["Save"].tap()
+        waitForCardCount(1)
+
+        tap("library.add")
+        fillRequiredFields(russian: "второй", english: "second")
+        tap("editor.tag.chip.Reusable")
+        app.navigationBars.buttons["Save"].tap()
+        waitForCardCount(2)
+
+        let cards = app.buttons.matching(identifier: "library.card")
+        XCTAssertTrue(cards.element(boundBy: 0).staticTexts["Reusable"].exists)
+        XCTAssertTrue(cards.element(boundBy: 1).staticTexts["Reusable"].exists)
+    }
+
     private func launch(seed: Bool) {
         continueAfterFailure = false
         app.launchArguments = [
@@ -187,6 +215,29 @@ final class CardFlipperFlowTests: XCTestCase {
         tapEmptyCardSpace("study.card.prompt")
         assertExists("study.remember")
         tap("study.remember")
+    }
+
+    private func fillRequiredFields(russian: String, english: String) {
+        let russianField = app.textFields["editor.russian.0"]
+        scrollToHittable(russianField)
+        russianField.tap()
+        russianField.typeText(russian)
+
+        let englishField = app.textFields["editor.english.0"]
+        scrollToHittable(englishField)
+        englishField.tap()
+        englishField.typeText(english)
+        dismissKeyboard()
+    }
+
+    private func waitForCardCount(_ count: Int) {
+        let expectedCount = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in
+                self.app.buttons.matching(identifier: "library.card").count == count
+            },
+            object: nil
+        )
+        wait(for: [expectedCount], timeout: 5)
     }
 
     private func tapEmptyCardSpace(_ identifier: String) {
