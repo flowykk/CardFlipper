@@ -2,5 +2,7 @@
 .superpowers/
 .DS_Store
 Derived/
+CardFlipper.xcodeproj/
+CardFlipper.xcworkspace/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/

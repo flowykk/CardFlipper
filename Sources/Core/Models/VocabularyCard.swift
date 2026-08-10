@@ -1,0 +1,59 @@
+import Foundation
+
+public struct VocabularyCard: Equatable, Identifiable, Sendable {
+    public let id: UUID
+    public let russianMeanings: [RussianMeaning]
+    public let englishVariants: [EnglishVariant]
+    public let tags: [Tag]
+    public let createdAt: Date
+    public let updatedAt: Date
+
+    public init(
+        id: UUID,
+        russianMeanings: [RussianMeaning],
+        englishVariants: [EnglishVariant],
+        tags: [Tag],
+        createdAt: Date,
+        updatedAt: Date
+    ) {
+        self.id = id
+        self.russianMeanings = russianMeanings
+        self.englishVariants = englishVariants
+        self.tags = tags
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    public var searchableValues: [String] {
+        russianMeanings.map(\.text) + englishVariants.map(\.text)
+    }
+}
+
+public struct RussianMeaning: Equatable, Identifiable, Sendable {
+    public let id: UUID
+    public let text: String
+
+    public init(id: UUID, text: String) {
+        self.id = id
+        self.text = text
+    }
+}
+
+public struct EnglishVariant: Equatable, Identifiable, Sendable {
+    public let id: UUID
+    public let text: String
+    public let ipa: String?
+    public let partsOfSpeech: [PartOfSpeech]
+
+    public init(
+        id: UUID,
+        text: String,
+        ipa: String?,
+        partsOfSpeech: [PartOfSpeech]
+    ) {
+        self.id = id
+        self.text = text
+        self.ipa = ipa
+        self.partsOfSpeech = partsOfSpeech
+    }
+}
