@@ -3,6 +3,78 @@ import SwiftData
 @testable import Core
 @testable import Data
 
+final class URLProtocolStub: URLProtocol, @unchecked Sendable {
+    nonisolated(unsafe) static var statusCode = 200
+    nonisolated(unsafe) static var responseData = Data("[]".utf8)
+    nonisolated(unsafe) static var responseError: Error?
+    nonisolated(unsafe) static var requestObserver: (@Sendable (URLRequest) -> Void)?
+    nonisolated(unsafe) static var waitsForCancellation = false
+
+    static func reset() {
+        statusCode = 200
+        responseData = Data("[]".utf8)
+        responseError = nil
+        requestObserver = nil
+        waitsForCancellation = false
+    }
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        Self.requestObserver?(request)
+
+        if Self.waitsForCancellation {
+            return
+        }
+
+        if let error = Self.responseError {
+            client?.urlProtocol(self, didFailWithError: error)
+            return
+        }
+
+        let response = HTTPURLResponse(
+            url: request.url!,
+            statusCode: Self.statusCode,
+            httpVersion: nil,
+            headerFields: ["Content-Type": "application/json"]
+        )!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Self.responseData)
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
+}
+
+extension URLSession {
+    static var stubbed: URLSession {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [URLProtocolStub.self]
+        return URLSession(configuration: configuration)
+    }
+}
+
+final class RequestRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storedRequest: URLRequest?
+
+    var request: URLRequest? {
+        lock.withLock { storedRequest }
+    }
+
+    func record(_ request: URLRequest) {
+        lock.withLock {
+            storedRequest = request
+        }
+    }
+}
+
 enum TestIDs {
     static let card = UUID(uuidString: "00000000-0000-0000-0000-000000000101")!
     static let russianMeaningOne = UUID(uuidString: "00000000-0000-0000-0000-000000000102")!
