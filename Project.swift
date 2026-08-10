@@ -26,13 +26,14 @@ let project = Project(
             dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "CardEditorFeature", "StudyFeature"]
         ),
         .tests(name: "CoreTests", host: "Core"),
+        .tests(name: "DataTests", host: "Data"),
     ],
     schemes: [
         .scheme(
             name: "CardFlipper",
             shared: true,
             buildAction: .buildAction(targets: ["CardFlipper"]),
-            testAction: .targets(["CoreTests"])
+            testAction: .targets(["CoreTests", "DataTests"])
         ),
     ]
 )
