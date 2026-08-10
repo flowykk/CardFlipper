@@ -2,11 +2,70 @@ import Core
 import Data
 import Foundation
 import StudyFeature
+import SwiftUI
 import Testing
 @testable import CardFlipper
 
 @Test func appDeclaresAModernLaunchScreenToAvoidLegacyLetterboxing() {
     #expect(Bundle.main.object(forInfoDictionaryKey: "UILaunchScreen") != nil)
+}
+
+@MainActor
+@Test func appearanceSettingsDefaultToSystemBlue() throws {
+    let suiteName = "AppearanceSettingsTests.default"
+    let defaults = try #require(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+
+    let settings = AppearanceSettings(defaults: defaults)
+    let components = try #require(settings.sRGBComponents)
+
+    #expect(abs(components.red - 0.0) < 0.001)
+    #expect(abs(components.green - 0.478) < 0.001)
+    #expect(abs(components.blue - 1.0) < 0.001)
+}
+
+@MainActor
+@Test func appearanceSettingsPersistAndRestoreOpaqueSRGBColor() throws {
+    let suiteName = "AppearanceSettingsTests.persistence"
+    let defaults = try #require(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+
+    let settings = AppearanceSettings(defaults: defaults)
+    settings.accentColor = Color(.sRGB, red: 0.25, green: 0.5, blue: 0.75)
+
+    let restored = AppearanceSettings(defaults: defaults)
+    let components = try #require(restored.sRGBComponents)
+    #expect(abs(components.red - 0.25) < 0.001)
+    #expect(abs(components.green - 0.5) < 0.001)
+    #expect(abs(components.blue - 0.75) < 0.001)
+}
+
+@MainActor
+@Test func appearanceSettingsRejectInvalidPersistedColor() throws {
+    let suiteName = "AppearanceSettingsTests.invalid"
+    let defaults = try #require(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+    defaults.set(Data("{\"red\":2}".utf8), forKey: AppearanceSettings.storageKey)
+
+    let settings = AppearanceSettings(defaults: defaults)
+    let components = try #require(settings.sRGBComponents)
+
+    #expect(abs(components.red - 0.0) < 0.001)
+    #expect(abs(components.green - 0.478) < 0.001)
+    #expect(abs(components.blue - 1.0) < 0.001)
+}
+
+@MainActor
+@Test func openingSettingsAppendsTheSettingsRouteOnlyOnce() {
+    let navigation = AppNavigationState()
+
+    navigation.openSettings()
+    navigation.openSettings()
+
+    #expect(navigation.path == [.settings])
 }
 
 #if DEBUG
