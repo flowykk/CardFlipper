@@ -29,6 +29,7 @@ let project = Project(
         .tests(name: "DataTests", host: "Data"),
         .tests(name: "LibraryFeatureTests", host: "LibraryFeature"),
         .tests(name: "CardEditorFeatureTests", host: "CardEditorFeature"),
+        .tests(name: "StudyFeatureTests", host: "StudyFeature"),
     ],
     schemes: [
         .scheme(
@@ -40,6 +41,7 @@ let project = Project(
                 "DataTests",
                 "LibraryFeatureTests",
                 "CardEditorFeatureTests",
+                "StudyFeatureTests",
             ])
         ),
     ]
