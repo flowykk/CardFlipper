@@ -5,6 +5,7 @@ public struct RussianMeaningsSection: View {
     private let showsValidationError: Bool
     private let onAdd: () -> Void
     private let onRemove: (UUID) -> Void
+    private let accessibilityLabels = EditorAccessibilityLabels()
 
     public init(
         meanings: Binding<[RussianMeaningInput]>,
@@ -33,7 +34,9 @@ public struct RussianMeaningsSection: View {
                             .frame(minWidth: 44, minHeight: 44)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("editor.value.remove")
+                    .accessibilityLabel(Text(verbatim: accessibilityLabels.removeRussianMeaning(
+                        position: position(of: meaning.id)
+                    )))
                 }
             }
 
@@ -50,5 +53,9 @@ public struct RussianMeaningsSection: View {
         } header: {
             Text("editor.russian.title")
         }
+    }
+
+    private func position(of id: UUID) -> Int {
+        meanings.firstIndex { $0.id == id }.map { $0 + 1 } ?? 1
     }
 }

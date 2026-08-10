@@ -11,6 +11,7 @@ public struct EnglishVariantsSection: View {
     private let onLookup: (UUID) -> Void
     private let onSpeak: (UUID) -> Void
     private let onTogglePartOfSpeech: (PartOfSpeech, UUID) -> Void
+    private let accessibilityLabels = EditorAccessibilityLabels()
 
     public init(
         variants: Binding<[EnglishVariantInput]>,
@@ -55,7 +56,9 @@ public struct EnglishVariantsSection: View {
                         }
                         .buttonStyle(.plain)
                         .disabled(variant.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        .accessibilityLabel("editor.english.speak")
+                        .accessibilityLabel(Text(verbatim: accessibilityLabels.speakEnglishVariant(
+                            position: position(of: variant.id)
+                        )))
 
                         Button(role: .destructive) {
                             onRemove(variant.id)
@@ -64,7 +67,9 @@ public struct EnglishVariantsSection: View {
                                 .frame(minWidth: 44, minHeight: 44)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("editor.value.remove")
+                        .accessibilityLabel(Text(verbatim: accessibilityLabels.removeEnglishVariant(
+                            position: position(of: variant.id)
+                        )))
                     }
 
                     TextField("editor.ipa.placeholder", text: $variant.ipa)
@@ -162,5 +167,9 @@ public struct EnglishVariantsSection: View {
         case nil:
             EmptyView()
         }
+    }
+
+    private func position(of id: UUID) -> Int {
+        variants.firstIndex { $0.id == id }.map { $0 + 1 } ?? 1
     }
 }

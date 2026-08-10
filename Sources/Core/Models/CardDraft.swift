@@ -22,6 +22,11 @@ public struct CardDraft: Equatable, Sendable {
         case missingEnglishVariant
     }
 
+    public enum ChildIdentityError: Error, Equatable, Sendable {
+        case russianMeaningCountMismatch
+        case englishVariantCountMismatch
+    }
+
     public var russianMeanings: [String]
     public var englishVariants: [EnglishVariantDraft]
     public var tagIDs: [UUID]
@@ -50,21 +55,44 @@ public struct CardDraft: Equatable, Sendable {
     }
 
     public func makeCard(id: UUID, now: Date) throws -> VocabularyCard {
+        try makeCard(
+            id: id,
+            russianMeaningIDs: russianMeanings.map { _ in UUID() },
+            englishVariantIDs: englishVariants.map { _ in UUID() },
+            now: now
+        )
+    }
+
+    public func makeCard(
+        id: UUID,
+        russianMeaningIDs: [UUID],
+        englishVariantIDs: [UUID],
+        now: Date
+    ) throws -> VocabularyCard {
         if let error = validationErrors.first {
             throw error
+        }
+        guard russianMeaningIDs.count == russianMeanings.count else {
+            throw ChildIdentityError.russianMeaningCountMismatch
+        }
+        guard englishVariantIDs.count == englishVariants.count else {
+            throw ChildIdentityError.englishVariantCountMismatch
         }
 
         return VocabularyCard(
             id: id,
-            russianMeanings: normalizedRussianMeanings.map {
-                RussianMeaning(id: UUID(), text: $0)
+            russianMeanings: zip(russianMeaningIDs, russianMeanings).compactMap { id, text in
+                let normalizedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !normalizedText.isEmpty else { return nil }
+                return RussianMeaning(id: id, text: normalizedText)
             },
-            englishVariants: normalizedEnglishVariants.map {
-                EnglishVariant(
-                    id: UUID(),
-                    text: $0.text,
-                    ipa: $0.ipa,
-                    partsOfSpeech: $0.partsOfSpeech
+            englishVariants: zip(englishVariantIDs, englishVariants).compactMap { id, variant in
+                guard let normalizedVariant = normalize(variant) else { return nil }
+                return EnglishVariant(
+                    id: id,
+                    text: normalizedVariant.text,
+                    ipa: normalizedVariant.ipa,
+                    partsOfSpeech: normalizedVariant.partsOfSpeech
                 )
             },
             tags: [],
@@ -80,16 +108,18 @@ public struct CardDraft: Equatable, Sendable {
     }
 
     private var normalizedEnglishVariants: [EnglishVariantDraft] {
-        englishVariants.compactMap { variant in
-            let text = variant.text.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !text.isEmpty else { return nil }
+        englishVariants.compactMap(normalize)
+    }
 
-            let trimmedIPA = variant.ipa?.trimmingCharacters(in: .whitespacesAndNewlines)
-            return EnglishVariantDraft(
-                text: text,
-                ipa: trimmedIPA?.isEmpty == true ? nil : trimmedIPA,
-                partsOfSpeech: variant.partsOfSpeech
-            )
-        }
+    private func normalize(_ variant: EnglishVariantDraft) -> EnglishVariantDraft? {
+        let text = variant.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return nil }
+
+        let trimmedIPA = variant.ipa?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return EnglishVariantDraft(
+            text: text,
+            ipa: trimmedIPA?.isEmpty == true ? nil : trimmedIPA,
+            partsOfSpeech: variant.partsOfSpeech
+        )
     }
 }

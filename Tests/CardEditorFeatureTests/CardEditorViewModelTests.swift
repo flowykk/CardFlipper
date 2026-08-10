@@ -205,6 +205,7 @@ import Testing
         with: .init(ipa: "njuː", partOfSpeech: .adj)
     )
     await newLookup.value
+    #expect(model.lookupState[variantID] == .suggested)
     await dictionary.resolve(
         "old",
         with: .init(ipa: "əʊld", partOfSpeech: .noun)
@@ -214,6 +215,7 @@ import Testing
     #expect(model.englishVariants[0].text == "new")
     #expect(model.englishVariants[0].ipa == "njuː")
     #expect(model.englishVariants[0].partsOfSpeech == [.adj])
+    #expect(model.lookupState[variantID] == .suggested)
 }
 
 @MainActor
@@ -230,6 +232,28 @@ import Testing
     #expect(await waitUntil { await dictionary.calls.count == 1 })
 
     #expect(await dictionary.calls == ["new"])
+}
+
+@MainActor
+@Test func scheduledLookupUsesApproximately450MillisecondDefaultDebounce() async {
+    let sleepRecorder = LookupSleepRecorder()
+    let model = CardEditorViewModel(
+        card: nil,
+        cards: CardRepositoryFake(),
+        tags: TagRepositoryFake(),
+        dictionary: DictionaryServiceFake(),
+        speech: SpeechServiceSpy(),
+        lookupSleep: { duration in
+            try await sleepRecorder.sleep(for: duration)
+        }
+    )
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0].text = "word"
+
+    model.scheduleLookup(variantID: variantID)
+
+    #expect(await waitUntil { await sleepRecorder.requestedDurations.count == 1 })
+    #expect(await sleepRecorder.requestedDurations == [.milliseconds(450)])
 }
 
 @MainActor
@@ -295,4 +319,38 @@ import Testing
     #expect(cards.savedCards[0].id == VocabularyCard.duplicate.id)
     #expect(cards.savedCards[0].createdAt == VocabularyCard.duplicate.createdAt)
     #expect(cards.savedCards[0].updatedAt == Date(timeIntervalSince1970: 1_000))
+}
+
+@MainActor
+@Test func editedCardSavePreservesExistingAndNewChildIDs() async {
+    let cards = CardRepositoryFake()
+    let model = CardEditorViewModel.edit(
+        card: .duplicate,
+        cards: cards,
+        tags: TagRepositoryFake(fetchedTags: [.work]),
+        dictionary: DictionaryServiceFake(),
+        speech: SpeechServiceSpy(),
+        now: { Date(timeIntervalSince1970: 1_000) }
+    )
+    model.russianMeanings[0].text = "измененное слово"
+    model.addRussianMeaning()
+    model.russianMeanings[1].text = "новое значение"
+    model.englishVariants[0].text = "changed word"
+    model.addEnglishVariant()
+    model.englishVariants[1].text = "new variant"
+    let newMeaningID = model.russianMeanings[1].id
+    let newVariantID = model.englishVariants[1].id
+
+    let outcome = await model.save()
+
+    #expect(outcome == .saved)
+    #expect(cards.savedCards.count == 1)
+    #expect(cards.savedCards[0].russianMeanings.map(\.id) == [
+        UUID.editorFixture(101),
+        newMeaningID,
+    ])
+    #expect(cards.savedCards[0].englishVariants.map(\.id) == [
+        UUID.editorFixture(102),
+        newVariantID,
+    ])
 }

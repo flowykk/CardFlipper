@@ -118,6 +118,15 @@ actor ControlledDictionaryService: DictionaryService {
     }
 }
 
+actor LookupSleepRecorder {
+    private(set) var requestedDurations: [Duration] = []
+
+    func sleep(for duration: Duration) async throws {
+        requestedDurations.append(duration)
+        throw CancellationError()
+    }
+}
+
 @MainActor
 final class SpeechServiceSpy: SpeechService {
     private(set) var spokenTexts: [String] = []

@@ -78,6 +78,7 @@ public final class CardEditorViewModel {
     private let speechService: any SpeechService
     private let now: @MainActor () -> Date
     private let lookupDebounce: Duration
+    private let lookupSleep: @Sendable (Duration) async throws -> Void
     private var lookupTasks: [UUID: Task<Void, Never>] = [:]
     private var lookupRequestIDs: [UUID: UUID] = [:]
 
@@ -88,7 +89,10 @@ public final class CardEditorViewModel {
         dictionary: any DictionaryService,
         speech: any SpeechService,
         now: @escaping @MainActor () -> Date = Date.init,
-        lookupDebounce: Duration = .milliseconds(450)
+        lookupDebounce: Duration = .milliseconds(450),
+        lookupSleep: @escaping @Sendable (Duration) async throws -> Void = { duration in
+            try await Task.sleep(for: duration)
+        }
     ) {
         existingCard = card
         cardRepository = cards
@@ -97,6 +101,7 @@ public final class CardEditorViewModel {
         speechService = speech
         self.now = now
         self.lookupDebounce = lookupDebounce
+        self.lookupSleep = lookupSleep
 
         if let card {
             russianMeanings = card.russianMeanings.map {
@@ -331,6 +336,8 @@ public final class CardEditorViewModel {
         do {
             let generatedCard = try currentDraft.makeCard(
                 id: existingCard?.id ?? UUID(),
+                russianMeaningIDs: russianMeanings.map(\.id),
+                englishVariantIDs: englishVariants.map(\.id),
                 now: timestamp
             )
             let resolvedTags = availableTags.filter {
@@ -388,7 +395,7 @@ public final class CardEditorViewModel {
 
             if let debounce {
                 do {
-                    try await Task.sleep(for: debounce)
+                    try await self.lookupSleep(debounce)
                 } catch {
                     return
                 }
