@@ -14,9 +14,11 @@ final class CardRepositoryFake: CardRepository {
     var duplicateResult: [VocabularyCard]
     var duplicateError: EditorTestError?
     var saveError: EditorTestError?
+    var suspendsDuplicateCheck = false
     private(set) var savedCards: [VocabularyCard] = []
     private(set) var duplicateDrafts: [CardDraft] = []
     private(set) var duplicateExclusions: [UUID?] = []
+    private var duplicateContinuation: CheckedContinuation<[VocabularyCard], Error>?
 
     init(
         duplicateResult: [VocabularyCard] = [],
@@ -44,7 +46,21 @@ final class CardRepositoryFake: CardRepository {
         duplicateDrafts.append(draft)
         duplicateExclusions.append(id)
         if let duplicateError { throw duplicateError }
+        if suspendsDuplicateCheck {
+            return try await withCheckedThrowingContinuation { continuation in
+                duplicateContinuation = continuation
+            }
+        }
         return duplicateResult
+    }
+
+    var hasSuspendedDuplicateCheck: Bool {
+        duplicateContinuation != nil
+    }
+
+    func resumeDuplicateCheck() {
+        duplicateContinuation?.resume(returning: duplicateResult)
+        duplicateContinuation = nil
     }
 }
 

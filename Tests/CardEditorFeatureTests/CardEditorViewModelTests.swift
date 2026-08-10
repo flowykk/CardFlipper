@@ -68,6 +68,64 @@ import Testing
 }
 
 @MainActor
+@Test func saveUsesOneSnapshotAcrossSuspendedDuplicateCheck() async throws {
+    let cards = CardRepositoryFake()
+    cards.suspendsDuplicateCheck = true
+    let tags = TagRepositoryFake(fetchedTags: [.work, .exam])
+    let model = makeNewEditor(cards: cards, tags: tags)
+    await model.loadTags()
+    let firstMeaningID = UUID.editorFixture(201)
+    let secondMeaningID = UUID.editorFixture(202)
+    let firstVariantID = UUID.editorFixture(203)
+    let secondVariantID = UUID.editorFixture(204)
+    model.russianMeanings = [
+        .init(id: firstMeaningID, text: "  первый  "),
+        .init(id: secondMeaningID, text: "второй"),
+    ]
+    model.englishVariants = [
+        .init(id: firstVariantID, text: " first ", ipa: " fɜːst ", partsOfSpeech: [.noun]),
+        .init(id: secondVariantID, text: "second", partsOfSpeech: [.adj]),
+    ]
+    model.selectedTagIDs = [Tag.work.id]
+
+    let saveTask = Task { await model.save() }
+    #expect(await waitUntil { await cards.hasSuspendedDuplicateCheck })
+
+    model.russianMeanings = [
+        .init(id: .editorFixture(205), text: "replacement"),
+    ]
+    model.englishVariants = [
+        .init(id: secondVariantID, text: "reordered second"),
+        .init(id: .editorFixture(206), text: "replacement variant"),
+        .init(id: firstVariantID, text: "reordered first"),
+    ]
+    model.selectedTagIDs = [Tag.exam.id]
+    cards.resumeDuplicateCheck()
+
+    #expect(await saveTask.value == .saved)
+    let savedCard = try #require(cards.savedCards.first)
+    #expect(savedCard.russianMeanings == [
+        RussianMeaning(id: firstMeaningID, text: "первый"),
+        RussianMeaning(id: secondMeaningID, text: "второй"),
+    ])
+    #expect(savedCard.englishVariants == [
+        EnglishVariant(
+            id: firstVariantID,
+            text: "first",
+            ipa: "fɜːst",
+            partsOfSpeech: [.noun]
+        ),
+        EnglishVariant(
+            id: secondVariantID,
+            text: "second",
+            ipa: nil,
+            partsOfSpeech: [.adj]
+        ),
+    ])
+    #expect(savedCard.tags == [.work])
+}
+
+@MainActor
 @Test func invalidSavePreservesInputAndNeverChecksDuplicates() async {
     let cards = CardRepositoryFake()
     let model = makeNewEditor(cards: cards)
@@ -110,6 +168,46 @@ import Testing
     #expect(outcome == .saved)
     #expect(cards.duplicateDrafts.count == 1)
     #expect(cards.savedCards.count == 1)
+}
+
+@MainActor
+@Test func duplicateConfirmationSavesTheSnapshotThatWasChecked() async throws {
+    let cards = CardRepositoryFake(duplicateResult: [.duplicate])
+    let tags = TagRepositoryFake(fetchedTags: [.work, .exam])
+    let model = makeNewEditor(cards: cards, tags: tags)
+    await model.loadTags()
+    let meaningID = UUID.editorFixture(211)
+    let variantID = UUID.editorFixture(212)
+    model.russianMeanings = [.init(id: meaningID, text: "  слово  ")]
+    model.englishVariants = [
+        .init(id: variantID, text: " word ", ipa: " wɜːd ", partsOfSpeech: [.noun]),
+    ]
+    model.selectedTagIDs = [Tag.work.id]
+
+    #expect(await model.save() == .needsDuplicateConfirmation)
+
+    model.russianMeanings = [
+        .init(id: .editorFixture(213), text: "замена"),
+    ]
+    model.englishVariants = [
+        .init(id: .editorFixture(214), text: "replacement", partsOfSpeech: [.verb]),
+    ]
+    model.selectedTagIDs = [Tag.exam.id]
+
+    #expect(await model.confirmDuplicateAndSave() == .saved)
+    let savedCard = try #require(cards.savedCards.first)
+    #expect(savedCard.russianMeanings == [
+        RussianMeaning(id: meaningID, text: "слово"),
+    ])
+    #expect(savedCard.englishVariants == [
+        EnglishVariant(
+            id: variantID,
+            text: "word",
+            ipa: "wɜːd",
+            partsOfSpeech: [.noun]
+        ),
+    ])
+    #expect(savedCard.tags == [.work])
 }
 
 @MainActor

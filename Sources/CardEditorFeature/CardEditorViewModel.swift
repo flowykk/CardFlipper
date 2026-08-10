@@ -81,6 +81,7 @@ public final class CardEditorViewModel {
     private let lookupSleep: @Sendable (Duration) async throws -> Void
     private var lookupTasks: [UUID: Task<Void, Never>] = [:]
     private var lookupRequestIDs: [UUID: UUID] = [:]
+    private var pendingDuplicateSaveSnapshot: SaveSnapshot?
 
     public init(
         card: VocabularyCard?,
@@ -240,16 +241,18 @@ public final class CardEditorViewModel {
     public func save() async -> SaveOutcome {
         saveError = nil
         isDuplicateConfirmationPresented = false
-        let currentDraft = draft
-        guard currentDraft.validationErrors.isEmpty else { return .invalid }
+        pendingDuplicateSaveSnapshot = nil
+        let snapshot = saveSnapshot
+        guard snapshot.draft.validationErrors.isEmpty else { return .invalid }
 
         do {
             let duplicates = try await cardRepository.duplicateCandidates(
-                for: currentDraft,
+                for: snapshot.draft,
                 excluding: existingCard?.id
             )
             guard !Task.isCancelled else { return .failed }
             if !duplicates.isEmpty {
+                pendingDuplicateSaveSnapshot = snapshot
                 isDuplicateConfirmationPresented = true
                 return .needsDuplicateConfirmation
             }
@@ -260,16 +263,19 @@ public final class CardEditorViewModel {
             return .failed
         }
 
-        return await saveValidated(currentDraft)
+        return await saveValidated(snapshot)
     }
 
     @discardableResult
     public func confirmDuplicateAndSave() async -> SaveOutcome {
         isDuplicateConfirmationPresented = false
         saveError = nil
+        let snapshot = pendingDuplicateSaveSnapshot
+        pendingDuplicateSaveSnapshot = nil
         let currentDraft = draft
         guard currentDraft.validationErrors.isEmpty else { return .invalid }
-        return await saveValidated(currentDraft)
+        guard let snapshot else { return .invalid }
+        return await saveValidated(snapshot)
     }
 
     public func scheduleLookup(variantID: UUID) {
@@ -330,26 +336,33 @@ public final class CardEditorViewModel {
         )
     }
 
-    private func saveValidated(_ currentDraft: CardDraft) async -> SaveOutcome {
-        let timestamp = now()
+    private var saveSnapshot: SaveSnapshot {
+        SaveSnapshot(
+            draft: draft,
+            russianMeaningIDs: russianMeanings.map(\.id),
+            englishVariantIDs: englishVariants.map(\.id),
+            resolvedTags: availableTags.filter { selectedTagIDs.contains($0.id) },
+            cardID: existingCard?.id ?? UUID(),
+            createdAt: existingCard?.createdAt,
+            timestamp: now()
+        )
+    }
 
+    private func saveValidated(_ snapshot: SaveSnapshot) async -> SaveOutcome {
         do {
-            let generatedCard = try currentDraft.makeCard(
-                id: existingCard?.id ?? UUID(),
-                russianMeaningIDs: russianMeanings.map(\.id),
-                englishVariantIDs: englishVariants.map(\.id),
-                now: timestamp
+            let generatedCard = try snapshot.draft.makeCard(
+                id: snapshot.cardID,
+                russianMeaningIDs: snapshot.russianMeaningIDs,
+                englishVariantIDs: snapshot.englishVariantIDs,
+                now: snapshot.timestamp
             )
-            let resolvedTags = availableTags.filter {
-                selectedTagIDs.contains($0.id)
-            }
             let card = VocabularyCard(
                 id: generatedCard.id,
                 russianMeanings: generatedCard.russianMeanings,
                 englishVariants: generatedCard.englishVariants,
-                tags: resolvedTags,
-                createdAt: existingCard?.createdAt ?? generatedCard.createdAt,
-                updatedAt: timestamp
+                tags: snapshot.resolvedTags,
+                createdAt: snapshot.createdAt ?? generatedCard.createdAt,
+                updatedAt: snapshot.timestamp
             )
             try await cardRepository.save(card)
             guard !Task.isCancelled else { return .failed }
@@ -361,6 +374,16 @@ public final class CardEditorViewModel {
             saveError = .persistence
             return .failed
         }
+    }
+
+    private struct SaveSnapshot {
+        let draft: CardDraft
+        let russianMeaningIDs: [UUID]
+        let englishVariantIDs: [UUID]
+        let resolvedTags: [Tag]
+        let cardID: UUID
+        let createdAt: Date?
+        let timestamp: Date
     }
 
     private struct LookupOperation {
