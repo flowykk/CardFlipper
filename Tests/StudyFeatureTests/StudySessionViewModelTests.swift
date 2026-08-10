@@ -49,6 +49,21 @@ import Testing
 }
 
 @MainActor
+@Test func usageExamplesCanBeExpandedOnlyAfterAssessmentUnlocks() {
+    let model = makeSession(configuration: configurationWithUsageExamples)
+
+    #expect(model.hasUsageExamples)
+    #expect(model.isShowingUsageExamples == false)
+    model.toggleUsageExamples()
+    #expect(model.isShowingUsageExamples == false)
+    model.toggleCardSide()
+    model.toggleUsageExamples()
+    #expect(model.isShowingUsageExamples)
+    model.toggleCardSide()
+    #expect(model.isShowingUsageExamples)
+}
+
+@MainActor
 @Test func rememberRemovesCurrentCardAndResetsReveal() throws {
     let feedback = StudyFeedbackSpy()
     let model = makeSession(feedback: feedback)
@@ -66,6 +81,17 @@ import Testing
 }
 
 @MainActor
+@Test func rememberResetsUsageExampleDisclosureAfterTheQueueAdvances() throws {
+    let model = makeSession(configuration: configurationWithUsageExamples)
+
+    model.toggleCardSide()
+    model.toggleUsageExamples()
+    try model.remember()
+
+    #expect(model.isShowingUsageExamples == false)
+}
+
+@MainActor
 @Test func forgetAppendsCurrentCardAndCountsEveryForget() throws {
     let feedback = StudyFeedbackSpy()
     let model = makeSession(feedback: feedback)
@@ -80,6 +106,17 @@ import Testing
     #expect(model.isShowingAnswer == false)
     #expect(model.result == nil)
     #expect(feedback.events == [.reveal, .forget])
+}
+
+@MainActor
+@Test func forgetResetsUsageExampleDisclosureAfterTheQueueAdvances() throws {
+    let model = makeSession(configuration: configurationWithUsageExamples)
+
+    model.toggleCardSide()
+    model.toggleUsageExamples()
+    try model.forget()
+
+    #expect(model.isShowingUsageExamples == false)
 }
 
 @MainActor
@@ -160,7 +197,7 @@ import Testing
 }
 
 @MainActor
-@Test func usageExampleSpeechIsLimitedToOwningVariantAndVisibleEnglishSide() {
+@Test func usageExampleSpeechRequiresAssessmentDisclosureAndOwningVariant() {
     let speech = SpeechServiceSpy()
     let example = UsageExample(
         id: .fixture(3_001),
@@ -181,6 +218,8 @@ import Testing
     russianToEnglish.speakUsageExample(variantID: variantID, exampleID: example.id)
     russianToEnglish.toggleCardSide()
     russianToEnglish.speakUsageExample(variantID: variantID, exampleID: example.id)
+    russianToEnglish.toggleUsageExamples()
+    russianToEnglish.speakUsageExample(variantID: variantID, exampleID: example.id)
     russianToEnglish.speakUsageExample(variantID: .fixture(999), exampleID: example.id)
     russianToEnglish.toggleCardSide()
     russianToEnglish.speakUsageExample(variantID: variantID, exampleID: example.id)
@@ -197,9 +236,10 @@ import Testing
     let frontVariantID = englishToRussianConfiguration.cards[0].englishVariants[0].id
     englishToRussian.speakUsageExample(variantID: frontVariantID, exampleID: example.id)
     englishToRussian.toggleCardSide()
+    englishToRussian.toggleUsageExamples()
     englishToRussian.speakUsageExample(variantID: frontVariantID, exampleID: example.id)
 
-    #expect(speech.spokenTexts == ["This word is useful.", "This word is useful."])
+    #expect(speech.spokenTexts == ["This word is useful.", "This word is useful.", "This word is useful."])
 }
 
 @MainActor
@@ -271,7 +311,7 @@ import Testing
     #expect(reducedPrompt.animationStyle == .crossfade)
 }
 
-@Test func cardContentFollowsDirectionAndIncludesEnglishMetadata() {
+@Test func cardContentFollowsDirectionAndExcludesUsageExamples() {
     let card = VocabularyCard.fixture(
         id: 1,
         russian: "слово",
@@ -299,13 +339,24 @@ import Testing
     #expect(russianToEnglish.back.language == .english)
     #expect(russianToEnglish.back.values == ["word"])
     #expect(russianToEnglish.back.englishMetadata == ["/wɜːd/", "noun, verb"])
-    #expect(russianToEnglish.back.usageExamples == [
-        StudyUsageExampleContent(text: "This word matters.", partOfSpeech: .noun),
-        StudyUsageExampleContent(text: "They worded it carefully.", partOfSpeech: .verb),
-    ])
     #expect(englishToRussian.front == russianToEnglish.back)
     #expect(englishToRussian.back == russianToEnglish.front)
 }
+
+private let configurationWithUsageExamples = StudyConfiguration(
+    direction: .russianToEnglish,
+    selectedTagIDs: [],
+    cards: [
+        .fixture(id: 1, usageExamples: [
+            UsageExample(
+                id: .fixture(3_001),
+                text: "This word is useful.",
+                partOfSpeech: .noun
+            ),
+        ]),
+        .fixture(id: 2),
+    ]
+)
 
 @MainActor
 private func makeSession(

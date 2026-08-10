@@ -37,6 +37,7 @@ public final class StudySessionViewModel {
     public private(set) var session: StudySession
     public private(set) var result: StudyResult?
     public private(set) var isShowingAnswer = false
+    public private(set) var isShowingUsageExamples = false
     public var isExitConfirmationPresented = false
 
     public let repeatConfiguration: StudyConfiguration
@@ -67,6 +68,10 @@ public final class StudySessionViewModel {
         session.initialCardCount - session.remainingCount
     }
 
+    public var hasUsageExamples: Bool {
+        session.currentCard?.englishVariants.contains { !$0.usageExamples.isEmpty } == true
+    }
+
     public func toggleCardSide() {
         guard !session.isComplete else { return }
 
@@ -78,9 +83,15 @@ public final class StudySessionViewModel {
         feedback.perform(.reveal)
     }
 
+    public func toggleUsageExamples() {
+        guard canAssess, hasUsageExamples else { return }
+        isShowingUsageExamples.toggle()
+    }
+
     public func remember() throws {
         try session.remember()
         isShowingAnswer = false
+        isShowingUsageExamples = false
 
         if session.isComplete {
             result = StudyResult(
@@ -96,6 +107,7 @@ public final class StudySessionViewModel {
     public func forget() throws {
         try session.forget()
         isShowingAnswer = false
+        isShowingUsageExamples = false
         feedback.perform(.forget)
     }
 
@@ -110,7 +122,8 @@ public final class StudySessionViewModel {
     }
 
     public func speakUsageExample(variantID: UUID, exampleID: UUID) {
-        guard isEnglishSideVisible,
+        guard canAssess,
+              isShowingUsageExamples,
               let variant = session.currentCard?.englishVariants.first(
                 where: { $0.id == variantID }
               ),
