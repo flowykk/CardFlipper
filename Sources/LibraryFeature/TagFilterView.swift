@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 public struct TagFilterView: View {
@@ -41,6 +42,7 @@ public struct TagFilterView: View {
             } else {
                 selectedTagIDs.insert(tag.id)
             }
+            FeedbackGenerator.shared.selection()
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")

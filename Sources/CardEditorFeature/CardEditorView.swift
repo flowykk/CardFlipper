@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 public struct CardEditorView: View {
@@ -111,6 +112,7 @@ public struct CardEditorView: View {
 
     private func save() async {
         if await model.save() == .saved {
+            FeedbackGenerator.shared.successfulSave()
             await onSaved()
             dismiss()
         }
@@ -118,6 +120,7 @@ public struct CardEditorView: View {
 
     private func confirmDuplicateAndSave() async {
         if await model.confirmDuplicateAndSave() == .saved {
+            FeedbackGenerator.shared.successfulSave()
             await onSaved()
             dismiss()
         }

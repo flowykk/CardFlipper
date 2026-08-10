@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 public struct TagPickerSection: View {
@@ -77,6 +78,7 @@ public struct TagPickerSection: View {
         } else {
             selectedTagIDs.insert(id)
         }
+        FeedbackGenerator.shared.selection()
     }
 
     private func tagButton(_ tag: Tag) -> some View {
