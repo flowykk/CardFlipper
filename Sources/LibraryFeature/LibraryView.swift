@@ -173,10 +173,11 @@ public struct LibraryView: View {
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("library.card")
                 .swipeActions {
-                    Button("common.delete", role: .destructive) {
+                    Button("common.delete") {
                         model.pendingDeletion = card
                         showingCardDeletion = true
                     }
+                    .tint(.red)
                 }
             }
         }

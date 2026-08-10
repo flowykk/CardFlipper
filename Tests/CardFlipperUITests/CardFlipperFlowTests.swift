@@ -113,6 +113,7 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["Delete"].waitForExistence(timeout: 3))
         app.buttons["Delete"].tap()
         snap("F3-01-delete-confirmation")
+        XCTAssertEqual(app.buttons.matching(identifier: "library.card").count, 3)
         XCTAssertTrue(app.buttons["Delete"].waitForExistence(timeout: 3))
         app.buttons["Delete"].tap()
         let refreshed = XCTNSPredicateExpectation(
