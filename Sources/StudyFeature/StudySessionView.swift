@@ -102,6 +102,15 @@ public struct StudySessionView: View {
                                 ? .opacity
                                 : .move(edge: .bottom).combined(with: .opacity)
                         )
+
+                    if model.hasUsageExamples {
+                        StudyUsageExamplesView(
+                            variants: model.session.currentCard?.englishVariants ?? [],
+                            isExpanded: model.isShowingUsageExamples,
+                            onToggle: model.toggleUsageExamples,
+                            onSpeak: model.speakUsageExample
+                        )
+                    }
                 } else {
                     Text("study.flipHint")
                         .font(.footnote)

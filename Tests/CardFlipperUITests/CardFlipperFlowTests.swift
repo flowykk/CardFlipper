@@ -133,17 +133,37 @@ final class CardFlipperFlowTests: XCTestCase {
 
         for _ in 0..<3 {
             assertExists("study.card.prompt")
-            let example = app.descendants(matching: .any)["study.usageExample"]
-            if example.waitForExistence(timeout: 1) {
+            tapEmptyCardSpace("study.card.prompt")
+            assertExists("study.remember")
+
+            let examplesToggle = app.descendants(matching: .any)["study.examples.toggle"]
+            if examplesToggle.waitForExistence(timeout: 1) {
+                let example = app.descendants(matching: .any)["study.usageExample"]
+                XCTAssertFalse(example.exists)
+
+                tap("study.examples.toggle")
                 XCTAssertEqual(example.label, "This book is easy to read.")
                 assertExists("study.usageExample.speak")
-                snap("F4-01-usage-example-on-english-face")
+                snap("F4-01-expanded-usage-examples")
+
+                tapEmptyCardSpace("study.card.answer")
+                assertExists("study.card.prompt")
+                XCTAssertEqual(example.label, "This book is easy to read.")
+
+                tapEmptyCardSpace("study.card.prompt")
+                assertExists("study.card.answer")
+                XCTAssertEqual(example.label, "This book is easy to read.")
+
+                tap("study.remember")
+                assertExists("study.card.prompt")
+                XCTAssertFalse(
+                    app.descendants(matching: .any)["study.examples.container"].waitForExistence(timeout: 1)
+                )
                 return
             }
 
-            tapEmptyCardSpace("study.card.prompt")
-            assertExists("study.remember")
-            tap("study.remember")
+            tap("study.forget")
+            waitForStablePromptAfterAssessment()
         }
 
         XCTFail("Expected seeded usage example within the study queue")
