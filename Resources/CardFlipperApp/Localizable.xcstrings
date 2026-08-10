@@ -13,6 +13,8 @@
     "library.empty.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Your Library Is Empty" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Библиотека пуста" } } } },
     "library.empty.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add a word to start building your vocabulary." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавьте слово, чтобы начать собирать словарь." } } } },
     "library.filteredEmpty" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "No Matching Cards" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Подходящих карточек нет" } } } },
+    "library.filteredEmpty.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Try another search or clear the selected tags." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Попробуйте другой запрос или сбросьте выбранные теги." } } } },
+    "library.clearFilters" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Clear Filters" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сбросить фильтры" } } } },
     "card.new.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "New Card" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Новая карточка" } } } },
     "card.edit.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit Card" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Редактировать карточку" } } } },
     "card.russian" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Russian" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Русский" } } } },
@@ -28,6 +30,9 @@
     "card.validation.russian" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add at least one Russian meaning." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавьте хотя бы одно русское значение." } } } },
     "card.validation.english" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add at least one English translation." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавьте хотя бы один английский перевод." } } } },
     "card.duplicate.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Duplicate Card" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Такая карточка уже есть" } } } },
+    "card.delete.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete Card?" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить карточку?" } } } },
+    "card.delete.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "This card will be permanently deleted." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Эта карточка будет удалена без возможности восстановления." } } } },
+    "tag.manage" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Manage Tags" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Управление тегами" } } } },
     "tag.delete.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete Tag?" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить тег?" } } } },
     "tag.delete.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards keep their words, but this tag will be removed." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточки сохранят слова, но этот тег будет удалён." } } } },
     "study.setup.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Study Setup" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Настройка занятия" } } } },
@@ -112,6 +117,8 @@
     "study.result.repeat" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Study Again" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторить занятие" } } } },
     "study.result.library" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Back to Library" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вернуться в библиотеку" } } } },
     "data.load.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Load Your Cards" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось загрузить карточки" } } } },
+    "data.loading" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading…" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Загрузка…" } } } },
+    "data.delete.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Delete This Item" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось удалить этот объект" } } } },
     "data.save.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Save Your Changes" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось сохранить изменения" } } } }
   },
   "version" : "1.0"
