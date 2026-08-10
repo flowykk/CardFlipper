@@ -1,5 +1,6 @@
 public enum StudySessionError: Error, Equatable, Sendable {
     case answerNotRevealed
+    case noCurrentCard
 }
 
 public struct StudyResult: Equatable, Sendable {
@@ -35,12 +36,14 @@ public struct StudySession: Sendable {
 
     public mutating func remember() throws {
         guard isRevealed else { throw StudySessionError.answerNotRevealed }
+        guard !queue.isEmpty else { throw StudySessionError.noCurrentCard }
         queue.removeFirst()
         isRevealed = false
     }
 
     public mutating func forget() throws {
         guard isRevealed else { throw StudySessionError.answerNotRevealed }
+        guard !queue.isEmpty else { throw StudySessionError.noCurrentCard }
         let forgottenCard = queue.removeFirst()
         queue.append(forgottenCard)
         forgottenCount += 1

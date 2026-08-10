@@ -34,3 +34,16 @@ private extension VocabularyCard {
     var session = StudySession(cards: [.fixture(id: 1)], direction: .russianToEnglish)
     #expect(throws: StudySessionError.answerNotRevealed) { try session.remember() }
 }
+
+@Test func assessmentOfAnEmptySessionIsRejectedWithoutMutatingState() {
+    var rememberedSession = StudySession(cards: [], direction: .russianToEnglish)
+    rememberedSession.reveal()
+    #expect(throws: StudySessionError.noCurrentCard) { try rememberedSession.remember() }
+    #expect(rememberedSession.isRevealed)
+
+    var forgottenSession = StudySession(cards: [], direction: .englishToRussian)
+    forgottenSession.reveal()
+    #expect(throws: StudySessionError.noCurrentCard) { try forgottenSession.forget() }
+    #expect(forgottenSession.isRevealed)
+    #expect(forgottenSession.forgottenCount == 0)
+}
