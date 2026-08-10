@@ -2,9 +2,18 @@ import Foundation
 import Testing
 @testable import Core
 
-@Test func draftRequiresOneValueOnBothSides() {
+@Test func draftReportsMissingEnglishVariant() {
     let draft = CardDraft(russianMeanings: ["слово"], englishVariants: [], tagIDs: [])
     #expect(draft.validationErrors == [.missingEnglishVariant])
+}
+
+@Test func draftReportsMissingRussianMeaning() {
+    let draft = CardDraft(
+        russianMeanings: [],
+        englishVariants: [.init(text: "word")],
+        tagIDs: []
+    )
+    #expect(draft.validationErrors == [.missingRussianMeaning])
 }
 
 @Test func blankItemsAreRemovedFromValidatedDraft() throws {
