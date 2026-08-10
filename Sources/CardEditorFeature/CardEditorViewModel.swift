@@ -291,6 +291,9 @@ public final class CardEditorViewModel {
             if !availableTags.contains(where: { $0.id == tag.id }) {
                 availableTags.append(tag)
             }
+            availableTags.sort {
+                $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+            }
             selectedTagIDs.insert(tag.id)
             newTagName = ""
             tagCreationError = false

@@ -527,6 +527,34 @@ import Testing
 }
 
 @MainActor
+@Test func createdTagJoinsTheCatalogInAlphabeticalOrder() async {
+    let tags = TagRepositoryFake(fetchedTags: [.work], createdTag: .study)
+    let model = makeNewEditor(tags: tags)
+    await model.loadTags()
+    model.newTagName = "Study"
+
+    let outcome = await model.createTag()
+
+    #expect(outcome == .created)
+    #expect(model.availableTags == [.study, .work])
+    #expect(model.selectedTagIDs == [Tag.study.id])
+}
+
+@MainActor
+@Test func createdTagIsAvailableUnselectedInAnotherEditor() async {
+    let tags = TagRepositoryFake(fetchedTags: [.work], createdTag: .study)
+    let firstEditor = makeNewEditor(tags: tags)
+    firstEditor.newTagName = "Study"
+    #expect(await firstEditor.createTag() == .created)
+
+    let secondEditor = makeNewEditor(tags: tags)
+    await secondEditor.loadTags()
+
+    #expect(Set(secondEditor.availableTags.map(\.id)) == [Tag.work.id, Tag.study.id])
+    #expect(secondEditor.selectedTagIDs.isEmpty)
+}
+
+@MainActor
 @Test func tagCreationFailurePreservesTypedNameAndSelection() async {
     let tags = TagRepositoryFake(createError: .tags)
     let model = makeNewEditor(tags: tags)

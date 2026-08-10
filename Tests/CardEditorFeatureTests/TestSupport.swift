@@ -92,6 +92,9 @@ final class TagRepositoryFake: TagRepository {
     func create(name: String) async throws -> Tag {
         createdNames.append(name)
         if let createError { throw createError }
+        if !fetchedTags.contains(where: { $0.id == createdTag.id }) {
+            fetchedTags.append(createdTag)
+        }
         return createdTag
     }
 
