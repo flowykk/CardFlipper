@@ -26,7 +26,7 @@ final class CardFlipperFlowTests: XCTestCase {
 
         let firstCard = app.buttons.matching(identifier: "library.card").firstMatch
         XCTAssertTrue(firstCard.waitForExistence(timeout: 5))
-        firstCard.tap()
+        tapTrailingEmptySpace(in: firstCard)
         assertExists("editor.root")
         XCTAssertEqual(app.textFields["editor.russian.0"].value as? String, "книга")
         let noun = app.descendants(matching: .any)[
@@ -131,6 +131,14 @@ final class CardFlipperFlowTests: XCTestCase {
         let card = app.descendants(matching: .any)[identifier]
         scrollToHittable(card)
         card.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.15)).tap()
+    }
+
+    private func tapTrailingEmptySpace(in row: XCUIElement) {
+        scrollToHittable(row)
+        let appOrigin = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+        appOrigin.withOffset(
+            CGVector(dx: app.frame.width - 24, dy: row.frame.midY)
+        ).tap()
     }
 
     private func waitForStablePromptAfterAssessment() {

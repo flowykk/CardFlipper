@@ -3,14 +3,10 @@ import Testing
 @testable import StudyFeature
 
 @MainActor
-@Test func setupRequiresAnExplicitDirectionBeforeStarting() {
+@Test func setupDefaultsToEnglishToRussianAndCanStart() {
     let model = StudySetupViewModel(cards: [.fixture(id: 1)], tags: [])
 
-    #expect(model.direction == nil)
-    #expect(model.canStart == false)
-
-    model.chooseDirection(.englishToRussian)
-
+    #expect(model.direction == .englishToRussian)
     #expect(model.canStart)
     #expect(model.configuration?.direction == .englishToRussian)
 }

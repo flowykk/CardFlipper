@@ -29,7 +29,7 @@ public final class StudySetupViewModel {
     public init(cards: [VocabularyCard], tags: [Tag]) {
         self.cards = cards
         self.tags = tags
-        direction = nil
+        direction = .englishToRussian
         selectedTagIDs = []
     }
 
