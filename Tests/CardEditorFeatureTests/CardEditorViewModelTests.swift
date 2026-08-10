@@ -355,6 +355,64 @@ import Testing
 }
 
 @MainActor
+@Test func editorLifecycleCancellationStopsPendingDebounceBeforeLookupStarts() async {
+    let dictionary = DictionaryServiceFake()
+    let sleep = ControlledLookupSleep()
+    let model = CardEditorViewModel(
+        card: nil,
+        cards: CardRepositoryFake(),
+        tags: TagRepositoryFake(),
+        dictionary: dictionary,
+        speech: SpeechServiceSpy(),
+        lookupSleep: { duration in
+            try await sleep.sleep(for: duration)
+        }
+    )
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0].text = "word"
+    model.scheduleLookup(variantID: variantID)
+    #expect(await waitUntil { await sleep.hasSuspendedSleep })
+
+    model.cancelLookupOperations()
+    model.cancelLookupOperations()
+    await sleep.resume()
+    try? await Task.sleep(for: .milliseconds(20))
+
+    #expect(await dictionary.calls.isEmpty)
+    #expect(model.lookupState[variantID] == nil)
+    #expect(model.isPresented)
+}
+
+@MainActor
+@Test func editorLifecycleCancellationPropagatesAndRejectsLateInFlightResponse() async {
+    let dictionary = ControlledDictionaryService()
+    let model = makeNewEditor(dictionary: dictionary)
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0] = .init(
+        id: variantID,
+        text: "word",
+        ipa: "manual",
+        partsOfSpeech: [.verb]
+    )
+    let lookup = Task { await model.lookup(variantID: variantID) }
+    #expect(await waitUntil { await dictionary.hasRequest(for: "word") })
+
+    model.cancelLookupOperations()
+    model.cancelLookupOperations()
+    await dictionary.resolve(
+        "word",
+        with: .init(ipa: "wɜːd", partOfSpeech: .noun)
+    )
+    await lookup.value
+
+    #expect(await dictionary.wasCancelled("word"))
+    #expect(model.englishVariants[0].ipa == "manual")
+    #expect(model.englishVariants[0].partsOfSpeech == [.verb])
+    #expect(model.lookupState[variantID] == nil)
+    #expect(model.isPresented)
+}
+
+@MainActor
 @Test func speechUsesCurrentEnglishVariantText() {
     let speech = SpeechServiceSpy()
     let model = makeNewEditor(speech: speech)

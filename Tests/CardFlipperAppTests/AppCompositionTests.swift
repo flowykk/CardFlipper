@@ -1,5 +1,6 @@
 import Core
 import Data
+import Foundation
 import StudyFeature
 import Testing
 @testable import CardFlipper
@@ -14,6 +15,25 @@ import Testing
 
     #expect(configuration.usesInMemoryStore)
     #expect(configuration.seedsDeterministicVocabulary)
+}
+
+@Test func uiTestSeedCannotSelectThePersistentStore() {
+    let configuration = AppLaunchConfiguration(arguments: [
+        "CardFlipper",
+        "-uiTestSeed",
+    ])
+
+    #expect(configuration.seedsDeterministicVocabulary)
+    #expect(configuration.usesInMemoryStore)
+}
+
+@Test func partOfSpeechNamesResolveFromTheAppCatalogAtRuntime() {
+    #expect(
+        PartOfSpeech.noun.localizedName(locale: Locale(identifier: "en")) == "Noun"
+    )
+    #expect(
+        PartOfSpeech.noun.localizedName(locale: Locale(identifier: "ru")) == "Существительное"
+    )
 }
 
 @MainActor

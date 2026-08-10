@@ -39,6 +39,12 @@ Last updated: 2026-08-09
 
 Deleting a card cascades to its owned meanings and English variants. Deleting a tag nullifies tag relationships and does not delete cards.
 
+## Schema Baseline
+
+The first release baseline includes `TagEntity.normalizedName` as a persisted unique attribute. No released build predates this field, so there is no production-store migration from the earlier development-only schema.
+
+The app does not silently delete or recreate a store when model-container construction fails. A pre-release development store created from the earlier schema must be removed explicitly by the developer. The first shipped schema becomes the versioned migration source for any later persistence changes.
+
 ## Validation
 
 - At least one non-empty Russian meaning.

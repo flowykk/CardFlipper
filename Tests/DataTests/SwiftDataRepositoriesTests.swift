@@ -55,6 +55,33 @@ import Testing
 }
 
 @MainActor
+@Test func creatingACaseEquivalentTagReturnsTheFirstTag() async throws {
+    let repository = SwiftDataTagRepository(
+        container: try ModelContainerFactory.makeInMemory()
+    )
+    let original = try await repository.create(name: "Work")
+
+    let duplicate = try await repository.create(name: "work")
+
+    #expect(duplicate == original)
+    #expect(try await repository.fetchTags() == [original])
+}
+
+@MainActor
+@Test func creatingAWhitespaceEquivalentTagPreservesTheFirstDisplayName() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let repository = SwiftDataTagRepository(container: container)
+    let original = try await repository.create(name: "Project   Notes")
+
+    let duplicate = try await repository.create(name: "  Project\tNotes  ")
+
+    #expect(duplicate == original)
+    #expect(try await repository.fetchTags() == [original])
+    let entities = try container.mainContext.fetch(FetchDescriptor<TagEntity>())
+    #expect(entities.map(\.normalizedName) == ["project notes"])
+}
+
+@MainActor
 @Test func cardRepositoryRetainsItsModelContainer() async throws {
     let repository = SwiftDataCardRepository(
         container: try ModelContainerFactory.makeInMemory()

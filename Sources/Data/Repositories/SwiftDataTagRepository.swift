@@ -20,11 +20,17 @@ public final class SwiftDataTagRepository: TagRepository {
     }
 
     public func create(name: String) async throws -> Tag {
-        if let existing = try fetchTag(name: name) {
+        let displayName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedName = TextNormalizer.searchKey(displayName)
+        if let existing = try fetchTag(normalizedName: normalizedName) {
             return Tag(id: existing.id, name: existing.name)
         }
 
-        let entity = TagEntity(id: UUID(), name: name)
+        let entity = TagEntity(
+            id: UUID(),
+            name: displayName,
+            normalizedName: normalizedName
+        )
         context.insert(entity)
         try context.save()
         return Tag(id: entity.id, name: entity.name)
@@ -43,9 +49,9 @@ public final class SwiftDataTagRepository: TagRepository {
         return try context.fetch(descriptor).first
     }
 
-    private func fetchTag(name: String) throws -> TagEntity? {
+    private func fetchTag(normalizedName: String) throws -> TagEntity? {
         let descriptor = FetchDescriptor<TagEntity>(
-            predicate: #Predicate { $0.name == name }
+            predicate: #Predicate { $0.normalizedName == normalizedName }
         )
         return try context.fetch(descriptor).first
     }

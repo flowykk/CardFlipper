@@ -100,6 +100,9 @@ public struct CardEditorView: View {
                 await model.loadTags()
             }
         }
+        .onDisappear {
+            model.cancelLookupOperations()
+        }
     }
 
     private func save() async {

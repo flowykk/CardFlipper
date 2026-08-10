@@ -117,12 +117,17 @@ actor DictionaryServiceFake: DictionaryService {
 actor ControlledDictionaryService: DictionaryService {
     private var continuations: [String: CheckedContinuation<DictionarySuggestion?, Never>] = [:]
     private(set) var calls: [String] = []
+    private var cancelledRequests: Set<String> = []
 
     func suggestion(for text: String) async throws -> DictionarySuggestion? {
         calls.append(text)
-        return await withCheckedContinuation { continuation in
+        let suggestion = await withCheckedContinuation { continuation in
             continuations[text] = continuation
         }
+        if Task.isCancelled {
+            cancelledRequests.insert(text)
+        }
+        return suggestion
     }
 
     func hasRequest(for text: String) -> Bool {
@@ -132,6 +137,10 @@ actor ControlledDictionaryService: DictionaryService {
     func resolve(_ text: String, with suggestion: DictionarySuggestion?) {
         continuations.removeValue(forKey: text)?.resume(returning: suggestion)
     }
+
+    func wasCancelled(_ text: String) -> Bool {
+        cancelledRequests.contains(text)
+    }
 }
 
 actor LookupSleepRecorder {
@@ -140,6 +149,25 @@ actor LookupSleepRecorder {
     func sleep(for duration: Duration) async throws {
         requestedDurations.append(duration)
         throw CancellationError()
+    }
+}
+
+actor ControlledLookupSleep {
+    private var continuation: CheckedContinuation<Void, Never>?
+
+    var hasSuspendedSleep: Bool {
+        continuation != nil
+    }
+
+    func sleep(for duration: Duration) async throws {
+        await withCheckedContinuation { continuation in
+            self.continuation = continuation
+        }
+    }
+
+    func resume() {
+        continuation?.resume()
+        continuation = nil
     }
 }
 

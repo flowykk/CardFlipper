@@ -29,6 +29,12 @@ final class CardFlipperFlowTests: XCTestCase {
         firstCard.tap()
         assertExists("editor.root")
         XCTAssertEqual(app.textFields["editor.russian.0"].value as? String, "книга")
+        let noun = app.descendants(matching: .any)[
+            "editor.english.0.partOfSpeech.noun"
+        ]
+        XCTAssertTrue(noun.waitForExistence(timeout: 3))
+        XCTAssertTrue(noun.label.contains("Noun"), "Expected localized POS label, got \(noun.label)")
+        XCTAssertFalse(noun.label.contains("partOfSpeech.noun"))
         snap("F1-05-reopened-editor")
     }
 
@@ -50,6 +56,7 @@ final class CardFlipperFlowTests: XCTestCase {
         assertExists("study.forget")
         snap("F2-04-first-answer")
         tap("study.forget")
+        waitForStablePromptAfterAssessment()
         snap("F2-05-forgotten-card-requeued")
 
         rememberCurrentCard()
@@ -109,6 +116,29 @@ final class CardFlipperFlowTests: XCTestCase {
         tap("study.card.prompt")
         assertExists("study.remember")
         tap("study.remember")
+    }
+
+    private func waitForStablePromptAfterAssessment() {
+        let prompt = app.descendants(matching: .any)["study.card.prompt"]
+        let forget = app.descendants(matching: .any)["study.forget"]
+        let remember = app.descendants(matching: .any)["study.remember"]
+        let nextPrompt = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in
+                prompt.exists && prompt.isHittable && !forget.exists && !remember.exists
+            },
+            object: nil
+        )
+        wait(for: [nextPrompt], timeout: 5)
+
+        let animationSettled = expectation(description: "Next prompt animation settled")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            animationSettled.fulfill()
+        }
+        wait(for: [animationSettled], timeout: 1)
+
+        XCTAssertTrue(prompt.exists && prompt.isHittable)
+        XCTAssertFalse(forget.exists)
+        XCTAssertFalse(remember.exists)
     }
 
     private func tap(_ identifier: String) {

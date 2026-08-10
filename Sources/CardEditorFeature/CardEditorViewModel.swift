@@ -312,12 +312,18 @@ public final class CardEditorViewModel {
     }
 
     public func cancel() {
-        for task in lookupTasks.values {
-            task.cancel()
-        }
+        cancelLookupOperations()
+        isPresented = false
+    }
+
+    public func cancelLookupOperations() {
+        let tasks = Array(lookupTasks.values)
         lookupTasks.removeAll()
         lookupRequestIDs.removeAll()
-        isPresented = false
+        lookupState.removeAll()
+        for task in tasks {
+            task.cancel()
+        }
     }
 
     private var draft: CardDraft {
@@ -413,25 +419,25 @@ public final class CardEditorViewModel {
         lookupRequestIDs[variantID] = requestID
         lookupState[variantID] = .loading
 
-        let task = Task { [weak self] in
-            guard let self else { return }
-
+        let lookupSleep = self.lookupSleep
+        let task = Task { [weak self, lookupSleep] in
             if let debounce {
                 do {
-                    try await self.lookupSleep(debounce)
+                    try await lookupSleep(debounce)
                 } catch {
-                    return
-                }
-                guard !Task.isCancelled,
-                      self.isCurrentLookup(
-                        variantID: variantID,
-                        requestID: requestID,
-                        text: text
-                      ) else {
                     return
                 }
             }
 
+            guard !Task.isCancelled,
+                  let self,
+                  self.isCurrentLookup(
+                    variantID: variantID,
+                    requestID: requestID,
+                    text: text
+                  ) else {
+                return
+            }
             await self.performLookup(
                 variantID: variantID,
                 requestID: requestID,

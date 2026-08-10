@@ -134,7 +134,7 @@ public struct EnglishVariantsSection: View {
                 if isSelected {
                     Image(systemName: "checkmark")
                 }
-                Text(LocalizedStringKey("partOfSpeech.\(partOfSpeech.rawValue)"))
+                Text(verbatim: partOfSpeech.localizedName())
             }
             .font(.subheadline)
             .padding(.horizontal, 12)

@@ -251,11 +251,9 @@ public struct StudyCardView: View {
                     }
 
                     if !variant.partsOfSpeech.isEmpty {
-                        let partsOfSpeechText = variant.partsOfSpeech.map { partOfSpeech in
-                            String(localized: String.LocalizationValue(
-                                "partOfSpeech.\(partOfSpeech.rawValue)"
-                            ))
-                        }.joined(separator: ", ")
+                        let partsOfSpeechText = variant.partsOfSpeech
+                            .map { $0.localizedName() }
+                            .joined(separator: ", ")
 
                         Text(verbatim: partsOfSpeechText)
                             .font(.subheadline)

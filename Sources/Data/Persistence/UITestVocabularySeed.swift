@@ -1,4 +1,5 @@
 #if DEBUG
+import Core
 import Foundation
 import SwiftData
 
@@ -8,7 +9,11 @@ public enum UITestVocabularySeed {
     @MainActor
     public static func insert(into container: ModelContainer) throws {
         let context = container.mainContext
-        let tag = TagEntity(id: seedID(100), name: "Основы")
+        let tag = TagEntity(
+            id: seedID(100),
+            name: "Основы",
+            normalizedName: TextNormalizer.searchKey("Основы")
+        )
         context.insert(tag)
 
         let fixtures = [

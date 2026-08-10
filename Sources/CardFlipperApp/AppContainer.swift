@@ -9,8 +9,8 @@ struct AppLaunchConfiguration: Equatable {
     let seedsDeterministicVocabulary: Bool
 
     init(arguments: [String]) {
-        usesInMemoryStore = arguments.contains("-uiTesting")
         seedsDeterministicVocabulary = arguments.contains("-uiTestSeed")
+        usesInMemoryStore = arguments.contains("-uiTesting") || seedsDeterministicVocabulary
     }
 
     static var seededCardIDs: [UUID] { UITestVocabularySeed.cardIDs }
