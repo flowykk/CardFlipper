@@ -27,12 +27,37 @@ private extension VocabularyCard {
     session.reveal()
     try session.forget()
     #expect(session.currentCard?.id == .fixture(2))
+    #expect(session.queue.map(\.id) == [.fixture(2), .fixture(1)])
     #expect(session.forgottenCount == 1)
 }
 
 @Test func assessmentBeforeRevealIsRejected() {
+    var rememberedSession = StudySession(cards: [.fixture(id: 1)], direction: .russianToEnglish)
+    #expect(throws: StudySessionError.answerNotRevealed) { try rememberedSession.remember() }
+
+    var forgottenSession = StudySession(cards: [.fixture(id: 1)], direction: .englishToRussian)
+    #expect(throws: StudySessionError.answerNotRevealed) { try forgottenSession.forget() }
+}
+
+@Test func successfulAssessmentRequiresFreshReveal() throws {
+    var rememberedSession = StudySession(cards: [.fixture(id: 1), .fixture(id: 2)], direction: .russianToEnglish)
+    rememberedSession.reveal()
+    try rememberedSession.remember()
+    #expect(throws: StudySessionError.answerNotRevealed) { try rememberedSession.remember() }
+
+    var forgottenSession = StudySession(cards: [.fixture(id: 1), .fixture(id: 2)], direction: .englishToRussian)
+    forgottenSession.reveal()
+    try forgottenSession.forget()
+    #expect(throws: StudySessionError.answerNotRevealed) { try forgottenSession.forget() }
+}
+
+@Test func sessionCompletesOnlyAfterItsFinalCardIsRemembered() throws {
     var session = StudySession(cards: [.fixture(id: 1)], direction: .russianToEnglish)
-    #expect(throws: StudySessionError.answerNotRevealed) { try session.remember() }
+    #expect(session.isComplete == false)
+
+    session.reveal()
+    try session.remember()
+    #expect(session.isComplete == true)
 }
 
 @Test func assessmentOfAnEmptySessionIsRejectedWithoutMutatingState() {
