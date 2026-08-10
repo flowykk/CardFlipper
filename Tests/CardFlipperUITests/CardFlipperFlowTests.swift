@@ -4,6 +4,16 @@ import XCTest
 final class CardFlipperFlowTests: XCTestCase {
     private lazy var app = XCUIApplication()
 
+    func testSettingsExposeManualInterfaceColorPicker() throws {
+        launch(seed: false)
+
+        tap("library.settings")
+
+        assertExists("settings.colorPicker")
+        XCTAssertTrue(app.navigationBars["Settings"].exists)
+        snap("settings-interface-color-picker")
+    }
+
     func testF1FirstLaunchReachesEditorAndReturnsToEmptyLibrary() throws {
         launch(seed: false)
 
