@@ -5,6 +5,10 @@ import StudyFeature
 import Testing
 @testable import CardFlipper
 
+@Test func appDeclaresAModernLaunchScreenToAvoidLegacyLetterboxing() {
+    #expect(Bundle.main.object(forInfoDictionaryKey: "UILaunchScreen") != nil)
+}
+
 #if DEBUG
 @Test func uiTestLaunchConfigurationSelectsIsolatedStoreAndSeed() {
     let configuration = AppLaunchConfiguration(arguments: [
