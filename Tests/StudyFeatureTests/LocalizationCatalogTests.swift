@@ -33,6 +33,21 @@ import Testing
     ])
 }
 
+@Test func usageExampleCountCopyIsAccuratelyPluralizedInEnglishAndRussian() throws {
+    let values = try loadPluralCatalogValues(key: "study.examples.count")
+
+    #expect(values["en"] == [
+        "one": "%lld example",
+        "other": "%lld examples",
+    ])
+    #expect(values["ru"] == [
+        "one": "%lld пример",
+        "few": "%lld примера",
+        "many": "%lld примеров",
+        "other": "%lld примера",
+    ])
+}
+
 private func loadLocalizationCatalog() throws -> [String: [String: String]] {
     let strings = try loadCatalogStringsRoot()
 

@@ -125,7 +125,7 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("F3-02-library-refreshed")
     }
 
-    func testF4SeededUsageExampleAppearsOnEnglishStudyFace() throws {
+    func testF4SeededUsageExamplesExpandBelowAssessmentActions() throws {
         launch(seed: true)
         tap("library.study")
         assertExists("study.setup")

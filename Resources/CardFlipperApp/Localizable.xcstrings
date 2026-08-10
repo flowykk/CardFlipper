@@ -131,7 +131,58 @@
     "study.forget.hint" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Moves this card to the end of the queue" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Перемещает эту карточку в конец очереди" } } } },
     "study.examples.accessibility.collapsed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Collapsed" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Свернуто" } } } },
     "study.examples.accessibility.expanded" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Expanded" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Развернуто" } } } },
-    "study.examples.count" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld examples" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Примеров: %lld" } } } },
+    "study.examples.count" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld example"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld examples"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld примера"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld примеров"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld пример"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld примера"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "study.examples.hide" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Hide examples" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Скрыть примеры" } } } },
     "study.examples.show" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Show examples" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Показать примеры" } } } },
     "study.examples.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Usage Examples" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Примеры использования" } } } },

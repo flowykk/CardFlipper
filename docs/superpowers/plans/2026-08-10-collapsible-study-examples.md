@@ -97,7 +97,7 @@ Change F4 so it finds the seeded card, reveals it, asserts the examples sentence
 Run:
 
 ```bash
-tuist test CardFlipperUITests/CardFlipperFlowTests/testF4SeededUsageExampleAppearsOnEnglishStudyFace --no-selective-testing
+tuist test CardFlipperUITests/CardFlipperFlowTests/testF4SeededUsageExamplesExpandBelowAssessmentActions --no-selective-testing
 ```
 
 Expected: failure because `study.examples.toggle` does not exist.

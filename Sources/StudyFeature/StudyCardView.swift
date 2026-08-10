@@ -106,7 +106,6 @@ public struct StudyCardView: View {
     private let reduceMotion: Bool
     private let onToggle: () -> Void
     private let onSpeak: (UUID) -> Void
-    private let onSpeakUsageExample: (UUID, UUID) -> Void
 
     @AccessibilityFocusState private var focusedFace: FocusedFace?
 
@@ -116,8 +115,7 @@ public struct StudyCardView: View {
         isShowingAnswer: Bool,
         reduceMotion: Bool,
         onToggle: @escaping () -> Void,
-        onSpeak: @escaping (UUID) -> Void,
-        onSpeakUsageExample: @escaping (UUID, UUID) -> Void
+        onSpeak: @escaping (UUID) -> Void
     ) {
         self.card = card
         self.direction = direction
@@ -125,7 +123,6 @@ public struct StudyCardView: View {
         self.reduceMotion = reduceMotion
         self.onToggle = onToggle
         self.onSpeak = onSpeak
-        self.onSpeakUsageExample = onSpeakUsageExample
     }
 
     public var body: some View {

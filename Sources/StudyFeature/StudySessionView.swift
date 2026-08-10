@@ -85,8 +85,7 @@ public struct StudySessionView: View {
                         isShowingAnswer: model.isShowingAnswer,
                         reduceMotion: reduceMotion,
                         onToggle: model.toggleCardSide,
-                        onSpeak: model.speakEnglish,
-                        onSpeakUsageExample: model.speakUsageExample
+                        onSpeak: model.speakEnglish
                     )
                 } else {
                     ContentUnavailableView(

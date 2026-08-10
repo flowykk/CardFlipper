@@ -197,6 +197,51 @@ import Testing
 }
 
 @MainActor
+@Test func usageExampleSpeechRejectsAnExampleOwnedByAnotherCurrentVariant() {
+    let speech = SpeechServiceSpy()
+    let currentVariant = EnglishVariant(
+        id: .fixture(3_100),
+        text: "current",
+        ipa: nil,
+        partsOfSpeech: [.noun]
+    )
+    let foreignExample = UsageExample(
+        id: .fixture(3_102),
+        text: "The foreign variant owns this sentence.",
+        partOfSpeech: .noun
+    )
+    let foreignVariant = EnglishVariant(
+        id: .fixture(3_101),
+        text: "foreign",
+        ipa: nil,
+        partsOfSpeech: [.noun],
+        usageExamples: [foreignExample]
+    )
+    let card = VocabularyCard(
+        id: .fixture(3_103),
+        russianMeanings: [RussianMeaning(id: .fixture(3_104), text: "текущий")],
+        englishVariants: [currentVariant, foreignVariant],
+        tags: [],
+        createdAt: .distantPast,
+        updatedAt: .distantPast
+    )
+    let model = makeSession(
+        configuration: StudyConfiguration(
+            direction: .russianToEnglish,
+            selectedTagIDs: [],
+            cards: [card]
+        ),
+        speech: speech
+    )
+
+    model.toggleCardSide()
+    model.toggleUsageExamples()
+    model.speakUsageExample(variantID: currentVariant.id, exampleID: foreignExample.id)
+
+    #expect(speech.spokenTexts.isEmpty)
+}
+
+@MainActor
 @Test func usageExampleSpeechRequiresAssessmentDisclosureAndOwningVariant() {
     let speech = SpeechServiceSpy()
     let example = UsageExample(

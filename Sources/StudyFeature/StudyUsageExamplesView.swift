@@ -69,6 +69,7 @@ public struct StudyUsageExamplesView: View {
                                     }
                                     .buttonStyle(.bordered)
                                     .accessibilityIdentifier("study.usageExample.speak")
+                                    .accessibilityHint(Text(verbatim: example.text))
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(12)
