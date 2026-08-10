@@ -22,7 +22,14 @@ public final class FreeDictionaryClient: DictionaryService {
         ) else {
             throw DictionaryServiceError.invalidRequest
         }
-        components.path += text
+        var pathSegmentAllowed = CharacterSet.urlPathAllowed
+        pathSegmentAllowed.remove(charactersIn: "/")
+        guard let encodedText = text.addingPercentEncoding(
+            withAllowedCharacters: pathSegmentAllowed
+        ) else {
+            throw DictionaryServiceError.invalidRequest
+        }
+        components.percentEncodedPath += encodedText
         guard let url = components.url else {
             throw DictionaryServiceError.invalidRequest
         }

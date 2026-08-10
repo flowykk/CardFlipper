@@ -91,12 +91,26 @@ struct FreeDictionaryClientTests {
         URLProtocolStub.requestObserver = { recorder.record($0) }
 
         _ = try await FreeDictionaryClient(session: .stubbed, timeout: 2)
-            .suggestion(for: "ice cream")
+            .suggestion(for: "ice café")
 
         #expect(recorder.request?.timeoutInterval == 2)
         #expect(
             recorder.request?.url?.absoluteString
-                == "https://api.dictionaryapi.dev/api/v2/entries/en/ice%20cream"
+                == "https://api.dictionaryapi.dev/api/v2/entries/en/ice%20caf%C3%A9"
+        )
+    }
+
+    @Test
+    func encodesReservedDelimiterWithinTheLookupPathSegment() async throws {
+        let recorder = RequestRecorder()
+        URLProtocolStub.requestObserver = { recorder.record($0) }
+
+        _ = try await FreeDictionaryClient(session: .stubbed)
+            .suggestion(for: "and/or")
+
+        #expect(
+            recorder.request?.url?.absoluteString
+                == "https://api.dictionaryapi.dev/api/v2/entries/en/and%2For"
         )
     }
 
