@@ -82,6 +82,48 @@ import Testing
 }
 
 @MainActor
+@Test func createdTagSurvivesRecreatingADiskBackedContainer() async throws {
+    let directory = FileManager.default.temporaryDirectory
+        .appendingPathComponent("CardFlipperTagPersistence-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+
+    let storeURL = directory.appendingPathComponent("default.store")
+    let original: Core.Tag
+
+    do {
+        let configuration = ModelConfiguration(
+            "TagPersistenceTest",
+            schema: CardFlipperSchema.schema,
+            url: storeURL,
+            cloudKitDatabase: .none
+        )
+        let container = try ModelContainer(
+            for: CardFlipperSchema.schema,
+            configurations: [configuration]
+        )
+        let repository = SwiftDataTagRepository(container: container)
+        original = try await repository.create(name: "Reusable")
+    }
+
+    do {
+        let configuration = ModelConfiguration(
+            "TagPersistenceTest",
+            schema: CardFlipperSchema.schema,
+            url: storeURL,
+            cloudKitDatabase: .none
+        )
+        let container = try ModelContainer(
+            for: CardFlipperSchema.schema,
+            configurations: [configuration]
+        )
+        let repository = SwiftDataTagRepository(container: container)
+
+        #expect(try await repository.fetchTags() == [original])
+    }
+}
+
+@MainActor
 @Test func cardRepositoryRetainsItsModelContainer() async throws {
     let repository = SwiftDataCardRepository(
         container: try ModelContainerFactory.makeInMemory()
