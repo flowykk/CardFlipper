@@ -3,10 +3,12 @@ import Core
 import LibraryFeature
 import Observation
 import StudyFeature
+import StatisticsFeature
 import SwiftUI
 
 enum AppRoute: Hashable {
     case studySetup
+    case statistics
 }
 
 enum AppEditorPresentation: Equatable, Identifiable {
@@ -108,6 +110,7 @@ final class RootViewModel {
     private let dictionary: any DictionaryService
     private let speech: any SpeechService
     private let shuffler: any CardShuffler
+    private let statistics: any StatisticsRepository
 
     init(
         cards: any CardRepository,
@@ -115,6 +118,7 @@ final class RootViewModel {
         dictionary: any DictionaryService,
         speech: any SpeechService,
         shuffler: any CardShuffler,
+        statistics: any StatisticsRepository = UserDefaultsStatisticsRepository(),
         navigation: AppNavigationState = AppNavigationState()
     ) {
         self.cards = cards
@@ -122,6 +126,7 @@ final class RootViewModel {
         self.dictionary = dictionary
         self.speech = speech
         self.shuffler = shuffler
+        self.statistics = statistics
         self.navigation = navigation
         library = LibraryViewModel(cards: cards, tags: tags)
     }
@@ -132,7 +137,8 @@ final class RootViewModel {
             tags: container.tags,
             dictionary: container.dictionary,
             speech: container.speech,
-            shuffler: container.shuffler
+            shuffler: container.shuffler,
+            statistics: container.statistics
         )
     }
 
@@ -188,6 +194,14 @@ final class RootViewModel {
             speech: speech
         )
     }
+
+    var studyStatistics: StudyStatistics {
+        statistics.statistics
+    }
+
+    func recordCompletedStudy(sessionID: UUID, result: StudyResult) {
+        statistics.record(sessionID: sessionID, result: result)
+    }
 }
 
 struct RootView: View {
@@ -208,12 +222,28 @@ struct RootView: View {
                 onStartStudy: navigation.openStudySetup,
                 onDataChanged: model.libraryChanged
             )
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        navigation.path.append(.statistics)
+                    } label: {
+                        Label {
+                            Text("statistics.open", bundle: StatisticsFeatureResources.bundle)
+                        } icon: {
+                            Image(systemName: "chart.bar.xaxis")
+                        }
+                    }
+                    .accessibilityIdentifier("library.statistics")
+                }
+            }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
                 case .studySetup:
                     StudySetupView(model: model.makeStudySetupModel()) {
                         navigation.startStudy($0)
                     }
+                case .statistics:
+                    StatisticsView(statistics: model.studyStatistics)
                 }
             }
         }
@@ -230,7 +260,13 @@ struct RootView: View {
                         configuration: presentation.configuration
                     ),
                     onRepeat: { _ in navigation.repeatStudy() },
-                    onFinish: navigation.finishStudy
+                    onFinish: navigation.finishStudy,
+                    onComplete: {
+                        model.recordCompletedStudy(
+                            sessionID: presentation.sessionID,
+                            result: $0
+                        )
+                    }
                 )
             }
             .id(presentation.sessionID)

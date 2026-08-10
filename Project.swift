@@ -20,20 +20,32 @@ let project = Project(
         .framework(name: "LibraryFeature", dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]),
         .framework(name: "CardEditorFeature", dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]),
         .framework(name: "StudyFeature", dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]),
+        .target(
+            name: "StatisticsFeature",
+            destinations: .iOS,
+            product: .staticFramework,
+            bundleId: "com.danilarahmanov.CardFlipper.StatisticsFeature",
+            deploymentTargets: .iOS("18.0"),
+            infoPlist: .default,
+            sources: ["Sources/StatisticsFeature/**"],
+            resources: ["Resources/StatisticsFeature/**"],
+            dependencies: [.target(name: "Core")]
+        ),
         .app(
             name: "CardFlipper",
             bundleId: "com.danilarahmanov.CardFlipper",
-            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "CardEditorFeature", "StudyFeature"]
+            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "CardEditorFeature", "StudyFeature", "StatisticsFeature"]
         ),
         .tests(name: "CoreTests", host: "Core"),
         .tests(name: "DataTests", host: "Data"),
         .tests(name: "LibraryFeatureTests", host: "LibraryFeature"),
         .tests(name: "CardEditorFeatureTests", host: "CardEditorFeature"),
         .tests(name: "StudyFeatureTests", host: "StudyFeature"),
+        .tests(name: "StatisticsFeatureTests", host: "StatisticsFeature"),
         .tests(
             name: "CardFlipperAppTests",
             host: "CardFlipper",
-            dependencies: ["Core", "Data", "LibraryFeature", "StudyFeature"]
+            dependencies: ["Core", "Data", "LibraryFeature", "StudyFeature", "StatisticsFeature"]
         ),
         .uiTests(name: "CardFlipperUITests", host: "CardFlipper"),
     ],
@@ -48,6 +60,7 @@ let project = Project(
                 "LibraryFeatureTests",
                 "CardEditorFeatureTests",
                 "StudyFeatureTests",
+                "StatisticsFeatureTests",
                 "CardFlipperAppTests",
                 "CardFlipperUITests",
             ])

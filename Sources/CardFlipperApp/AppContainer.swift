@@ -2,6 +2,7 @@ import Core
 import Data
 import Foundation
 import SwiftData
+import StatisticsFeature
 
 #if DEBUG
 struct AppLaunchConfiguration: Equatable {
@@ -25,6 +26,7 @@ final class AppContainer {
     let dictionary: any DictionaryService
     let speech: any SpeechService
     let shuffler: any CardShuffler
+    let statistics: any StatisticsRepository
 
     convenience init() throws {
 #if DEBUG
@@ -56,6 +58,7 @@ final class AppContainer {
         dictionary = FreeDictionaryClient()
         speech = SystemSpeechService()
         shuffler = SystemCardShuffler()
+        statistics = UserDefaultsStatisticsRepository()
     }
 }
 
