@@ -66,17 +66,20 @@ public struct StudyResultView: View {
                         Label("study.result.repeat", systemImage: "arrow.clockwise")
                     }
                     .buttonStyle(PrimaryActionButtonStyle())
+                    .accessibilityIdentifier("study.repeat")
 
                     Button(action: onFinish) {
                         Label("study.result.library", systemImage: "books.vertical")
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.bordered)
+                    .accessibilityIdentifier("study.finish")
                 }
             }
             .padding(24)
             .frame(maxWidth: .infinity)
         }
+        .accessibilityIdentifier("study.result")
         .scrollBounceBehavior(.basedOnSize)
         .navigationBarBackButtonHidden()
     }

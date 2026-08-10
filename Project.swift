@@ -35,6 +35,7 @@ let project = Project(
             host: "CardFlipper",
             dependencies: ["Core", "Data", "LibraryFeature", "StudyFeature"]
         ),
+        .uiTests(name: "CardFlipperUITests", host: "CardFlipper"),
     ],
     schemes: [
         .scheme(
@@ -48,6 +49,7 @@ let project = Project(
                 "CardEditorFeatureTests",
                 "StudyFeatureTests",
                 "CardFlipperAppTests",
+                "CardFlipperUITests",
             ])
         ),
     ]

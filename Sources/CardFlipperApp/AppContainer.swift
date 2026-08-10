@@ -1,6 +1,21 @@
 import Core
 import Data
+import Foundation
 import SwiftData
+
+#if DEBUG
+struct AppLaunchConfiguration: Equatable {
+    let usesInMemoryStore: Bool
+    let seedsDeterministicVocabulary: Bool
+
+    init(arguments: [String]) {
+        usesInMemoryStore = arguments.contains("-uiTesting")
+        seedsDeterministicVocabulary = arguments.contains("-uiTestSeed")
+    }
+
+    static var seededCardIDs: [UUID] { UITestVocabularySeed.cardIDs }
+}
+#endif
 
 @MainActor
 final class AppContainer {
@@ -12,8 +27,27 @@ final class AppContainer {
     let shuffler: any CardShuffler
 
     convenience init() throws {
+#if DEBUG
+        let configuration = AppLaunchConfiguration(arguments: ProcessInfo.processInfo.arguments)
+        if configuration.usesInMemoryStore {
+            try self.init(configuration: configuration)
+            return
+        }
+#endif
         self.init(modelContainer: try ModelContainerFactory.makeDefault())
     }
+
+#if DEBUG
+    convenience init(configuration: AppLaunchConfiguration) throws {
+        let container = try configuration.usesInMemoryStore
+            ? ModelContainerFactory.makeInMemory()
+            : ModelContainerFactory.makeDefault()
+        if configuration.seedsDeterministicVocabulary {
+            try UITestVocabularySeed.insert(into: container)
+        }
+        self.init(modelContainer: container)
+    }
+#endif
 
     init(modelContainer: ModelContainer) {
         self.modelContainer = modelContainer

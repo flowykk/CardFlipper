@@ -137,6 +137,7 @@ public struct StudySessionView: View {
         }
         .buttonStyle(.bordered)
         .tint(.orange)
+        .accessibilityIdentifier("study.forget")
         .accessibilityHint("study.forget.hint")
     }
 
@@ -148,6 +149,7 @@ public struct StudySessionView: View {
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)
+        .accessibilityIdentifier("study.remember")
         .accessibilityHint("study.remember.hint")
     }
 

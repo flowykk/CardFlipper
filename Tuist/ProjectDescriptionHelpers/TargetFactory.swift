@@ -53,4 +53,20 @@ public extension Target {
             dependencies: [.target(name: host)] + dependencies.map { .target(name: $0) }
         )
     }
+
+    static func uiTests(
+        name: String,
+        host: String
+    ) -> Target {
+        .target(
+            name: name,
+            destinations: .iOS,
+            product: .uiTests,
+            bundleId: "com.danilarahmanov.CardFlipper.\(name)",
+            deploymentTargets: .iOS("18.0"),
+            infoPlist: .default,
+            sources: ["Tests/\(name)/**"],
+            dependencies: [.target(name: host)]
+        )
+    }
 }

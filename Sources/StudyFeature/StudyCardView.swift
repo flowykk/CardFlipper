@@ -149,6 +149,7 @@ public struct StudyCardView: View {
             .accessibilityAction(.default) {
                 onReveal()
             }
+            .accessibilityIdentifier("study.card.prompt")
 
             face(
                 content.back,
@@ -160,6 +161,7 @@ public struct StudyCardView: View {
             .allowsHitTesting(isRevealed)
             .accessibilityHidden(presentation.isBackAccessibilityHidden)
             .accessibilityFocused($focusedFace, equals: .answer)
+            .accessibilityIdentifier("study.card.answer")
         }
         .id(presentation.viewIdentity)
         .contentShape(Rectangle())

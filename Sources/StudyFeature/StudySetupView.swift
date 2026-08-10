@@ -18,8 +18,12 @@ public struct StudySetupView: View {
         Form {
             Section("study.direction") {
                 Picker("study.direction", selection: directionSelection) {
-                    Text("study.russianToEnglish").tag(0)
-                    Text("study.englishToRussian").tag(1)
+                    Text("study.russianToEnglish")
+                        .tag(0)
+                        .accessibilityIdentifier("study.direction.russianToEnglish")
+                    Text("study.englishToRussian")
+                        .tag(1)
+                        .accessibilityIdentifier("study.direction.englishToRussian")
                 }
                 .pickerStyle(.segmented)
                 .accessibilityHint("study.direction.hint")
@@ -58,8 +62,10 @@ public struct StudySetupView: View {
                 }
                 .buttonStyle(PrimaryActionButtonStyle())
                 .disabled(!model.canStart)
+                .accessibilityIdentifier("study.start")
             }
         }
+        .accessibilityIdentifier("study.setup")
         .navigationTitle("study.setup.title")
     }
 

@@ -4,6 +4,36 @@ import StudyFeature
 import Testing
 @testable import CardFlipper
 
+#if DEBUG
+@Test func uiTestLaunchConfigurationSelectsIsolatedStoreAndSeed() {
+    let configuration = AppLaunchConfiguration(arguments: [
+        "CardFlipper",
+        "-uiTesting",
+        "-uiTestSeed",
+    ])
+
+    #expect(configuration.usesInMemoryStore)
+    #expect(configuration.seedsDeterministicVocabulary)
+}
+
+@MainActor
+@Test func seededUITestContainerContainsDeterministicCardsAndTag() async throws {
+    let configuration = AppLaunchConfiguration(arguments: [
+        "CardFlipper",
+        "-uiTesting",
+        "-uiTestSeed",
+    ])
+    let container = try AppContainer(configuration: configuration)
+
+    let cards = try await container.cards.fetchCards()
+    let tags = try await container.tags.fetchTags()
+
+    #expect(cards.map(\.id) == AppLaunchConfiguration.seededCardIDs)
+    #expect(cards.map { $0.russianMeanings.first?.text } == ["книга", "кот", "дом"])
+    #expect(tags.map(\.name) == ["Основы"])
+}
+#endif
+
 @MainActor
 @Test func startupFailureCanRetryContainerConstruction() throws {
     var attempts = 0

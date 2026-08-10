@@ -44,6 +44,7 @@ public struct TagPickerSection: View {
                     .frame(minHeight: 44)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("editor.tag.\(tag.name)")
                 .accessibilityAddTraits(selectedTagIDs.contains(tag.id) ? .isSelected : [])
             }
 
@@ -51,6 +52,7 @@ public struct TagPickerSection: View {
                 TextField("editor.tag.new.placeholder", text: $newTagName)
                     .textInputAutocapitalization(.words)
                     .onSubmit(onCreate)
+                    .accessibilityIdentifier("editor.tag.new")
 
                 Button(action: onCreate) {
                     Image(systemName: "plus.circle.fill")
@@ -59,6 +61,7 @@ public struct TagPickerSection: View {
                 .buttonStyle(.plain)
                 .disabled(newTagName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityLabel("editor.tag.create")
+                .accessibilityIdentifier("editor.tag.create")
             }
 
             if creationFailed {

@@ -70,16 +70,19 @@ public struct CardEditorView: View {
                     }
                 }
             }
+            .accessibilityIdentifier("editor.root")
             .navigationTitle("editor.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("common.cancel", action: cancel)
+                        .accessibilityIdentifier("editor.cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("common.save") {
                         Task { await save() }
                     }
+                    .accessibilityIdentifier("editor.save")
                 }
             }
             .alert(

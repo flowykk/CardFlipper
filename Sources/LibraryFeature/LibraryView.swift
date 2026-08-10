@@ -29,6 +29,7 @@ public struct LibraryView: View {
         @Bindable var model = model
 
         content
+            .accessibilityIdentifier("library.root")
             .navigationTitle("library.title")
             .searchable(text: $model.searchText, prompt: "library.search")
             .toolbar {
@@ -37,10 +38,12 @@ public struct LibraryView: View {
                         Label("library.startStudy", systemImage: "rectangle.stack.fill")
                     }
                     .disabled(model.cards.isEmpty)
+                    .accessibilityIdentifier("library.study")
 
                     Button(action: onAddCard) {
                         Label("library.add", systemImage: "plus")
                     }
+                    .accessibilityIdentifier("library.add")
                 }
             }
             .confirmationDialog(
@@ -121,6 +124,7 @@ public struct LibraryView: View {
         if model.cards.isEmpty {
             ContentUnavailableView {
                 Label("library.empty.title", systemImage: "rectangle.stack")
+                    .accessibilityIdentifier("library.empty")
             } description: {
                 Text("library.empty.message")
             } actions: {
@@ -167,6 +171,7 @@ public struct LibraryView: View {
                     VocabularyCardRow(card: card)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("library.card")
                 .swipeActions {
                     Button("common.delete", role: .destructive) {
                         model.pendingDeletion = card

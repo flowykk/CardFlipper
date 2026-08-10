@@ -1026,3 +1026,30 @@ git commit -m "feat: integrate CardFlipper application"
 Run: `git status --short --branch && git log --oneline -10`
 
 Expected: clean working tree on `main` with the nine implementation commits following the approved design and plan commits.
+
+<flows>
+
+### F1 — First launch → create → reopen and edit
+
+1. Launch with an empty local store and confirm the intentional empty Library state.
+2. Open Add Card, create a tag, enter two Russian meanings and two English variants with IPA and parts of speech, then save.
+3. Confirm the saved card appears in Library and can be found from both a Russian and an English search.
+4. Open the saved row, change one value, save, and confirm the edited value appears in Library.
+5. Least-discoverable action: determine whether tapping the vocabulary row to edit is obvious without instruction.
+
+### F2 — Library → study → repeat → finish
+
+1. Start Study from a non-empty Library, explicitly choose a direction, and start the session.
+2. Reveal a card, choose Don't remember, and confirm it returns after the other queued cards.
+3. Reveal and remember every card, then confirm the result screen appears.
+4. Tap Repeat and confirm a fresh session remains presented; finish and confirm the Library returns.
+5. Least-discoverable action: determine whether tapping the card to reveal it is obvious before the hint is read.
+
+### F3 — Persistence and transient-session reset
+
+1. Launch with a seeded vocabulary, enter a study session, then terminate the app before completion.
+2. Relaunch and confirm vocabulary remains while the study/session result is not restored.
+3. Delete a card with confirmation and verify the Library refreshes without reopening the app.
+4. Least-discoverable action: determine whether destructive row actions are discoverable without accidental activation.
+
+</flows>

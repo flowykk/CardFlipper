@@ -26,6 +26,7 @@ public struct RussianMeaningsSection: View {
                     TextField("editor.russian.placeholder", text: $meaning.text)
                         .textInputAutocapitalization(.sentences)
                         .accessibilityLabel("editor.russian.value")
+                        .accessibilityIdentifier("editor.russian.\(position(of: meaning.id) - 1)")
 
                     Button(role: .destructive) {
                         onRemove(meaning.id)
@@ -43,6 +44,7 @@ public struct RussianMeaningsSection: View {
             Button(action: onAdd) {
                 Label("editor.russian.add", systemImage: "plus.circle")
             }
+            .accessibilityIdentifier("editor.russian.add")
 
             if showsValidationError {
                 Label("editor.russian.required", systemImage: "exclamationmark.circle")

@@ -44,6 +44,7 @@ public struct EnglishVariantsSection: View {
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .accessibilityLabel("editor.english.value")
+                            .accessibilityIdentifier("editor.english.\(position(of: variant.id) - 1)")
                             .onChange(of: variant.text) {
                                 onTextChanged(variant.id)
                             }
@@ -76,6 +77,7 @@ public struct EnglishVariantsSection: View {
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .accessibilityLabel("editor.ipa.value")
+                        .accessibilityIdentifier("editor.ipa.\(position(of: variant.id) - 1)")
 
                     ScrollView(.horizontal) {
                         HStack(spacing: 8) {
@@ -107,6 +109,7 @@ public struct EnglishVariantsSection: View {
             Button(action: onAdd) {
                 Label("editor.english.add", systemImage: "plus.circle")
             }
+            .accessibilityIdentifier("editor.english.add")
 
             if showsValidationError {
                 Label("editor.english.required", systemImage: "exclamationmark.circle")
@@ -142,6 +145,9 @@ public struct EnglishVariantsSection: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(
+            "editor.english.\(position(of: variantID) - 1).partOfSpeech.\(partOfSpeech.rawValue)"
+        )
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
