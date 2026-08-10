@@ -7,15 +7,18 @@ public struct StudySessionView: View {
 
     private let onRepeat: (StudyConfiguration) -> Void
     private let onFinish: () -> Void
+    private let onComplete: (StudyResult) -> Void
 
     public init(
         model: StudySessionViewModel,
         onRepeat: @escaping (StudyConfiguration) -> Void,
-        onFinish: @escaping () -> Void
+        onFinish: @escaping () -> Void,
+        onComplete: @escaping (StudyResult) -> Void
     ) {
         _model = State(initialValue: model)
         self.onRepeat = onRepeat
         self.onFinish = onFinish
+        self.onComplete = onComplete
     }
 
     public var body: some View {
@@ -56,6 +59,11 @@ public struct StudySessionView: View {
             }
         } message: {
             Text("study.exit.message")
+        }
+        .onChange(of: model.result) { _, result in
+            if let result {
+                onComplete(result)
+            }
         }
     }
 

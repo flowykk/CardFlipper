@@ -33,7 +33,12 @@ public extension Target {
                 "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
             ]),
             sources: ["Sources/CardFlipperApp/**"],
-            resources: ["Resources/**"],
+            resources: [
+                .glob(
+                    pattern: "Resources/**",
+                    excluding: ["Resources/StatisticsFeature/**"]
+                ),
+            ],
             dependencies: dependencies.map { .target(name: $0) }
         )
     }
