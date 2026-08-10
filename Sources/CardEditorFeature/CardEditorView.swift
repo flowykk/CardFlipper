@@ -5,12 +5,12 @@ public struct CardEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var model: CardEditorViewModel
 
-    private let onSaved: () -> Void
+    private let onSaved: @MainActor () async -> Void
     private let onCancel: () -> Void
 
     public init(
         model: CardEditorViewModel,
-        onSaved: @escaping () -> Void = {},
+        onSaved: @escaping @MainActor () async -> Void = {},
         onCancel: @escaping () -> Void = {}
     ) {
         _model = State(initialValue: model)
@@ -101,14 +101,14 @@ public struct CardEditorView: View {
 
     private func save() async {
         if await model.save() == .saved {
-            onSaved()
+            await onSaved()
             dismiss()
         }
     }
 
     private func confirmDuplicateAndSave() async {
         if await model.confirmDuplicateAndSave() == .saved {
-            onSaved()
+            await onSaved()
             dismiss()
         }
     }

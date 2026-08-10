@@ -30,6 +30,11 @@ let project = Project(
         .tests(name: "LibraryFeatureTests", host: "LibraryFeature"),
         .tests(name: "CardEditorFeatureTests", host: "CardEditorFeature"),
         .tests(name: "StudyFeatureTests", host: "StudyFeature"),
+        .tests(
+            name: "CardFlipperAppTests",
+            host: "CardFlipper",
+            dependencies: ["Core", "Data", "LibraryFeature", "StudyFeature"]
+        ),
     ],
     schemes: [
         .scheme(
@@ -42,6 +47,7 @@ let project = Project(
                 "LibraryFeatureTests",
                 "CardEditorFeatureTests",
                 "StudyFeatureTests",
+                "CardFlipperAppTests",
             ])
         ),
     ]

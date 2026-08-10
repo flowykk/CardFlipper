@@ -145,6 +145,33 @@ func searchMatchesEitherLanguage(query: String, expectedID: UUID) async {
 }
 
 @MainActor
+@Test func cardDeletionReportsWhetherCompositionShouldRefresh() async {
+    let successfulRepository = CardRepositoryFake([.workCard])
+    let successfulModel = LibraryViewModel(
+        cards: successfulRepository,
+        tags: TagRepositoryFake()
+    )
+    await successfulModel.load()
+    successfulModel.pendingDeletion = .workCard
+    let successfulDeletion = await successfulModel.deletePendingCard()
+
+    let failingRepository = CardRepositoryFake(
+        [.workCard],
+        deletionError: LibraryTestError.delete
+    )
+    let failingModel = LibraryViewModel(
+        cards: failingRepository,
+        tags: TagRepositoryFake()
+    )
+    await failingModel.load()
+    failingModel.pendingDeletion = .workCard
+    let failedDeletion = await failingModel.deletePendingCard()
+
+    #expect(successfulDeletion)
+    #expect(!failedDeletion)
+}
+
+@MainActor
 @Test func deletingTagPreservesCardsAndRemovesTheirAssociations() async {
     let repository = TagRepositoryFake(Tag.fixtures)
     let model = LibraryViewModel(
@@ -188,4 +215,31 @@ func searchMatchesEitherLanguage(query: String, expectedID: UUID) async {
     #expect(model.pendingTagDeletion == Tag.work)
     #expect(model.deletionFailure == .tag)
     #expect(model.state == .loaded)
+}
+
+@MainActor
+@Test func tagDeletionReportsWhetherCompositionShouldRefresh() async {
+    let successfulRepository = TagRepositoryFake([.work])
+    let successfulModel = LibraryViewModel(
+        cards: CardRepositoryFake([.workCard]),
+        tags: successfulRepository
+    )
+    await successfulModel.load()
+    successfulModel.pendingTagDeletion = .work
+    let successfulDeletion = await successfulModel.deletePendingTag()
+
+    let failingRepository = TagRepositoryFake(
+        [.work],
+        deletionError: LibraryTestError.delete
+    )
+    let failingModel = LibraryViewModel(
+        cards: CardRepositoryFake([.workCard]),
+        tags: failingRepository
+    )
+    await failingModel.load()
+    failingModel.pendingTagDeletion = .work
+    let failedDeletion = await failingModel.deletePendingTag()
+
+    #expect(successfulDeletion)
+    #expect(!failedDeletion)
 }

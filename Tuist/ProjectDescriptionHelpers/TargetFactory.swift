@@ -37,7 +37,11 @@ public extension Target {
         )
     }
 
-    static func tests(name: String, host: String) -> Target {
+    static func tests(
+        name: String,
+        host: String,
+        dependencies: [String] = []
+    ) -> Target {
         .target(
             name: name,
             destinations: .iOS,
@@ -46,7 +50,7 @@ public extension Target {
             deploymentTargets: .iOS("18.0"),
             infoPlist: .default,
             sources: ["Tests/\(name)/**"],
-            dependencies: [.target(name: host)]
+            dependencies: [.target(name: host)] + dependencies.map { .target(name: $0) }
         )
     }
 }

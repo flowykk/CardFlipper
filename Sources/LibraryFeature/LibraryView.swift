@@ -9,17 +9,20 @@ public struct LibraryView: View {
     private let onAddCard: () -> Void
     private let onEditCard: (VocabularyCard) -> Void
     private let onStartStudy: () -> Void
+    private let onDataChanged: @MainActor () async -> Void
 
     public init(
         model: LibraryViewModel,
         onAddCard: @escaping () -> Void,
         onEditCard: @escaping (VocabularyCard) -> Void,
-        onStartStudy: @escaping () -> Void
+        onStartStudy: @escaping () -> Void,
+        onDataChanged: @escaping @MainActor () async -> Void = {}
     ) {
         _model = State(initialValue: model)
         self.onAddCard = onAddCard
         self.onEditCard = onEditCard
         self.onStartStudy = onStartStudy
+        self.onDataChanged = onDataChanged
     }
 
     public var body: some View {
@@ -46,7 +49,11 @@ public struct LibraryView: View {
                 titleVisibility: .visible
             ) {
                 Button("common.delete", role: .destructive) {
-                    Task { await model.deletePendingCard() }
+                    Task {
+                        if await model.deletePendingCard() {
+                            await onDataChanged()
+                        }
+                    }
                 }
                 Button("common.cancel", role: .cancel) {
                     model.pendingDeletion = nil
@@ -60,7 +67,11 @@ public struct LibraryView: View {
                 titleVisibility: .visible
             ) {
                 Button("common.delete", role: .destructive) {
-                    Task { await model.deletePendingTag() }
+                    Task {
+                        if await model.deletePendingTag() {
+                            await onDataChanged()
+                        }
+                    }
                 }
                 Button("common.cancel", role: .cancel) {
                     model.pendingTagDeletion = nil
@@ -188,9 +199,13 @@ public struct LibraryView: View {
         Task {
             switch failure {
             case .card:
-                await model.deletePendingCard()
+                if await model.deletePendingCard() {
+                    await onDataChanged()
+                }
             case .tag:
-                await model.deletePendingTag()
+                if await model.deletePendingTag() {
+                    await onDataChanged()
+                }
             case nil:
                 break
             }

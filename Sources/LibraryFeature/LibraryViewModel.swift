@@ -65,21 +65,25 @@ public final class LibraryViewModel {
         }
     }
 
-    public func deletePendingCard() async {
-        guard let card = pendingDeletion else { return }
+    @discardableResult
+    public func deletePendingCard() async -> Bool {
+        guard let card = pendingDeletion else { return false }
         deletionFailure = nil
 
         do {
             try await cardRepository.delete(id: card.id)
             cards.removeAll { $0.id == card.id }
             pendingDeletion = nil
+            return true
         } catch {
             deletionFailure = .card
+            return false
         }
     }
 
-    public func deletePendingTag() async {
-        guard let tag = pendingTagDeletion else { return }
+    @discardableResult
+    public func deletePendingTag() async -> Bool {
+        guard let tag = pendingTagDeletion else { return false }
         deletionFailure = nil
 
         do {
@@ -88,8 +92,10 @@ public final class LibraryViewModel {
             selectedTagIDs.remove(tag.id)
             cards = cards.map { $0.removingTag(id: tag.id) }
             pendingTagDeletion = nil
+            return true
         } catch {
             deletionFailure = .tag
+            return false
         }
     }
 
