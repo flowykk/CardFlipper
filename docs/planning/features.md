@@ -40,10 +40,17 @@ Last updated: 2026-08-09
 - Show unique card count and total forgotten taps.
 - Return to the library or repeat the same selection.
 
+### Study progress
+
+- Count time automatically only while card review is active in the foreground.
+- Accumulate multiple sessions into a local daily total with a configurable goal.
+- Mark completed days in the statistics calendar without recalculating history.
+- Show a fixed paused snapshot in a Live Activity while the app is inactive.
+
 ## Later Candidates
 
 - Spaced repetition.
-- Persisted statistics and streaks.
+- Streak counters and achievements.
 - Import/export and backup.
 - Cloud synchronization.
 - Automatic translation.

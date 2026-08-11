@@ -62,6 +62,10 @@ Duplicate and search matching use case-insensitive, whitespace-collapsed strings
 
 `StudySession` contains its direction, initial unique-card count, queue, forgotten-tap count, selected tag identifiers, and reveal state. It is an in-memory domain value and is discarded on exit or app termination.
 
+## Daily Study Progress
+
+`DailyProgress` stores a local calendar day, accumulated whole seconds, the goal effective for that day, and an irreversible completion flag. A versioned UserDefaults repository stores daily aggregates and the preferred goal; it does not retain individual study sessions.
+
 ## Repository Contracts
 
 - `CardRepository`: observe/fetch, create, update, delete, and find duplicate candidates.

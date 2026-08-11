@@ -17,6 +17,8 @@ The project uses feature-oriented modularization. Each feature applies MVVM loca
 | `LibraryFeature` | Static framework | Library, search, filters, tags, deletion |
 | `CardEditorFeature` | Static framework | Create/edit form, lookup, duplicates, speech |
 | `StudyFeature` | Static framework | Setup, queue engine, card flow, results |
+| `StatisticsFeature` | Static framework | Lesson statistics, daily progress, timer state, calendar |
+| `StudyTimerWidgetExtension` | App extension | Lock Screen and Dynamic Island Live Activity UI |
 
 Test bundles accompany targets that contain business logic.
 
@@ -28,6 +30,7 @@ Test bundles accompany targets that contain business logic.
 - Only `Data` imports SwiftData.
 - `CardFlipperApp` is the composition root and may import all production modules.
 - Navigation data crossing feature boundaries uses `Core` values or app-owned routing types.
+- `CardFlipperApp` coordinates scene lifecycle with the StatisticsFeature timer; StudyFeature remains unaware of persistence and ActivityKit.
 
 ## State and Data Flow
 
