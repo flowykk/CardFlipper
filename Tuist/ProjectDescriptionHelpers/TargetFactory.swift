@@ -37,7 +37,10 @@ public extension Target {
             resources: [
                 .glob(
                     pattern: "Resources/**",
-                    excluding: ["Resources/StatisticsFeature/**"]
+                    excluding: [
+                        "Resources/StatisticsFeature/**",
+                        "Resources/StudyTimerWidget/**",
+                    ]
                 ),
             ],
             dependencies: dependencies.map { .target(name: $0) }
