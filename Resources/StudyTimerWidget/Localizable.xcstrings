@@ -1,0 +1,9 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "activity.paused" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Paused" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "На паузе" } } } },
+    "activity.running" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Studying" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обучение" } } } },
+    "activity.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Study" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Учёба" } } } }
+  },
+  "version" : "1.0"
+}

@@ -11,7 +11,7 @@ struct StudyTimerLiveActivity: Widget {
                     .font(.title2)
                     .foregroundStyle(.tint)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(context.state.phase == .paused ? "Paused" : "Studying")
+                    Text(statusKey(context.state.phase))
                         .font(.headline)
                     Text(display(context.state))
                         .font(.system(.title3, design: .monospaced, weight: .semibold))
@@ -23,7 +23,7 @@ struct StudyTimerLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Label("Study", systemImage: "timer")
+                    Label("activity.title", systemImage: "timer")
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     Text(StudyDurationFormatter.string(seconds: context.state.dailyElapsedSeconds))
@@ -46,5 +46,9 @@ struct StudyTimerLiveActivity: Widget {
 
     private func display(_ state: StudyTimerActivityAttributes.ContentState) -> String {
         "\(StudyDurationFormatter.string(seconds: state.dailyElapsedSeconds)) / +\(StudyDurationFormatter.string(seconds: state.sessionElapsedSeconds))"
+    }
+
+    private func statusKey(_ phase: StudyTimerActivityAttributes.Phase) -> LocalizedStringKey {
+        phase == .paused ? "activity.paused" : "activity.running"
     }
 }

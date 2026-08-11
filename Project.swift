@@ -43,6 +43,7 @@ let project = Project(
                 ],
             ]),
             sources: ["Sources/StudyTimerWidget/**"],
+            resources: ["Resources/StudyTimerWidget/**"],
             dependencies: [.target(name: "StatisticsFeature")]
         ),
         .app(
