@@ -27,6 +27,8 @@ final class AppContainer {
     let speech: any SpeechService
     let shuffler: any CardShuffler
     let statistics: any StatisticsRepository
+    let dailyProgress: any DailyProgressRepository
+    let studyTimer: StudyTimerController
 
     convenience init() throws {
 #if DEBUG
@@ -51,14 +53,24 @@ final class AppContainer {
     }
 #endif
 
-    init(modelContainer: ModelContainer) {
+    init(
+        modelContainer: ModelContainer,
+        defaults: UserDefaults = .standard,
+        liveActivityClient: any StudyTimerLiveActivityClient = SystemStudyTimerLiveActivityClient()
+    ) {
         self.modelContainer = modelContainer
         cards = SwiftDataCardRepository(container: modelContainer)
         tags = SwiftDataTagRepository(container: modelContainer)
         dictionary = FreeDictionaryClient()
         speech = SystemSpeechService()
         shuffler = SystemCardShuffler()
-        statistics = UserDefaultsStatisticsRepository()
+        statistics = UserDefaultsStatisticsRepository(defaults: defaults)
+        let dailyProgress = UserDefaultsDailyProgressRepository(defaults: defaults)
+        self.dailyProgress = dailyProgress
+        studyTimer = StudyTimerController(
+            progress: dailyProgress,
+            liveActivity: liveActivityClient
+        )
     }
 }
 

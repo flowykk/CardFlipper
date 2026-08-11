@@ -4,6 +4,7 @@ import Foundation
 import StudyFeature
 import SwiftUI
 import Testing
+import StatisticsFeature
 @testable import CardFlipper
 
 @Test func appDeclaresAModernLaunchScreenToAvoidLegacyLetterboxing() {
@@ -209,6 +210,31 @@ import Testing
     #expect(navigation.activeStudy == nil)
     #expect(navigation.path.isEmpty)
     #expect(AppNavigationState().activeStudy == nil)
+}
+
+@MainActor
+@Test func rootModelCoordinatesStudyTimerLifecycleIdempotently() {
+    let defaults = UserDefaults(suiteName: "AppTimerLifecycle.\(UUID().uuidString)")!
+    let progress = UserDefaultsDailyProgressRepository(defaults: defaults)
+    let timer = StudyTimerController(progress: progress)
+    let model = RootViewModel(
+        cards: AppCardRepositoryFake(),
+        tags: AppTagRepositoryFake(),
+        dictionary: AppDictionaryServiceFake(),
+        speech: AppSpeechServiceFake(),
+        shuffler: AppIdentityShuffler(),
+        dailyProgress: progress,
+        studyTimer: timer
+    )
+    let sessionID = UUID()
+
+    model.sceneActivityChanged(isActive: true)
+    model.studyDidAppear(sessionID: sessionID)
+    #expect(timer.snapshot.isVisible)
+
+    model.finishStudy(sessionID: sessionID)
+    model.finishStudy(sessionID: sessionID)
+    #expect(!timer.snapshot.isVisible)
 }
 
 @MainActor

@@ -111,6 +111,7 @@ final class AppNavigationState {
 final class RootViewModel {
     let library: LibraryViewModel
     let navigation: AppNavigationState
+    let studyTimer: StudyTimerController
 
     private let cards: any CardRepository
     private let tags: any TagRepository
@@ -118,6 +119,7 @@ final class RootViewModel {
     private let speech: any SpeechService
     private let shuffler: any CardShuffler
     private let statistics: any StatisticsRepository
+    let dailyProgress: any DailyProgressRepository
 
     init(
         cards: any CardRepository,
@@ -126,6 +128,8 @@ final class RootViewModel {
         speech: any SpeechService,
         shuffler: any CardShuffler,
         statistics: any StatisticsRepository = UserDefaultsStatisticsRepository(),
+        dailyProgress: any DailyProgressRepository = UserDefaultsDailyProgressRepository(),
+        studyTimer: StudyTimerController? = nil,
         navigation: AppNavigationState = AppNavigationState()
     ) {
         self.cards = cards
@@ -134,6 +138,8 @@ final class RootViewModel {
         self.speech = speech
         self.shuffler = shuffler
         self.statistics = statistics
+        self.dailyProgress = dailyProgress
+        self.studyTimer = studyTimer ?? StudyTimerController(progress: dailyProgress)
         self.navigation = navigation
         library = LibraryViewModel(cards: cards, tags: tags)
     }
@@ -145,7 +151,9 @@ final class RootViewModel {
             dictionary: container.dictionary,
             speech: container.speech,
             shuffler: container.shuffler,
-            statistics: container.statistics
+            statistics: container.statistics,
+            dailyProgress: container.dailyProgress,
+            studyTimer: container.studyTimer
         )
     }
 
@@ -207,11 +215,34 @@ final class RootViewModel {
     }
 
     func recordCompletedStudy(sessionID: UUID, result: StudyResult) {
+        studyTimer.endSession(id: sessionID)
         statistics.record(sessionID: sessionID, result: result)
+    }
+
+    func studyDidAppear(sessionID: UUID) {
+        studyTimer.startSession(id: sessionID)
+    }
+
+    func sceneActivityChanged(isActive: Bool) {
+        studyTimer.setSceneActive(isActive)
+    }
+
+    func finishStudy(sessionID: UUID) {
+        studyTimer.endSession(id: sessionID)
+        navigation.finishStudy()
+    }
+
+    func studyDidDisappear(sessionID: UUID) {
+        studyTimer.endSession(id: sessionID)
+    }
+
+    func cleanupOrphanedActivity() {
+        studyTimer.cleanupOrphanedActivity()
     }
 }
 
 struct RootView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var model: RootViewModel
     @State private var appearanceSettings: AppearanceSettings
 
@@ -260,7 +291,10 @@ struct RootView: View {
                         navigation.startStudy($0)
                     }
                 case .statistics:
-                    StatisticsView(statistics: model.studyStatistics)
+                    StatisticsView(
+                        statistics: model.studyStatistics,
+                        progress: model.dailyProgress
+                    )
                 case .settings:
                     SettingsView(settings: appearanceSettings)
                 }
@@ -279,7 +313,7 @@ struct RootView: View {
                         configuration: presentation.configuration
                     ),
                     onRepeat: { _ in navigation.repeatStudy() },
-                    onFinish: navigation.finishStudy,
+                    onFinish: { model.finishStudy(sessionID: presentation.sessionID) },
                     onComplete: {
                         model.recordCompletedStudy(
                             sessionID: presentation.sessionID,
@@ -287,8 +321,31 @@ struct RootView: View {
                         )
                     }
                 )
+                .safeAreaInset(edge: .bottom) {
+                    if model.studyTimer.snapshot.isVisible {
+                        StudyTimerPill(snapshot: model.studyTimer.snapshot)
+                            .padding(.bottom, 4)
+                    }
+                }
             }
             .id(presentation.sessionID)
+            .task {
+                model.studyDidAppear(sessionID: presentation.sessionID)
+                while !Task.isCancelled, model.studyTimer.snapshot.isVisible {
+                    try? await Task.sleep(for: .seconds(1))
+                    guard !Task.isCancelled else { break }
+                    model.studyTimer.tick()
+                }
+            }
+            .onDisappear {
+                model.studyDidDisappear(sessionID: presentation.sessionID)
+            }
+        }
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            model.sceneActivityChanged(isActive: phase == .active)
+        }
+        .task {
+            model.cleanupOrphanedActivity()
         }
         .tint(appearanceSettings.accentColor)
     }
