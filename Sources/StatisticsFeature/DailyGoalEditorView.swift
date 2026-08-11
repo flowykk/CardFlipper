@@ -1,6 +1,24 @@
 import SwiftUI
 
+enum DailyGoalEditorCopy {
+    static func title(locale: Locale) -> String {
+        let localizedBundle = locale.identifier
+            .split(whereSeparator: { $0 == "_" || $0 == "-" })
+            .lazy
+            .compactMap { Bundle.module.path(forResource: String($0), ofType: "lproj") }
+            .compactMap(Bundle.init(path:))
+            .first ?? Bundle.module
+
+        return localizedBundle.localizedString(
+            forKey: "progress.goalTitle",
+            value: "progress.goalTitle",
+            table: nil
+        )
+    }
+}
+
 struct DailyGoalEditorView: View {
+    @Environment(\.locale) private var locale
     @Bindable var model: ProgressDashboardViewModel
 
     var body: some View {
@@ -17,7 +35,7 @@ struct DailyGoalEditorView: View {
                     }
                 }
             }
-            .navigationTitle("progress.goalTitle")
+            .navigationTitle(Text(verbatim: DailyGoalEditorCopy.title(locale: locale)))
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
