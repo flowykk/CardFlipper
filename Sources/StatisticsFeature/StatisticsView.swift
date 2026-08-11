@@ -2,14 +2,17 @@ import SwiftUI
 
 public struct StatisticsView: View {
     private let statistics: StudyStatistics
+    private let libraryCardCount: Int
     @State private var progressModel: ProgressDashboardViewModel
 
     public init(
         statistics: StudyStatistics,
         progress: any DailyProgressRepository,
+        libraryCardCount: Int,
         calendar: Calendar = .autoupdatingCurrent
     ) {
         self.statistics = statistics
+        self.libraryCardCount = libraryCardCount
         _progressModel = State(initialValue: ProgressDashboardViewModel(
             progress: progress,
             calendar: calendar
@@ -22,7 +25,7 @@ public struct StatisticsView: View {
             VStack(spacing: 16) {
                 todayCard
                 ActivityCalendarView(model: progressModel)
-                metrics
+                metricGrid
             }
             .padding()
         }
@@ -54,13 +57,21 @@ public struct StatisticsView: View {
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
     }
 
-    private var metrics: some View {
+    private var metricGrid: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 12)], spacing: 12) {
-            metricCard(title: "statistics.lessons", value: statistics.completedLessonCount.formatted(), systemImage: "graduationcap.fill")
-            metricCard(title: "statistics.cards", value: statistics.studiedCardCount.formatted(), systemImage: "rectangle.stack.fill")
-            metricCard(title: "statistics.forgotten", value: statistics.forgottenCount.formatted(), systemImage: "arrow.uturn.backward.circle.fill")
-            metricCard(title: "statistics.average", value: statistics.averageCardsPerLesson.formatted(.number.precision(.fractionLength(1))), systemImage: "chart.bar.fill")
-            metricCard(title: "statistics.withoutForgetting", value: "\(statistics.lessonsWithoutForgettingPercentage)%", systemImage: "checkmark.seal.fill")
+            ForEach(
+                StatisticsMetric.makeMetrics(
+                    statistics: statistics,
+                    libraryCardCount: libraryCardCount
+                ),
+                id: \.titleKey
+            ) { metric in
+                metricCard(
+                    title: LocalizedStringKey(metric.titleKey),
+                    value: metric.value,
+                    systemImage: metric.systemImage
+                )
+            }
         }
     }
 

@@ -4,6 +4,7 @@
     "statistics.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Statistics" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Статистика" } } } },
     "statistics.open" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Open Statistics" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть статистику" } } } },
     "statistics.lessons" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Completed lessons" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Завершённые уроки" } } } },
+    "statistics.libraryCards" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards in library" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточек в библиотеке" } } } },
     "statistics.cards" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards studied" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Изучено карточек" } } } },
     "statistics.forgotten" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Forgotten" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Забывания" } } } },
     "statistics.average" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards per lesson" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточек за урок" } } } },

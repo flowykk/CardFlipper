@@ -214,6 +214,10 @@ final class RootViewModel {
         statistics.statistics
     }
 
+    var libraryCardCount: Int {
+        library.cards.count
+    }
+
     func recordCompletedStudy(sessionID: UUID, result: StudyResult) {
         studyTimer.endSession(id: sessionID)
         statistics.record(sessionID: sessionID, result: result)
@@ -293,7 +297,8 @@ struct RootView: View {
                 case .statistics:
                     StatisticsView(
                         statistics: model.studyStatistics,
-                        progress: model.dailyProgress
+                        progress: model.dailyProgress,
+                        libraryCardCount: model.libraryCardCount
                     )
                 case .settings:
                     SettingsView(settings: appearanceSettings)

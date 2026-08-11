@@ -171,6 +171,22 @@ import StatisticsFeature
 }
 
 @MainActor
+@Test func rootModelExposesCurrentLibraryCardCount() async {
+    let cards = AppCardRepositoryFake([
+        .appFixture(id: 1, russian: "слово", english: "word"),
+        .appFixture(id: 2, russian: "книга", english: "book")
+    ])
+    let model = makeRootModel(cards: cards)
+
+    await model.loadLibrary()
+    #expect(model.libraryCardCount == 2)
+
+    cards.fetchedCards = []
+    await model.loadLibrary()
+    #expect(model.libraryCardCount == 0)
+}
+
+@MainActor
 @Test func activeStudyRepeatKeepsCoverPresentedWithFreshSessionIdentity() {
     let configuration = StudyConfiguration(
         direction: .englishToRussian,
