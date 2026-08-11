@@ -2,6 +2,21 @@ import Foundation
 import StatisticsFeature
 import Testing
 
+@Test func studyDurationFormattingUsesMinutesAndHours() throws {
+    #expect(StudyDurationFormatter.string(seconds: 760) == "12:40")
+    #expect(StudyDurationFormatter.string(seconds: 4_360) == "1:12:40")
+
+    let state = StudyTimerActivityAttributes.ContentState(
+        dailyElapsedSeconds: 760,
+        sessionElapsedSeconds: 190,
+        phase: .paused,
+        updatedAt: .now
+    )
+    let data = try JSONEncoder().encode(state)
+    #expect(data.count < 4_096)
+    #expect(try JSONDecoder().decode(StudyTimerActivityAttributes.ContentState.self, from: data) == state)
+}
+
 @MainActor
 @Test func timerCountsOnlyWhileSceneIsActiveAndResumesAutomatically() {
     let fixture = TimerFixture()

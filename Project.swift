@@ -31,10 +31,24 @@ let project = Project(
             resources: ["Resources/StatisticsFeature/**"],
             dependencies: [.target(name: "Core")]
         ),
+        .target(
+            name: "StudyTimerWidgetExtension",
+            destinations: .iOS,
+            product: .appExtension,
+            bundleId: "com.danilarahmanov.CardFlipper.StudyTimerWidget",
+            deploymentTargets: .iOS("18.0"),
+            infoPlist: .extendingDefault(with: [
+                "NSExtension": [
+                    "NSExtensionPointIdentifier": "com.apple.widgetkit-extension",
+                ],
+            ]),
+            sources: ["Sources/StudyTimerWidget/**"],
+            dependencies: [.target(name: "StatisticsFeature")]
+        ),
         .app(
             name: "CardFlipper",
             bundleId: "com.danilarahmanov.CardFlipper",
-            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "CardEditorFeature", "StudyFeature", "StatisticsFeature"]
+            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "CardEditorFeature", "StudyFeature", "StatisticsFeature", "StudyTimerWidgetExtension"]
         ),
         .tests(name: "CoreTests", host: "Core"),
         .tests(name: "DataTests", host: "Data"),
