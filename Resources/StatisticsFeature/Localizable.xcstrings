@@ -14,6 +14,7 @@
     "progress.dailyGoal" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Daily goal" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Дневная цель" } } } },
     "progress.goalTitle" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Daily Goal" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Дневная цель" } } } },
     "progress.done" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Готово" } } } },
+    "progress.minutesUnit" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "min" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "мин" } } } },
     "progress.completed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Goal completed" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Цель выполнена" } } } },
     "progress.notCompleted" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Goal not completed" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Цель не выполнена" } } } }
   },

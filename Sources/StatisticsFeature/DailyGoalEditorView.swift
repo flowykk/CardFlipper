@@ -20,25 +20,47 @@ enum DailyGoalEditorCopy {
 struct DailyGoalEditorView: View {
     @Environment(\.locale) private var locale
     @Bindable var model: ProgressDashboardViewModel
+    @State private var editorModel: DailyGoalEditorModel
+
+    init(model: ProgressDashboardViewModel) {
+        self.model = model
+        _editorModel = State(initialValue: DailyGoalEditorModel(
+            goalMinutes: model.goalMinutes,
+            onSave: model.setGoal(minutes:)
+        ))
+    }
 
     var body: some View {
+        @Bindable var editorModel = editorModel
+
         NavigationStack {
-            Form {
-                Stepper(value: Binding(
-                    get: { model.goalMinutes },
-                    set: { model.setGoal(minutes: $0) }
-                ), in: 1...240) {
-                    HStack {
-                        Text("progress.dailyGoal", bundle: .module)
-                        Spacer()
-                        Text("\(model.goalMinutes) min")
+            HStack(spacing: 0) {
+                Picker(
+                    selection: $editorModel.selectedMinutes,
+                    label: Text("progress.dailyGoal", bundle: .module)
+                ) {
+                    ForEach(editorModel.minuteOptions, id: \.self) { minutes in
+                        Text(minutes.formatted()).tag(minutes)
                     }
                 }
+                .pickerStyle(.wheel)
+                .labelsHidden()
+                .accessibilityLabel(Text("progress.dailyGoal", bundle: .module))
+                .accessibilityValue(
+                    Text("\(editorModel.selectedMinutes) ")
+                    + Text("progress.minutesUnit", bundle: .module)
+                )
+
+                Text("progress.minutesUnit", bundle: .module)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
             }
+            .padding(.horizontal)
             .navigationTitle(Text(verbatim: DailyGoalEditorCopy.title(locale: locale)))
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
+                        editorModel.confirm()
                         model.isGoalEditorPresented = false
                     } label: {
                         Text("progress.done", bundle: .module)
