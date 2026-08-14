@@ -19,6 +19,33 @@ import Testing
 }
 
 @MainActor
+@Test func addingTagsUpdatesOnlySelectedCardsAndDoesNotDuplicateExistingTags() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let tags = SwiftDataTagRepository(container: container)
+    let cards = SwiftDataCardRepository(container: container)
+    let work = try await tags.create(name: "Work")
+    let exam = try await tags.create(name: "Exam")
+    let first = VocabularyCard.fixture(tag: work)
+    let second = VocabularyCard.singleValueFixture(
+        id: TestIDs.secondCard,
+        russianMeaningID: TestIDs.secondRussianMeaning,
+        englishVariantID: TestIDs.secondEnglishVariant,
+        russian: "экзамен",
+        english: "exam",
+        updatedAt: TestDates.updated
+    )
+    try await cards.save(first)
+    try await cards.save(second)
+
+    try await cards.addTags(ids: [work.id, exam.id], toCardIDs: [second.id])
+
+    let fetched = try await cards.fetchCards()
+    let secondTagIDs = Set(fetched.first(where: { $0.id == second.id })?.tags.map(\.id) ?? [])
+    #expect(fetched.first(where: { $0.id == first.id })?.tags == [work])
+    #expect(secondTagIDs == Set([work.id, exam.id]))
+}
+
+@MainActor
 @Test func deletingTagKeepsCard() async throws {
     let container = try ModelContainerFactory.makeInMemory()
     let repositories = TestRepositories(container: container)

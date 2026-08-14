@@ -243,3 +243,59 @@ func searchMatchesEitherLanguage(query: String, expectedID: UUID) async {
     #expect(successfulDeletion)
     #expect(!failedDeletion)
 }
+
+@MainActor
+@Test func bulkTagAssignmentAddsTagsWithoutRemovingExistingTagsOrCreatingDuplicates() async {
+    let repository = CardRepositoryFake(VocabularyCard.taggedFixtures)
+    let model = LibraryViewModel(cards: repository, tags: TagRepositoryFake(Tag.fixtures))
+    await model.load()
+
+    model.beginBulkTagSelection()
+    model.toggleBulkCardSelection(id: VocabularyCard.workCard.id)
+    model.toggleBulkCardSelection(id: VocabularyCard.sharedCard.id)
+    let changed = await model.addTagsToSelectedCards(ids: [Tag.exam.id])
+
+    #expect(changed)
+    #expect(model.cards.first(where: { $0.id == VocabularyCard.workCard.id })?.tags == [.work, .exam])
+    #expect(model.cards.first(where: { $0.id == VocabularyCard.sharedCard.id })?.tags == [.work, .exam])
+    #expect(repository.addedTagIDs == [Tag.exam.id])
+    #expect(repository.addedTagCardIDs == [VocabularyCard.workCard.id, VocabularyCard.sharedCard.id])
+    #expect(!model.isBulkTagSelectionActive)
+    #expect(model.selectedBulkCardIDs.isEmpty)
+}
+
+@MainActor
+@Test func failedBulkTagAssignmentKeepsCardsAndSelectedIDsUnchanged() async {
+    let repository = CardRepositoryFake(
+        VocabularyCard.taggedFixtures,
+        addTagsError: LibraryTestError.delete
+    )
+    let model = LibraryViewModel(cards: repository, tags: TagRepositoryFake(Tag.fixtures))
+    await model.load()
+    model.beginBulkTagSelection()
+    model.toggleBulkCardSelection(id: VocabularyCard.workCard.id)
+
+    let changed = await model.addTagsToSelectedCards(ids: [Tag.exam.id])
+
+    #expect(!changed)
+    #expect(model.cards == VocabularyCard.taggedFixtures)
+    #expect(model.selectedBulkCardIDs == [VocabularyCard.workCard.id])
+    #expect(model.isBulkTagSelectionActive)
+}
+
+@MainActor
+@Test func bulkCardSelectionPersistsWhenSearchAndTagFiltersChange() async {
+    let model = LibraryViewModel(
+        cards: CardRepositoryFake(VocabularyCard.taggedFixtures),
+        tags: TagRepositoryFake(Tag.fixtures)
+    )
+    await model.load()
+    model.beginBulkTagSelection()
+    model.toggleBulkCardSelection(id: VocabularyCard.workCard.id)
+
+    model.searchText = "exam"
+    model.selectedTagIDs = [Tag.exam.id]
+
+    #expect(model.visibleCards == [VocabularyCard.examCard])
+    #expect(model.selectedBulkCardIDs == [VocabularyCard.workCard.id])
+}

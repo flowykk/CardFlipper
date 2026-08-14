@@ -37,6 +37,8 @@ final class CardRepositoryFake: CardRepository {
         savedCards.append(card)
     }
 
+    func addTags(ids: Set<UUID>, toCardIDs cardIDs: Set<UUID>) async throws {}
+
     func delete(id: UUID) async throws {}
 
     func duplicateCandidates(

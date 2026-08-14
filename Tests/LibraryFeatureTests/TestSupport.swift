@@ -11,16 +11,21 @@ final class CardRepositoryFake: CardRepository {
     var fetchedCards: [VocabularyCard]
     var fetchError: Error?
     var deletionError: Error?
+    var addTagsError: Error?
     private(set) var deletedIDs: [UUID] = []
+    private(set) var addedTagIDs: Set<UUID> = []
+    private(set) var addedTagCardIDs: Set<UUID> = []
 
     init(
         _ cards: [VocabularyCard] = [],
         fetchError: Error? = nil,
-        deletionError: Error? = nil
+        deletionError: Error? = nil,
+        addTagsError: Error? = nil
     ) {
         fetchedCards = cards
         self.fetchError = fetchError
         self.deletionError = deletionError
+        self.addTagsError = addTagsError
     }
 
     func fetchCards() async throws -> [VocabularyCard] {
@@ -37,6 +42,14 @@ final class CardRepositoryFake: CardRepository {
             throw deletionError
         }
         deletedIDs.append(id)
+    }
+
+    func addTags(ids: Set<UUID>, toCardIDs cardIDs: Set<UUID>) async throws {
+        if let addTagsError {
+            throw addTagsError
+        }
+        addedTagIDs = ids
+        addedTagCardIDs = cardIDs
     }
 
     func duplicateCandidates(

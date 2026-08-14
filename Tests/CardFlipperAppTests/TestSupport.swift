@@ -20,6 +20,8 @@ final class AppCardRepositoryFake: CardRepository {
     }
 
     func save(_ card: VocabularyCard) async throws {}
+
+    func addTags(ids: Set<UUID>, toCardIDs cardIDs: Set<UUID>) async throws {}
     func delete(id: UUID) async throws {}
 
     func duplicateCandidates(
