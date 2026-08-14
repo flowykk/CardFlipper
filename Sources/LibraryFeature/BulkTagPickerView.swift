@@ -32,10 +32,9 @@ struct BulkTagPickerView: View {
                     Button("common.cancel", action: dismiss.callAsFunction)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(
-                        "library.bulk.addTags \(selectedCardCount)",
-                        action: onConfirm
-                    )
+                    Button(action: onConfirm) {
+                        Text("library.bulk.addTags \(selectedCardCount)")
+                    }
                     .disabled(selectedTagIDs.isEmpty)
                     .accessibilityIdentifier("library.bulk.confirm")
                 }
