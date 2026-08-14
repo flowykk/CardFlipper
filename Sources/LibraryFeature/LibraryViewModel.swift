@@ -22,6 +22,9 @@ public final class LibraryViewModel {
     public var searchText = ""
     public var selectedTagIDs: Set<UUID> = []
     public private(set) var state: LoadState = .idle
+    public private(set) var isBulkTagSelectionActive = false
+    public private(set) var selectedBulkCardIDs: Set<UUID> = []
+    public private(set) var bulkTagAssignmentFailed = false
     public var pendingDeletion: VocabularyCard?
     public var pendingTagDeletion: Tag?
     public private(set) var deletionFailure: LibraryDeletionFailure?
@@ -102,6 +105,50 @@ public final class LibraryViewModel {
     public func dismissDeletionFailure() {
         deletionFailure = nil
     }
+
+    public func beginBulkTagSelection() {
+        isBulkTagSelectionActive = true
+        selectedBulkCardIDs = []
+        bulkTagAssignmentFailed = false
+    }
+
+    public func cancelBulkTagSelection() {
+        isBulkTagSelectionActive = false
+        selectedBulkCardIDs = []
+        bulkTagAssignmentFailed = false
+    }
+
+    public func toggleBulkCardSelection(id: UUID) {
+        if selectedBulkCardIDs.contains(id) {
+            selectedBulkCardIDs.remove(id)
+        } else {
+            selectedBulkCardIDs.insert(id)
+        }
+    }
+
+    @discardableResult
+    public func addTagsToSelectedCards(ids tagIDs: Set<UUID>) async -> Bool {
+        guard !tagIDs.isEmpty, !selectedBulkCardIDs.isEmpty else { return false }
+        bulkTagAssignmentFailed = false
+
+        do {
+            try await cardRepository.addTags(ids: tagIDs, toCardIDs: selectedBulkCardIDs)
+            let tagsToAdd = tags.filter { tagIDs.contains($0.id) }
+            cards = cards.map { card in
+                guard selectedBulkCardIDs.contains(card.id) else { return card }
+                return card.addingTags(tagsToAdd)
+            }
+            cancelBulkTagSelection()
+            return true
+        } catch {
+            bulkTagAssignmentFailed = true
+            return false
+        }
+    }
+
+    public func dismissBulkTagAssignmentFailure() {
+        bulkTagAssignmentFailed = false
+    }
 }
 
 private extension VocabularyCard {
@@ -111,6 +158,20 @@ private extension VocabularyCard {
             russianMeanings: russianMeanings,
             englishVariants: englishVariants,
             tags: tags.filter { $0.id != tagID },
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+
+    func addingTags(_ tagsToAdd: [Tag]) -> VocabularyCard {
+        let existingIDs = Set(tags.map(\.id))
+        let uniqueTagsToAdd = tagsToAdd.filter { !existingIDs.contains($0.id) }
+        guard !uniqueTagsToAdd.isEmpty else { return self }
+        return VocabularyCard(
+            id: id,
+            russianMeanings: russianMeanings,
+            englishVariants: englishVariants,
+            tags: tags + uniqueTagsToAdd,
             createdAt: createdAt,
             updatedAt: updatedAt
         )

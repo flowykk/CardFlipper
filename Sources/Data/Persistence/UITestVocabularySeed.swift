@@ -15,6 +15,13 @@ public enum UITestVocabularySeed {
             normalizedName: TextNormalizer.searchKey("Основы")
         )
         context.insert(tag)
+        context.insert(
+            TagEntity(
+                id: seedID(101),
+                name: "Повторение",
+                normalizedName: TextNormalizer.searchKey("Повторение")
+            )
+        )
 
         let fixtures = [
             (1, "книга", "book", "bʊk", "noun", 300.0),

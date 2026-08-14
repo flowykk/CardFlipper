@@ -32,6 +32,30 @@ public final class SwiftDataCardRepository: CardRepository {
         try context.save()
     }
 
+    public func addTags(ids: Set<UUID>, toCardIDs cardIDs: Set<UUID>) async throws {
+        guard !ids.isEmpty, !cardIDs.isEmpty else { return }
+
+        let tags = try fetchTags(ids: ids)
+        let cards = try context.fetch(FetchDescriptor<CardEntity>())
+            .filter { cardIDs.contains($0.id) }
+
+        var didUpdate = false
+        for card in cards {
+            let existingIDs = Set(card.tags.map(\.id))
+            let tagsToAppend = tags.filter { !existingIDs.contains($0.id) }
+            guard !tagsToAppend.isEmpty else { continue }
+            card.tags.append(contentsOf: tagsToAppend)
+            didUpdate = true
+        }
+        guard didUpdate else { return }
+        do {
+            try context.save()
+        } catch {
+            context.rollback()
+            throw error
+        }
+    }
+
     public func delete(id: UUID) async throws {
         guard let card = try fetchCard(id: id) else { return }
         context.delete(card)

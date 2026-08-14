@@ -154,6 +154,26 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("F3-02-library-refreshed")
     }
 
+    func testBulkTagAssignmentSelectsCardsAndCompletes() throws {
+        launch(seed: true)
+        tap("library.bulk.select")
+        assertExists("library.bulk.bar")
+
+        let cards = app.buttons.matching(identifier: "library.card")
+        XCTAssertGreaterThanOrEqual(cards.count, 2)
+        tapTrailingEmptySpace(in: cards.element(boundBy: 0))
+        tapTrailingEmptySpace(in: cards.element(boundBy: 1))
+        tap("library.bulk.tags")
+
+        let tags = app.descendants(matching: .any).matching(identifier: "library.bulk.tag.00000000-0000-0000-0000-000000000101")
+        XCTAssertTrue(tags.firstMatch.waitForExistence(timeout: 3))
+        tags.firstMatch.tap()
+        tap("library.bulk.confirm")
+        XCTAssertFalse(app.descendants(matching: .any)["library.bulk.bar"].waitForExistence(timeout: 3))
+        XCTAssertTrue(cards.element(boundBy: 0).label.contains("Повторение"))
+        XCTAssertTrue(cards.element(boundBy: 1).label.contains("Повторение"))
+    }
+
     func testF4SeededUsageExamplesExpandBelowAssessmentActions() throws {
         launch(seed: true)
         tap("library.study")

@@ -6,6 +6,8 @@ public struct LibraryView: View {
     @State private var showingCardDeletion = false
     @State private var showingTagDeletion = false
     @State private var showsRussianMeanings = false
+    @State private var showingBulkTagPicker = false
+    @State private var selectedBulkTagIDs: Set<UUID> = []
 
     private let onAddCard: () -> Void
     private let onEditCard: (VocabularyCard) -> Void
@@ -35,16 +37,26 @@ public struct LibraryView: View {
             .searchable(text: $model.searchText, prompt: "library.search")
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button(action: onStartStudy) {
-                        Label("library.startStudy", systemImage: "rectangle.stack.fill")
-                    }
-                    .disabled(model.cards.isEmpty)
-                    .accessibilityIdentifier("library.study")
+                    if !model.isBulkTagSelectionActive {
+                        Button(action: onStartStudy) {
+                            Label("library.startStudy", systemImage: "rectangle.stack.fill")
+                        }
+                        .disabled(model.cards.isEmpty)
+                        .accessibilityIdentifier("library.study")
 
-                    Button(action: onAddCard) {
-                        Label("library.add", systemImage: "plus")
+                        Button {
+                            model.beginBulkTagSelection()
+                        } label: {
+                            Label("library.bulk.select", systemImage: "checklist")
+                        }
+                        .disabled(model.cards.isEmpty)
+                        .accessibilityIdentifier("library.bulk.select")
+
+                        Button(action: onAddCard) {
+                            Label("library.add", systemImage: "plus")
+                        }
+                        .accessibilityIdentifier("library.add")
                     }
-                    .accessibilityIdentifier("library.add")
                 }
             }
             .confirmationDialog(
@@ -92,6 +104,27 @@ public struct LibraryView: View {
                 }
                 Button("common.cancel", role: .cancel) {
                     cancelFailedDeletion()
+                }
+            }
+            .alert("data.save.failed", isPresented: bulkTagAssignmentFailureBinding) {
+                Button("common.retry") {
+                    addSelectedTags()
+                }
+                Button("common.cancel", role: .cancel) {
+                    model.dismissBulkTagAssignmentFailure()
+                }
+            }
+            .sheet(isPresented: $showingBulkTagPicker) {
+                BulkTagPickerView(
+                    tags: model.tags,
+                    selectedTagIDs: $selectedBulkTagIDs,
+                    selectedCardCount: model.selectedBulkCardIDs.count,
+                    onConfirm: addSelectedTags
+                )
+            }
+            .safeAreaInset(edge: .bottom) {
+                if model.isBulkTagSelectionActive {
+                    bulkSelectionBar
                 }
             }
             .task {
@@ -175,21 +208,44 @@ public struct LibraryView: View {
 
             ForEach(model.visibleCards) { card in
                 Button {
-                    onEditCard(card)
+                    if model.isBulkTagSelectionActive {
+                        model.toggleBulkCardSelection(id: card.id)
+                    } else {
+                        onEditCard(card)
+                    }
                 } label: {
-                    VocabularyCardRow(
-                        card: card,
-                        showRussianMeanings: showsRussianMeanings
-                    )
+                    HStack(spacing: 12) {
+                        if model.isBulkTagSelectionActive {
+                            Image(
+                                systemName: model.selectedBulkCardIDs.contains(card.id)
+                                    ? "checkmark.circle.fill"
+                                    : "circle"
+                            )
+                            .foregroundStyle(
+                                model.selectedBulkCardIDs.contains(card.id) ? Color.accentColor : .secondary
+                            )
+                            .accessibilityHidden(true)
+                        }
+
+                        VocabularyCardRow(
+                            card: card,
+                            showRussianMeanings: showsRussianMeanings
+                        )
+                    }
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("library.card")
+                .accessibilityAddTraits(
+                    model.selectedBulkCardIDs.contains(card.id) ? .isSelected : []
+                )
                 .swipeActions {
-                    Button("common.delete") {
-                        model.pendingDeletion = card
-                        showingCardDeletion = true
+                    if !model.isBulkTagSelectionActive {
+                        Button("common.delete") {
+                            model.pendingDeletion = card
+                            showingCardDeletion = true
+                        }
+                        .tint(.red)
                     }
-                    .tint(.red)
                 }
             }
         }
@@ -205,6 +261,54 @@ public struct LibraryView: View {
                 }
             }
         )
+    }
+
+    private var bulkTagAssignmentFailureBinding: Binding<Bool> {
+        Binding(
+            get: { model.bulkTagAssignmentFailed },
+            set: { isPresented in
+                if !isPresented {
+                    model.dismissBulkTagAssignmentFailure()
+                }
+            }
+        )
+    }
+
+    private var bulkSelectionBar: some View {
+        HStack {
+            Text("library.bulk.selected \(model.selectedBulkCardIDs.count)")
+                .font(.subheadline.weight(.medium))
+            Spacer()
+            Button("library.bulk.tags") {
+                selectedBulkTagIDs = []
+                showingBulkTagPicker = true
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(model.selectedBulkCardIDs.isEmpty || model.tags.isEmpty)
+            .accessibilityIdentifier("library.bulk.tags")
+            Button("library.bulk.cancel") {
+                model.cancelBulkTagSelection()
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("library.bulk.cancel")
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .background(.bar)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("library.bulk.bar")
+    }
+
+    private func addSelectedTags() {
+        Task {
+            if await model.addTagsToSelectedCards(ids: selectedBulkTagIDs) {
+                showingBulkTagPicker = false
+                selectedBulkTagIDs = []
+                await onDataChanged()
+            } else {
+                showingBulkTagPicker = false
+            }
+        }
     }
 
     private func requestTagDeletion(_ tag: Tag) {

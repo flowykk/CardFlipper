@@ -101,7 +101,7 @@ import StatisticsFeature
 }
 
 @MainActor
-@Test func seededUITestContainerContainsDeterministicCardsAndTag() async throws {
+@Test func seededUITestContainerContainsDeterministicCardsAndTags() async throws {
     let configuration = AppLaunchConfiguration(arguments: [
         "CardFlipper",
         "-uiTesting",
@@ -114,7 +114,7 @@ import StatisticsFeature
 
     #expect(cards.map(\.id) == AppLaunchConfiguration.seededCardIDs)
     #expect(cards.map { $0.russianMeanings.first?.text } == ["книга", "кот", "дом"])
-    #expect(tags.map(\.name) == ["Основы"])
+    #expect(tags.map(\.name) == ["Основы", "Повторение"])
 }
 #endif
 
