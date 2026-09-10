@@ -4,6 +4,55 @@ import XCTest
 final class CardFlipperFlowTests: XCTestCase {
     private lazy var app = XCUIApplication()
 
+    func testAppIconNamesAreLocalizedInRussian() {
+        continueAfterFailure = false
+        app.launchArguments = ["-uiTesting", "-AppleLanguages", "(ru)", "-AppleLocale", "ru_RU"]
+        app.launch()
+        tap("library.settings")
+        let titles = ["default": "Океан", "IconViolet3D": "Ирис", "IconOrange3D": "Коралл", "IconMint3D": "Мята", "IconMidnight3D": "Ночь", "IconOrigami": "Оригами", "IconPixel": "Пиксель", "IconOwl": "Сова", "IconMonogram": "Буквы", "IconOrbit": "Орбита"]
+        snap("app-icons-russian-top")
+        for name in ["default", "IconViolet3D", "IconOrange3D", "IconMint3D", "IconMidnight3D", "IconOrigami", "IconPixel", "IconOwl", "IconMonogram", "IconOrbit"] {
+            let title = titles[name]
+            let button = app.buttons["settings.icon.\(name)"]
+            XCTAssertTrue(button.waitForExistence(timeout: 5))
+            scrollIconToHittable(button)
+            XCTAssertEqual(button.label, title)
+        }
+        snap("app-icons-russian")
+    }
+
+    func testAllTenAppIconsCanBeSelectedAndRestoredAfterRelaunch() throws {
+        launch(seed: false)
+        tap("library.settings")
+        let names = ["IconViolet3D", "IconOrange3D", "IconMint3D", "IconMidnight3D", "IconOrigami", "IconPixel", "IconOwl", "IconMonogram", "IconOrbit", "default"]
+        let titles = ["IconViolet3D": "Iris", "IconOrange3D": "Coral", "IconMint3D": "Mint", "IconMidnight3D": "Night", "IconOrigami": "Origami", "IconPixel": "Pixel", "IconOwl": "Owl", "IconMonogram": "Type", "IconOrbit": "Orbit", "default": "Ocean"]
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        for name in names {
+            let button = app.buttons["settings.icon.\(name)"]
+            XCTAssertTrue(button.waitForExistence(timeout: 5))
+            XCTAssertEqual(button.label, titles[name])
+            scrollIconToHittable(button)
+            button.tap()
+            if springboard.alerts.firstMatch.waitForExistence(timeout: 2) {
+                springboard.alerts.firstMatch.buttons.firstMatch.tap()
+            }
+            if app.alerts.firstMatch.exists {
+                XCTAssertFalse(app.alerts["Couldn’t Change Icon"].exists)
+                app.alerts.firstMatch.buttons.firstMatch.tap()
+            }
+            let selected = NSPredicate(format: "isSelected == true")
+            expectation(for: selected, evaluatedWith: button)
+            waitForExpectations(timeout: 10)
+            snap("app-icon-\(name)")
+            if name == "IconMidnight3D" {
+                app.terminate()
+                app.launch()
+                tap("library.settings")
+                XCTAssertTrue(app.buttons["settings.icon.IconMidnight3D"].isSelected)
+            }
+        }
+    }
+
     func testSettingsExposeManualInterfaceColorPicker() throws {
         launch(seed: false)
 
@@ -84,6 +133,26 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(firstCard.staticTexts["книга"].waitForExistence(timeout: 3))
     }
 
+    func testLearningFiltersAreAvailableInLibraryAndStudySetup() throws {
+        launch(seed: true)
+
+        assertExists("library.learningFilter")
+
+        tap("library.study")
+        assertExists("study.setup")
+        assertExists("study.learningFilter")
+    }
+
+    func testLibraryLearningFilterAppearsBelowTags() throws {
+        launch(seed: true)
+
+        let tag = app.buttons["Основы"]
+        let filter = app.segmentedControls["library.learningFilter"]
+        XCTAssertTrue(tag.waitForExistence(timeout: 5))
+        XCTAssertTrue(filter.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(filter.frame.minY, tag.frame.maxY)
+    }
+
     func testF2StudyForgetRememberRepeatAndFinish() throws {
         launch(seed: true)
 
@@ -158,6 +227,7 @@ final class CardFlipperFlowTests: XCTestCase {
         launch(seed: true)
         tap("library.bulk.select")
         assertExists("library.bulk.bar")
+        XCTAssertTrue(app.navigationBars.buttons["library.bulk.cancel"].waitForExistence(timeout: 3))
 
         let cards = app.buttons.matching(identifier: "library.card")
         XCTAssertGreaterThanOrEqual(cards.count, 2)
@@ -165,10 +235,17 @@ final class CardFlipperFlowTests: XCTestCase {
         tapTrailingEmptySpace(in: cards.element(boundBy: 1))
         tap("library.bulk.tags")
 
-        let tags = app.descendants(matching: .any).matching(identifier: "library.bulk.tag.00000000-0000-0000-0000-000000000101")
-        XCTAssertTrue(tags.firstMatch.waitForExistence(timeout: 3))
-        tags.firstMatch.tap()
-        tap("library.bulk.confirm")
+        let tag = app.buttons["library.bulk.tag.00000000-0000-0000-0000-000000000101"]
+        XCTAssertTrue(tag.waitForExistence(timeout: 3))
+        XCTAssertTrue(tag.isHittable)
+        tag.tap()
+        expectation(for: NSPredicate(format: "isSelected == true"), evaluatedWith: tag)
+        waitForExpectations(timeout: 3)
+
+        let confirm = app.buttons["library.bulk.confirm"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 3))
+        XCTAssertTrue(confirm.isHittable)
+        confirm.tap()
         XCTAssertFalse(app.descendants(matching: .any)["library.bulk.bar"].waitForExistence(timeout: 3))
         XCTAssertTrue(cards.element(boundBy: 0).label.contains("Повторение"))
         XCTAssertTrue(cards.element(boundBy: 1).label.contains("Повторение"))
@@ -229,7 +306,6 @@ final class CardFlipperFlowTests: XCTestCase {
         newTag.tap()
         newTag.typeText("Reusable")
         dismissKeyboard()
-        tap("editor.tag.create")
         assertExists("editor.tag.chip.Reusable")
 
         app.navigationBars.buttons["Save"].tap()
@@ -304,15 +380,17 @@ final class CardFlipperFlowTests: XCTestCase {
     }
 
     private func dismissKeyboard() {
-        guard app.keyboards.firstMatch.exists else { return }
+        let keyboard = app.keyboards.firstMatch
+        guard keyboard.exists else { return }
 
-        let hideKeyboard = app.keyboards.buttons["Hide keyboard"]
-        if hideKeyboard.exists {
+        let returnKey = keyboard.buttons["Return"]
+        let hideKeyboard = keyboard.buttons["Hide keyboard"]
+        if returnKey.isHittable {
+            returnKey.tap()
+        } else if hideKeyboard.isHittable {
             hideKeyboard.tap()
         } else {
-            app.navigationBars.firstMatch.coordinate(
-                withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)
-            ).tap()
+            XCTFail("Expected a hittable keyboard dismissal control")
         }
     }
 
@@ -350,6 +428,21 @@ final class CardFlipperFlowTests: XCTestCase {
             app.descendants(matching: .any)[identifier].waitForExistence(timeout: 5),
             "Expected accessibility identifier \(identifier)"
         )
+    }
+
+    private func scrollIconToHittable(_ element: XCUIElement) {
+        let picker = app.scrollViews["settings.iconPicker"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        for _ in 0..<10 {
+            let frame = element.frame
+            let isFullyVisible = frame.minX >= picker.frame.minX && frame.maxX <= picker.frame.maxX
+            if element.isHittable && isFullyVisible { return }
+            let movingRight = frame.minX < picker.frame.minX
+            let start = picker.coordinate(withNormalizedOffset: CGVector(dx: movingRight ? 0.3 : 0.7, dy: 0.5))
+            let end = picker.coordinate(withNormalizedOffset: CGVector(dx: movingRight ? 0.6 : 0.4, dy: 0.5))
+            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.1)
+        }
+        XCTFail("Icon could not be reached by horizontal scrolling: \(element)")
     }
 
     private func scrollToHittable(_ element: XCUIElement) {

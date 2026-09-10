@@ -6,6 +6,7 @@ final class CardEntity {
     @Attribute(.unique) var id: UUID
     var createdAt: Date
     var updatedAt: Date
+    var isLearned: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \RussianMeaningEntity.card)
     var russianMeanings: [RussianMeaningEntity]
@@ -22,11 +23,13 @@ final class CardEntity {
         updatedAt: Date,
         russianMeanings: [RussianMeaningEntity],
         englishVariants: [EnglishVariantEntity],
-        tags: [TagEntity]
+        tags: [TagEntity],
+        isLearned: Bool = false
     ) {
         self.id = id
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.isLearned = isLearned
         self.russianMeanings = russianMeanings
         self.englishVariants = englishVariants
         self.tags = tags

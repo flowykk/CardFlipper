@@ -1,143 +1,2390 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "common.cancel" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отмена" } } } },
-    "common.save" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сохранить" } } } },
-    "common.delete" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить" } } } },
-    "common.retry" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Try Again" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторить" } } } },
-    "common.close" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Close" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Закрыть" } } } },
-    "app.startup.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Open Your Library" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось открыть библиотеку" } } } },
-    "app.startup.failed.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "CardFlipper couldn’t prepare local storage. Try again." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Приложению CardFlipper не удалось подготовить локальное хранилище. Попробуйте ещё раз." } } } },
-    "card.speak" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Pronounce" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Произнести" } } } },
-    "editor.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Card Editor" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Редактор карточки" } } } },
-    "editor.russian.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Russian Meanings" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Русские значения" } } } },
-    "editor.russian.placeholder" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Enter a Russian meaning" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Введите русское значение" } } } },
-    "editor.russian.value" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Russian meaning" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Русское значение" } } } },
-    "editor.russian.add" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add Russian Meaning" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавить русское значение" } } } },
-    "editor.russian.required" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add at least one Russian meaning." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавьте хотя бы одно русское значение." } } } },
-    "editor.english.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "English Translations" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Английские переводы" } } } },
-    "editor.english.placeholder" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Enter an English translation" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Введите английский перевод" } } } },
-    "editor.english.value" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "English translation" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Английский перевод" } } } },
-    "editor.english.add" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add English Translation" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавить английский перевод" } } } },
-    "editor.english.required" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add at least one English translation." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавьте хотя бы один английский перевод." } } } },
-    "editor.example.add" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add Example" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавить пример" } } } },
-    "editor.example.partOfSpeech.choose" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose Part of Speech" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выберите часть речи" } } } },
-    "editor.example.partOfSpeech.first" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Select a part of speech above before adding examples." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Перед добавлением примеров выберите часть речи выше." } } } },
-    "editor.example.partOfSpeech.required" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose a part of speech for this example." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выберите часть речи для этого примера." } } } },
-    "editor.example.placeholder" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Enter an English example sentence" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Введите пример предложения на английском" } } } },
-    "editor.example.remove.position" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Remove example %2$lld from English variant %1$lld" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить пример %2$lld из английского варианта %1$lld" } } } },
-    "editor.example.speak.position" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Pronounce example %2$lld from English variant %1$lld" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Произнести пример %2$lld из английского варианта %1$lld" } } } },
-    "editor.examples.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Usage Examples" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Примеры использования" } } } },
-    "editor.ipa.placeholder" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "IPA (optional)" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "IPA (необязательно)" } } } },
-    "editor.ipa.value" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Pronunciation in IPA" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Произношение в IPA" } } } },
-    "editor.lookup.action" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Look Up" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Найти" } } } },
-    "editor.lookup.loading" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Looking up word" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Поиск слова" } } } },
-    "editor.lookup.suggested" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Suggestion Added" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Подсказка добавлена" } } } },
-    "editor.lookup.notFound" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "No Suggestion Found" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Подсказка не найдена" } } } },
-    "editor.lookup.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Lookup Unavailable" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Поиск недоступен" } } } },
-    "editor.tags.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Tags" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Теги" } } } },
-    "editor.tag.new.placeholder" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "New tag" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Новый тег" } } } },
-    "editor.tag.create" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add Tag" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавить тег" } } } },
-    "editor.tag.create.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Add Tag" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось добавить тег" } } } },
-    "editor.tag.load.retry" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Retry Loading Tags" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторить загрузку тегов" } } } },
-    "editor.duplicate.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Possible Duplicate" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Возможный дубликат" } } } },
-    "editor.duplicate.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "A card with the same meaning or translation already exists." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточка с таким значением или переводом уже существует." } } } },
-    "editor.duplicate.saveAnyway" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Save Anyway" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Всё равно сохранить" } } } },
-    "editor.duplicate.check.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Check for Duplicates" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось проверить дубликаты" } } } },
-    "editor.save.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Save Card" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось сохранить карточку" } } } },
-    "editor.russian.remove.position" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Remove Russian meaning %lld" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить русское значение %lld" } } } },
-    "editor.english.remove.position" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Remove English variant %lld" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить английский вариант %lld" } } } },
-    "editor.english.speak.position" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Pronounce English variant %lld" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Произнести английский вариант %lld" } } } },
-    "library.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Library" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Библиотека" } } } },
-    "library.translations.show" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Show translations" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Показывать переводы" } } } },
-    "library.search" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Search cards" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Поиск карточек" } } } },
-    "library.add" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add Card" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавить карточку" } } } },
-    "library.bulk.addTags" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add to %lld Words" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавить к %lld словам" } } } },
-    "library.bulk.cancel" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel Selection" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отменить выбор" } } } },
-    "library.bulk.select" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Select" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выбрать" } } } },
-    "library.bulk.selected" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld selected" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выбрано: %lld" } } } },
-    "library.bulk.tags" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Tags" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Теги" } } } },
-    "library.startStudy" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Study" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начать занятие" } } } },
-    "library.filter" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Filter by Tags" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Фильтр по тегам" } } } },
-    "library.empty.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Your Library Is Empty" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Библиотека пуста" } } } },
-    "library.empty.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add a word to start building your vocabulary." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавьте слово, чтобы начать собирать словарь." } } } },
-    "library.filteredEmpty" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "No Matching Cards" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Подходящих карточек нет" } } } },
-    "library.filteredEmpty.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Try another search or clear the selected tags." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Попробуйте другой запрос или сбросьте выбранные теги." } } } },
-    "library.clearFilters" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Clear Filters" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сбросить фильтры" } } } },
-    "card.new.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "New Card" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Новая карточка" } } } },
-    "card.edit.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit Card" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Редактировать карточку" } } } },
-    "card.russian" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Russian" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Русский" } } } },
-    "card.english" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "English" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Английский" } } } },
-    "card.addRussian" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add Russian Meaning" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавить русское значение" } } } },
-    "card.addEnglish" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add English Translation" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавить английский перевод" } } } },
-    "card.ipa" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Pronunciation (IPA)" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Произношение (IPA)" } } } },
-    "card.partsOfSpeech" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Part of Speech" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Часть речи" } } } },
-    "partOfSpeech.noun" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Noun" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Существительное" } } } },
-    "partOfSpeech.verb" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Verb" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Глагол" } } } },
-    "partOfSpeech.adj" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Adjective" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Прилагательное" } } } },
-    "partOfSpeech.adv" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Adverb" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Наречие" } } } },
-    "partOfSpeech.pronoun" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Pronoun" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Местоимение" } } } },
-    "partOfSpeech.preposition" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Preposition" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Предлог" } } } },
-    "partOfSpeech.conjunction" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Conjunction" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Союз" } } } },
-    "partOfSpeech.interjection" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Interjection" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Междометие" } } } },
-    "partOfSpeech.determiner" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Determiner" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Определитель" } } } },
-    "partOfSpeech.numeral" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Numeral" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Числительное" } } } },
-    "partOfSpeech.auxiliary" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Auxiliary verb" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вспомогательный глагол" } } } },
-    "partOfSpeech.modal" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Modal verb" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Модальный глагол" } } } },
-    "partOfSpeech.phrase" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Phrase" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Фраза" } } } },
-    "partOfSpeech.other" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Other" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Другое" } } } },
-    "card.tags" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Tags" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Теги" } } } },
-    "card.newTag" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "New Tag" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Новый тег" } } } },
-    "card.lookup.notFound" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "No Definition Found" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Определение не найдено" } } } },
-    "card.lookup.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Look Up This Word" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось найти это слово" } } } },
-    "card.validation.russian" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add at least one Russian meaning." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавьте хотя бы одно русское значение." } } } },
-    "card.validation.english" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Add at least one English translation." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Добавьте хотя бы один английский перевод." } } } },
-    "card.duplicate.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Duplicate Card" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Такая карточка уже есть" } } } },
-    "card.delete.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete Card?" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить карточку?" } } } },
-    "card.delete.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "This card will be permanently deleted." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Эта карточка будет удалена без возможности восстановления." } } } },
-    "tag.manage" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Manage Tags" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Управление тегами" } } } },
-    "tag.delete.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete Tag?" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить тег?" } } } },
-    "tag.delete.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards keep their words, but this tag will be removed." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточки сохранят слова, но этот тег будет удалён." } } } },
-    "study.setup.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Study Setup" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Настройка занятия" } } } },
-    "study.direction" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Direction" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Направление" } } } },
-    "study.direction.hint" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose one study direction" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выберите одно направление занятия" } } } },
-    "study.russianToEnglish" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Russian to English" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "С русского на английский" } } } },
-    "study.englishToRussian" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "English to Russian" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "С английского на русский" } } } },
-    "study.allCards" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "All Cards" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Все карточки" } } } },
-    "study.matchingCount" : {
+    "app.startup.failed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld card" } },
-              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld cards" } }
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Open Your Library"
           }
         },
         "ru" : {
-          "variations" : {
-            "plural" : {
-              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточка" } },
-              "few" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки" } },
-              "many" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточек" } },
-              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки" } }
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось открыть библиотеку"
           }
         }
       }
     },
-    "study.start" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Start" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начать" } } } },
-    "study.remaining" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld Remaining" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Осталось: %lld" } } } },
-    "study.flipHint" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Tap the card to reveal the answer" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Нажмите на карточку, чтобы увидеть ответ" } } } },
-    "study.prompt" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Prompt" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вопрос" } } } },
-    "study.answer" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Answer" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ответ" } } } },
-    "study.remember" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Remember" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Помню" } } } },
-    "study.remember.hint" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Removes this card from the queue" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Убирает эту карточку из очереди" } } } },
-    "study.forget" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Don’t remember" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не помню" } } } },
-    "study.forget.hint" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Moves this card to the end of the queue" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Перемещает эту карточку в конец очереди" } } } },
-    "study.examples.accessibility.collapsed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Collapsed" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Свернуто" } } } },
-    "study.examples.accessibility.expanded" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Expanded" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Развернуто" } } } },
+    "app.startup.failed.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CardFlipper couldn’t prepare local storage. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложению CardFlipper не удалось подготовить локальное хранилище. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "card.addEnglish" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add English Translation"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить английский перевод"
+          }
+        }
+      }
+    },
+    "card.addRussian" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Russian Meaning"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить русское значение"
+          }
+        }
+      }
+    },
+    "card.delete.message" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This card will be permanently deleted."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта карточка будет удалена без возможности восстановления."
+          }
+        }
+      }
+    },
+    "card.delete.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Card?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить карточку?"
+          }
+        }
+      }
+    },
+    "card.duplicate.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplicate Card"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Такая карточка уже есть"
+          }
+        }
+      }
+    },
+    "card.edit.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Card"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Редактировать карточку"
+          }
+        }
+      }
+    },
+    "card.english" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Английский"
+          }
+        }
+      }
+    },
+    "card.ipa" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronunciation (IPA)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Произношение (IPA)"
+          }
+        }
+      }
+    },
+    "card.lookup.failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Look Up This Word"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось найти это слово"
+          }
+        }
+      }
+    },
+    "card.lookup.notFound" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Definition Found"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Определение не найдено"
+          }
+        }
+      }
+    },
+    "card.new.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Card"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новая карточка"
+          }
+        }
+      }
+    },
+    "card.newTag" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Tag"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новый тег"
+          }
+        }
+      }
+    },
+    "card.partsOfSpeech" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Part of Speech"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Часть речи"
+          }
+        }
+      }
+    },
+    "card.russian" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Russian"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Русский"
+          }
+        }
+      }
+    },
+    "card.speak" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronounce"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Произнести"
+          }
+        }
+      }
+    },
+    "card.tags" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tags"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Теги"
+          }
+        }
+      }
+    },
+    "card.validation.english" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add at least one English translation."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте хотя бы один английский перевод."
+          }
+        }
+      }
+    },
+    "card.validation.russian" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add at least one Russian meaning."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте хотя бы одно русское значение."
+          }
+        }
+      }
+    },
+    "common.cancel" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отмена"
+          }
+        }
+      }
+    },
+    "common.close" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть"
+          }
+        }
+      }
+    },
+    "common.delete" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить"
+          }
+        }
+      }
+    },
+    "common.retry" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try Again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторить"
+          }
+        }
+      }
+    },
+    "common.save" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранить"
+          }
+        }
+      }
+    },
+    "data.delete.failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Delete This Item"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось удалить этот объект"
+          }
+        }
+      }
+    },
+    "data.load.failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Load Your Cards"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось загрузить карточки"
+          }
+        }
+      }
+    },
+    "data.loading" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузка…"
+          }
+        }
+      }
+    },
+    "data.save.failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Save Your Changes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сохранить изменения"
+          }
+        }
+      }
+    },
+    "editor.duplicate.check.failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Check for Duplicates"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось проверить дубликаты"
+          }
+        }
+      }
+    },
+    "editor.duplicate.message" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A card with the same meaning or translation already exists."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Карточка с таким значением или переводом уже существует."
+          }
+        }
+      }
+    },
+    "editor.duplicate.saveAnyway" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Anyway"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всё равно сохранить"
+          }
+        }
+      }
+    },
+    "editor.duplicate.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Possible Duplicate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Возможный дубликат"
+          }
+        }
+      }
+    },
+    "editor.english.add" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add English Translation"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить английский перевод"
+          }
+        }
+      }
+    },
+    "editor.english.placeholder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter an English translation"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите английский перевод"
+          }
+        }
+      }
+    },
+    "editor.english.remove.position" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove English variant %lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить английский вариант %lld"
+          }
+        }
+      }
+    },
+    "editor.english.required" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add at least one English translation."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте хотя бы один английский перевод."
+          }
+        }
+      }
+    },
+    "editor.english.speak.position" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronounce English variant %lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Произнести английский вариант %lld"
+          }
+        }
+      }
+    },
+    "editor.english.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English Translations"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Английские переводы"
+          }
+        }
+      }
+    },
+    "editor.english.value" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English translation"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Английский перевод"
+          }
+        }
+      }
+    },
+    "editor.example.add" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Example"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить пример"
+          }
+        }
+      }
+    },
+    "editor.example.partOfSpeech.choose" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Part of Speech"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите часть речи"
+          }
+        }
+      }
+    },
+    "editor.example.partOfSpeech.first" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a part of speech above before adding examples."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перед добавлением примеров выберите часть речи выше."
+          }
+        }
+      }
+    },
+    "editor.example.partOfSpeech.required" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a part of speech for this example."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите часть речи для этого примера."
+          }
+        }
+      }
+    },
+    "editor.example.placeholder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter an English example sentence"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите пример предложения на английском"
+          }
+        }
+      }
+    },
+    "editor.example.remove.position" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove example %2$lld from English variant %1$lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить пример %2$lld из английского варианта %1$lld"
+          }
+        }
+      }
+    },
+    "editor.example.speak.position" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronounce example %2$lld from English variant %1$lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Произнести пример %2$lld из английского варианта %1$lld"
+          }
+        }
+      }
+    },
+    "editor.examples.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usage Examples"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Примеры использования"
+          }
+        }
+      }
+    },
+    "editor.ipa.placeholder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPA (optional)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPA (необязательно)"
+          }
+        }
+      }
+    },
+    "editor.ipa.value" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronunciation in IPA"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Произношение в IPA"
+          }
+        }
+      }
+    },
+    "editor.lookup.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Look Up"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Найти"
+          }
+        }
+      }
+    },
+    "editor.lookup.failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lookup Unavailable"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск недоступен"
+          }
+        }
+      }
+    },
+    "editor.lookup.loading" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking up word"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск слова"
+          }
+        }
+      }
+    },
+    "editor.lookup.notFound" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Suggestion Found"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подсказка не найдена"
+          }
+        }
+      }
+    },
+    "editor.lookup.suggested" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggestion Added"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подсказка добавлена"
+          }
+        }
+      }
+    },
+    "editor.russian.add" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Russian Meaning"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить русское значение"
+          }
+        }
+      }
+    },
+    "editor.russian.placeholder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a Russian meaning"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите русское значение"
+          }
+        }
+      }
+    },
+    "editor.russian.remove.position" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Russian meaning %lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить русское значение %lld"
+          }
+        }
+      }
+    },
+    "editor.russian.required" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add at least one Russian meaning."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте хотя бы одно русское значение."
+          }
+        }
+      }
+    },
+    "editor.russian.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Russian Meanings"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Русские значения"
+          }
+        }
+      }
+    },
+    "editor.russian.value" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Russian meaning"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Русское значение"
+          }
+        }
+      }
+    },
+    "editor.save.failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Save Card"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сохранить карточку"
+          }
+        }
+      }
+    },
+    "editor.tag.create" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Tag"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить тег"
+          }
+        }
+      }
+    },
+    "editor.tag.create.failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Add Tag"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось добавить тег"
+          }
+        }
+      }
+    },
+    "editor.tag.load.retry" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry Loading Tags"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторить загрузку тегов"
+          }
+        }
+      }
+    },
+    "editor.tag.new.placeholder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New tag"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новый тег"
+          }
+        }
+      }
+    },
+    "editor.tags.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tags"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Теги"
+          }
+        }
+      }
+    },
+    "editor.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Card Editor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Редактор карточки"
+          }
+        }
+      }
+    },
+    "learningFilter.all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все"
+          }
+        }
+      }
+    },
+    "learningFilter.learned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learned"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выученные"
+          }
+        }
+      }
+    },
+    "learningFilter.unlearned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlearned"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Невыученные"
+          }
+        }
+      }
+    },
+    "library.add" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Card"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить карточку"
+          }
+        }
+      }
+    },
+    "library.bulk.addTags" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to %lld Words"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить к %lld словам"
+          }
+        }
+      }
+    },
+    "library.bulk.cancel" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отмена"
+          }
+        }
+      }
+    },
+    "library.bulk.select" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать"
+          }
+        }
+      }
+    },
+    "library.bulk.selected" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld selected"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрано: %lld"
+          }
+        }
+      }
+    },
+    "library.bulk.tags" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tags"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Теги"
+          }
+        }
+      }
+    },
+    "library.clearFilters" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear Filters"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить фильтры"
+          }
+        }
+      }
+    },
+    "library.empty.message" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a word to start building your vocabulary."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте слово, чтобы начать собирать словарь."
+          }
+        }
+      }
+    },
+    "library.empty.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Library Is Empty"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Библиотека пуста"
+          }
+        }
+      }
+    },
+    "library.filter" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter by Tags"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фильтр по тегам"
+          }
+        }
+      }
+    },
+    "library.filteredEmpty" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Matching Cards"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подходящих карточек нет"
+          }
+        }
+      }
+    },
+    "library.filteredEmpty.message" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try another search or clear the selected tags."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Попробуйте другой запрос или сбросьте выбранные теги."
+          }
+        }
+      }
+    },
+    "library.learningFilter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learning status"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Статус изучения"
+          }
+        }
+      }
+    },
+    "library.markLearned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark Learned"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отметить выученным"
+          }
+        }
+      }
+    },
+    "library.markUnlearned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark Unlearned"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отметить невыученным"
+          }
+        }
+      }
+    },
+    "library.search" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search cards"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск карточек"
+          }
+        }
+      }
+    },
+    "library.startStudy" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Study"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начать занятие"
+          }
+        }
+      }
+    },
+    "library.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Library"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Библиотека"
+          }
+        }
+      }
+    },
+    "library.translations.show" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show translations"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать переводы"
+          }
+        }
+      }
+    },
+    "partOfSpeech.adj" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjective"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прилагательное"
+          }
+        }
+      }
+    },
+    "partOfSpeech.adv" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adverb"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Наречие"
+          }
+        }
+      }
+    },
+    "partOfSpeech.auxiliary" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auxiliary verb"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вспомогательный глагол"
+          }
+        }
+      }
+    },
+    "partOfSpeech.conjunction" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conjunction"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Союз"
+          }
+        }
+      }
+    },
+    "partOfSpeech.determiner" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Determiner"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Определитель"
+          }
+        }
+      }
+    },
+    "partOfSpeech.interjection" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interjection"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Междометие"
+          }
+        }
+      }
+    },
+    "partOfSpeech.modal" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modal verb"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Модальный глагол"
+          }
+        }
+      }
+    },
+    "partOfSpeech.noun" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noun"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Существительное"
+          }
+        }
+      }
+    },
+    "partOfSpeech.numeral" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numeral"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Числительное"
+          }
+        }
+      }
+    },
+    "partOfSpeech.other" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Другое"
+          }
+        }
+      }
+    },
+    "partOfSpeech.phrase" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phrase"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фраза"
+          }
+        }
+      }
+    },
+    "partOfSpeech.preposition" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preposition"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предлог"
+          }
+        }
+      }
+    },
+    "partOfSpeech.pronoun" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronoun"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Местоимение"
+          }
+        }
+      }
+    },
+    "partOfSpeech.verb" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verb"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Глагол"
+          }
+        }
+      }
+    },
+    "settings.appearance" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оформление"
+          }
+        }
+      }
+    },
+    "settings.appIcon" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Icon"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Иконка приложения"
+          }
+        }
+      }
+    },
+    "settings.cards" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cards"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Карточки"
+          }
+        }
+      }
+    },
+    "settings.cards.export" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export Cards"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспортировать карточки"
+          }
+        }
+      }
+    },
+    "settings.cards.import" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Cards"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импортировать карточки"
+          }
+        }
+      }
+    },
+    "settings.cards.import.failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t import cards."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось импортировать карточки."
+          }
+        }
+      }
+    },
+    "settings.cards.import.result" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Result"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Результат импорта"
+          }
+        }
+      }
+    },
+    "settings.cards.import.success" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cards imported successfully."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Карточки успешно импортированы."
+          }
+        }
+      }
+    },
+    "settings.icon.default" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocean"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Океан"
+          }
+        }
+      }
+    },
+    "settings.icon.error.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please try again. Your current icon has been kept."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Попробуйте ещё раз. Текущая иконка сохранена."
+          }
+        }
+      }
+    },
+    "settings.icon.error.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Change Icon"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сменить иконку"
+          }
+        }
+      }
+    },
+    "settings.icon.IconBlue3D" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocean 3D"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Синяя 3D"
+          }
+        }
+      }
+    },
+    "settings.icon.IconCardsMinimal" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cards"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Карточки"
+          }
+        }
+      }
+    },
+    "settings.icon.IconFlipMinimal" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flip"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переворот"
+          }
+        }
+      }
+    },
+    "settings.icon.IconMarkMinimal" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Знак"
+          }
+        }
+      }
+    },
+    "settings.icon.IconMidnight3D" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Night"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ночь"
+          }
+        }
+      }
+    },
+    "settings.icon.IconMint3D" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mint"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мята"
+          }
+        }
+      }
+    },
+    "settings.icon.IconMonogram" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Буквы"
+          }
+        }
+      }
+    },
+    "settings.icon.IconOrange3D" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coral"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Коралл"
+          }
+        }
+      }
+    },
+    "settings.icon.IconOrbit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orbit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Орбита"
+          }
+        }
+      }
+    },
+    "settings.icon.IconOrigami" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Origami"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оригами"
+          }
+        }
+      }
+    },
+    "settings.icon.IconOwl" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Owl"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сова"
+          }
+        }
+      }
+    },
+    "settings.icon.IconPixel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pixel"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пиксель"
+          }
+        }
+      }
+    },
+    "settings.icon.IconViolet3D" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iris"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ирис"
+          }
+        }
+      }
+    },
+    "settings.icon.unsupported" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changing the app icon is unavailable on this device."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На этом устройстве смена иконки недоступна."
+          }
+        }
+      }
+    },
+    "settings.interfaceColor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interface Color"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цвет интерфейса"
+          }
+        }
+      }
+    },
+    "settings.open" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки"
+          }
+        }
+      }
+    },
+    "settings.preview" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accent Color Preview"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предпросмотр цвета интерфейса"
+          }
+        }
+      }
+    },
+    "settings.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки"
+          }
+        }
+      }
+    },
+    "statistics.open" : {
+      "comment" : "A label for a button that opens the statistics view.",
+      "isCommentAutoGenerated" : true
+    },
+    "study.allCards" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Cards"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все карточки"
+          }
+        }
+      }
+    },
+    "study.answer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answer"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ответ"
+          }
+        }
+      }
+    },
+    "study.direction" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direction"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Направление"
+          }
+        }
+      }
+    },
+    "study.direction.hint" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose one study direction"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите одно направление занятия"
+          }
+        }
+      }
+    },
+    "study.englishToRussian" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English to Russian"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "С английского на русский"
+          }
+        }
+      }
+    },
+    "study.examples.accessibility.collapsed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collapsed"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Свернуто"
+          }
+        }
+      }
+    },
+    "study.examples.accessibility.expanded" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expanded"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Развернуто"
+          }
+        }
+      }
+    },
     "study.examples.count" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -189,67 +2436,539 @@
         }
       }
     },
-    "study.examples.hide" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Hide examples" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Скрыть примеры" } } } },
-    "study.examples.show" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Show examples" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Показать примеры" } } } },
-    "study.examples.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Usage Examples" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Примеры использования" } } } },
-    "study.exit.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "End Study Session?" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Завершить занятие?" } } } },
-    "study.exit.message" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Your current progress will be lost." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Текущий прогресс будет потерян." } } } },
-    "study.result.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Session Complete" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Занятие завершено" } } } },
-    "study.result.cards" : {
+    "study.examples.hide" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide examples"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скрыть примеры"
+          }
+        }
+      }
+    },
+    "study.examples.show" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show examples"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать примеры"
+          }
+        }
+      }
+    },
+    "study.examples.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usage Examples"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Примеры использования"
+          }
+        }
+      }
+    },
+    "study.exit.message" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your current progress will be lost."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Текущий прогресс будет потерян."
+          }
+        }
+      }
+    },
+    "study.exit.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End Study Session?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить занятие?"
+          }
+        }
+      }
+    },
+    "study.flipHint" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the card to reveal the answer"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите на карточку, чтобы увидеть ответ"
+          }
+        }
+      }
+    },
+    "study.forget" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don’t remember"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не помню"
+          }
+        }
+      }
+    },
+    "study.forget.hint" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves this card to the end of the queue"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перемещает эту карточку в конец очереди"
+          }
+        }
+      }
+    },
+    "study.learningFilter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learning status"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Статус изучения"
+          }
+        }
+      }
+    },
+    "study.matchingCount" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "variations" : {
             "plural" : {
-              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld card reviewed" } },
-              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld cards reviewed" } }
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld card"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld cards"
+                }
+              }
             }
           }
         },
         "ru" : {
           "variations" : {
             "plural" : {
-              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточка повторена" } },
-              "few" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки повторены" } },
-              "many" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточек повторено" } },
-              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточки повторено" } }
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld карточки"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld карточек"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld карточка"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld карточки"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "study.prompt" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prompt"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вопрос"
+          }
+        }
+      }
+    },
+    "study.remaining" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Remaining"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Осталось: %lld"
+          }
+        }
+      }
+    },
+    "study.remember" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remember"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Помню"
+          }
+        }
+      }
+    },
+    "study.remember.hint" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removes this card from the queue"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Убирает эту карточку из очереди"
+          }
+        }
+      }
+    },
+    "study.result.cards" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld card reviewed"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld cards reviewed"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld карточки повторены"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld карточек повторено"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld карточка повторена"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld карточки повторено"
+                }
+              }
             }
           }
         }
       }
     },
     "study.result.extraAttempts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "variations" : {
             "plural" : {
-              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld extra attempt" } },
-              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld extra attempts" } }
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld extra attempt"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld extra attempts"
+                }
+              }
             }
           }
         },
         "ru" : {
           "variations" : {
             "plural" : {
-              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld дополнительная попытка" } },
-              "few" : { "stringUnit" : { "state" : "translated", "value" : "%lld дополнительные попытки" } },
-              "many" : { "stringUnit" : { "state" : "translated", "value" : "%lld дополнительных попыток" } },
-              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld дополнительной попытки" } }
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld дополнительные попытки"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld дополнительных попыток"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld дополнительная попытка"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld дополнительной попытки"
+                }
+              }
             }
           }
         }
       }
     },
-    "study.result.repeat" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Study Again" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторить занятие" } } } },
-    "study.result.library" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Back to Library" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вернуться в библиотеку" } } } },
-    "data.load.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Load Your Cards" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось загрузить карточки" } } } },
-    "data.loading" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading…" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Загрузка…" } } } },
-    "data.delete.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Delete This Item" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось удалить этот объект" } } } },
-    "data.save.failed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Save Your Changes" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось сохранить изменения" } } } },
-    "settings.appearance" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Appearance" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Оформление" } } } },
-    "settings.interfaceColor" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Interface Color" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Цвет интерфейса" } } } },
-    "settings.open" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Настройки" } } } },
-    "settings.preview" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Accent Color Preview" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Предпросмотр цвета интерфейса" } } } },
-    "settings.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Настройки" } } } }
+    "study.result.library" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to Library"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вернуться в библиотеку"
+          }
+        }
+      }
+    },
+    "study.result.repeat" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Study Again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторить занятие"
+          }
+        }
+      }
+    },
+    "study.result.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session Complete"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Занятие завершено"
+          }
+        }
+      }
+    },
+    "study.russianToEnglish" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Russian to English"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "С русского на английский"
+          }
+        }
+      }
+    },
+    "study.setup.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Study Setup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройка занятия"
+          }
+        }
+      }
+    },
+    "study.start" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начать"
+          }
+        }
+      }
+    },
+    "tag.delete.message" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cards keep their words, but this tag will be removed."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Карточки сохранят слова, но этот тег будет удалён."
+          }
+        }
+      }
+    },
+    "tag.delete.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Tag?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить тег?"
+          }
+        }
+      }
+    },
+    "tag.manage" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage Tags"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Управление тегами"
+          }
+        }
+      }
+    }
   },
-  "version" : "1.0"
+  "version" : "1.1"
 }

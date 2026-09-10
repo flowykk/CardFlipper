@@ -21,6 +21,7 @@ public final class LibraryViewModel {
     public private(set) var tags: [Tag] = []
     public var searchText = ""
     public var selectedTagIDs: Set<UUID> = []
+    public var learningFilter: CardLearningFilter = .all
     public private(set) var state: LoadState = .idle
     public private(set) var isBulkTagSelectionActive = false
     public private(set) var selectedBulkCardIDs: Set<UUID> = []
@@ -28,6 +29,7 @@ public final class LibraryViewModel {
     public var pendingDeletion: VocabularyCard?
     public var pendingTagDeletion: Tag?
     public private(set) var deletionFailure: LibraryDeletionFailure?
+    public private(set) var learningStatusFailure: VocabularyCard?
 
     private let cardRepository: any CardRepository
     private let tagRepository: any TagRepository
@@ -49,7 +51,7 @@ public final class LibraryViewModel {
                     TextNormalizer.searchKey($0).contains(query)
                 }
 
-            return tagMatches && textMatches
+            return learningFilter.matches(card) && tagMatches && textMatches
         }
     }
 
@@ -149,6 +151,29 @@ public final class LibraryViewModel {
     public func dismissBulkTagAssignmentFailure() {
         bulkTagAssignmentFailed = false
     }
+
+    @discardableResult
+    public func toggleLearningStatus(for card: VocabularyCard) async -> Bool {
+        let updatedCard = card.updatingLearningStatus(
+            !card.isLearned,
+            updatedAt: Date()
+        )
+        learningStatusFailure = nil
+
+        do {
+            try await cardRepository.save(updatedCard)
+            guard let index = cards.firstIndex(where: { $0.id == card.id }) else { return false }
+            cards[index] = updatedCard
+            return true
+        } catch {
+            learningStatusFailure = card
+            return false
+        }
+    }
+
+    public func dismissLearningStatusFailure() {
+        learningStatusFailure = nil
+    }
 }
 
 private extension VocabularyCard {
@@ -159,7 +184,20 @@ private extension VocabularyCard {
             englishVariants: englishVariants,
             tags: tags.filter { $0.id != tagID },
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
+            isLearned: isLearned
+        )
+    }
+
+    func updatingLearningStatus(_ isLearned: Bool, updatedAt: Date) -> VocabularyCard {
+        VocabularyCard(
+            id: id,
+            russianMeanings: russianMeanings,
+            englishVariants: englishVariants,
+            tags: tags,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            isLearned: isLearned
         )
     }
 

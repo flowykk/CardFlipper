@@ -270,8 +270,23 @@ public final class CardEditorViewModel {
         do {
             let loadedTags = try await tagRepository.fetchTags()
             guard !Task.isCancelled else { return }
-            availableTags = loadedTags
-            selectedTagIDs.formIntersection(loadedTags.map(\.id))
+
+            // Keep tags selected or created while this load was in flight. The
+            // repository can return a snapshot from before a newly created tag
+            // was persisted, and replacing the catalog would otherwise drop it.
+            let selectedTagsNotInLoadedCatalog = availableTags.filter {
+                let existingTag = $0
+                return selectedTagIDs.contains(existingTag.id)
+                    && !loadedTags.contains(where: { loadedTag in loadedTag.id == existingTag.id })
+            }
+            availableTags = (loadedTags + selectedTagsNotInLoadedCatalog).reduce(into: []) { tags, tag in
+                guard !tags.contains(where: { $0.id == tag.id }) else { return }
+                tags.append(tag)
+            }
+            availableTags.sort {
+                $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+            }
+            selectedTagIDs.formIntersection(availableTags.map(\.id))
             tagLoadError = false
         } catch is CancellationError {
             return
@@ -457,7 +472,8 @@ public final class CardEditorViewModel {
                 englishVariants: generatedCard.englishVariants,
                 tags: snapshot.resolvedTags,
                 createdAt: snapshot.createdAt ?? generatedCard.createdAt,
-                updatedAt: snapshot.timestamp
+                updatedAt: snapshot.timestamp,
+                isLearned: existingCard?.isLearned ?? false
             )
             try await cardRepository.save(card)
             guard !Task.isCancelled else { return .failed }

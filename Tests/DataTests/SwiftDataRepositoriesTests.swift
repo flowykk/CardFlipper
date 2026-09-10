@@ -46,6 +46,18 @@ import Testing
 }
 
 @MainActor
+@Test func savingAndFetchingPreservesLearnedState() async throws {
+    let repository = SwiftDataCardRepository(
+        container: try ModelContainerFactory.makeInMemory()
+    )
+    let card = VocabularyCard.fixture(isLearned: true)
+
+    try await repository.save(card)
+
+    #expect(try await repository.fetchCards() == [card])
+}
+
+@MainActor
 @Test func deletingTagKeepsCard() async throws {
     let container = try ModelContainerFactory.makeInMemory()
     let repositories = TestRepositories(container: container)

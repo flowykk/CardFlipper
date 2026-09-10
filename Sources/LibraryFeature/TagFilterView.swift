@@ -28,6 +28,7 @@ public struct TagFilterView: View {
                 .padding(.vertical, 2)
             }
             .scrollIndicators(.hidden)
+            .contentMargins(.leading, 20, for: .scrollContent)
 
             tagManagementMenu
         }

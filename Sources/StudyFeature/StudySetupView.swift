@@ -29,6 +29,16 @@ public struct StudySetupView: View {
                 .accessibilityHint("study.direction.hint")
             }
 
+            Section("study.learningFilter") {
+                Picker("study.learningFilter", selection: $model.learningFilter) {
+                    Text("learningFilter.all").tag(CardLearningFilter.all)
+                    Text("learningFilter.learned").tag(CardLearningFilter.learned)
+                    Text("learningFilter.unlearned").tag(CardLearningFilter.unlearned)
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("study.learningFilter")
+            }
+
             Section {
                 if model.tags.isEmpty {
                     Label("study.allCards", systemImage: "rectangle.stack")

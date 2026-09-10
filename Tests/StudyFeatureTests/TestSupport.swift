@@ -56,7 +56,8 @@ extension VocabularyCard {
         ipa: String? = "/wɜːd/",
         partsOfSpeech: [PartOfSpeech] = [.noun],
         usageExamples: [UsageExample] = [],
-        tags: [Tag] = []
+        tags: [Tag] = [],
+        isLearned: Bool = false
     ) -> VocabularyCard {
         VocabularyCard(
             id: .fixture(id),
@@ -72,7 +73,8 @@ extension VocabularyCard {
             ],
             tags: tags,
             createdAt: Date(timeIntervalSince1970: TimeInterval(id)),
-            updatedAt: Date(timeIntervalSince1970: TimeInterval(id))
+            updatedAt: Date(timeIntervalSince1970: TimeInterval(id)),
+            isLearned: isLearned
         )
     }
 }

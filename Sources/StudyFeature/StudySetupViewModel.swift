@@ -23,6 +23,7 @@ public struct StudyConfiguration: Equatable, Sendable {
 public final class StudySetupViewModel {
     public private(set) var direction: StudyDirection?
     public private(set) var selectedTagIDs: Set<UUID>
+    public var learningFilter: CardLearningFilter = .all
     public let cards: [VocabularyCard]
     public let tags: [Tag]
 
@@ -34,9 +35,10 @@ public final class StudySetupViewModel {
     }
 
     public var matchingCards: [VocabularyCard] {
-        guard !selectedTagIDs.isEmpty else { return cards }
+        let statusMatchingCards = cards.filter(learningFilter.matches)
+        guard !selectedTagIDs.isEmpty else { return statusMatchingCards }
 
-        return cards.filter { card in
+        return statusMatchingCards.filter { card in
             !selectedTagIDs.isDisjoint(with: card.tags.map(\.id))
         }
     }

@@ -21,6 +21,7 @@ struct BulkTagPickerView: View {
                         Image(systemName: selectedTagIDs.contains(tag.id) ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(selectedTagIDs.contains(tag.id) ? Color.accentColor : .secondary)
                     }
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(selectedTagIDs.contains(tag.id) ? .isSelected : [])
@@ -33,7 +34,12 @@ struct BulkTagPickerView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(action: onConfirm) {
-                        Text("library.bulk.addTags \(selectedCardCount)")
+                        Text(
+                            String(
+                                format: String(localized: "library.bulk.addTags", bundle: .main),
+                                selectedCardCount
+                            )
+                        )
                     }
                     .disabled(selectedTagIDs.isEmpty)
                     .accessibilityIdentifier("library.bulk.confirm")

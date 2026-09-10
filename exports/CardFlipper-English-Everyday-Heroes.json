@@ -1,0 +1,1193 @@
+{
+  "version": 1,
+  "cards": [
+    {
+      "id": "AEA4FD5F-0C96-5FC4-835A-83A533881DEC",
+      "russianMeanings": [
+        {
+          "id": "827544F1-924B-5D07-9BA3-C2327270C566",
+          "text": "жизненно важный"
+        },
+        {
+          "id": "A1901857-B843-52F1-BB26-5EE6B629D796",
+          "text": "крайне необходимый"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "B9AEB911-8372-5793-B8FB-CFCE32B26D89",
+          "text": "vital",
+          "ipa": "ˈvaɪtəl",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "33CA2FB8-44E6-57B1-B6CF-D293D82BF480",
+              "text": "Clean water is vital for good health.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "442CFB56-F8FB-5CBA-940E-C6AF8FA97F65",
+              "text": "It is vital to stay calm in an emergency.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "9C8D2505-5567-5A71-850C-2F44A10FEBDF",
+      "russianMeanings": [
+        {
+          "id": "1BC83666-1290-5828-B9D0-1D2C69FBE660",
+          "text": "скромный"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "00DE9169-C1F1-53F5-BD09-2A4C121E3E5B",
+          "text": "modest",
+          "ipa": "ˈmɒdɪst",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "E3BD7815-6011-500F-86C7-5610A6F26F4C",
+              "text": "She is very modest about her achievements.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "2BBFF3EF-FE51-54A3-BFE8-3560BE2892A1",
+              "text": "He remained modest even after winning the award.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "611AD42E-5643-52E4-98DB-3600DA41D048",
+      "russianMeanings": [
+        {
+          "id": "6D9D503D-1392-54CA-94EB-DC9440ED3429",
+          "text": "собираться вместе"
+        },
+        {
+          "id": "330D8997-F2BC-5226-864E-7126D9A18FA7",
+          "text": "собирать"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "8D87F321-88B6-593E-A27F-9A2310B1AA17",
+          "text": "gather",
+          "ipa": "ˈɡæðə",
+          "partsOfSpeechRawValues": [
+            "verb"
+          ],
+          "usageExamples": [
+            {
+              "id": "CA6B9D01-0CC8-5A63-B697-C02F0AC23BCF",
+              "text": "A crowd gathered outside the station.",
+              "partOfSpeechRawValue": "verb"
+            },
+            {
+              "id": "7D6BFD68-BCB0-5381-AE7E-C881E4ED0D98",
+              "text": "We gathered our things and left the house.",
+              "partOfSpeechRawValue": "verb"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "56AA3092-C030-5071-A252-85EF6DE5E0C3",
+      "russianMeanings": [
+        {
+          "id": "DB401676-A9FA-5DDB-9F16-863EAB117EFE",
+          "text": "течение воды"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "E8B6C1F3-AAEF-58E6-B210-751EF111DADB",
+          "text": "current",
+          "ipa": "ˈkʌrənt",
+          "partsOfSpeechRawValues": [
+            "noun"
+          ],
+          "usageExamples": [
+            {
+              "id": "39FC5751-DF44-5E7A-BF8E-A58DD062FA5A",
+              "text": "The strong current carried the boat away.",
+              "partOfSpeechRawValue": "noun"
+            },
+            {
+              "id": "B6610C84-540E-58AC-8D5F-421E03A6334E",
+              "text": "Swimming against the current was exhausting.",
+              "partOfSpeechRawValue": "noun"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "A7C2D2FC-ED72-5493-A0ED-1E9EC9CA4ACE",
+      "russianMeanings": [
+        {
+          "id": "1FE83E18-78E3-58AC-BC4A-807F21669909",
+          "text": "потрясённый и глубоко расстроенный"
+        },
+        {
+          "id": "C2D6A69E-0342-5201-8B4D-83E250B6F33E",
+          "text": "убитый горем"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "104EA1B1-F278-507D-A203-84BC82826A2F",
+          "text": "devastated",
+          "ipa": "ˈdevəsteɪtɪd",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "AB48865A-36A2-58F9-8740-3EEBD0C32064",
+              "text": "She was devastated by the terrible news.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "CFD34EEB-B20A-51A3-95C4-EA18FBC67E30",
+              "text": "They were devastated to lose their home.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "AF2339E6-BB75-5F93-A7F3-B2904464900D",
+      "russianMeanings": [
+        {
+          "id": "890B4437-59EC-532E-8139-C8C60B26D031",
+          "text": "напряжение"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "93AB3237-7619-5775-89AC-54AA39B56391",
+          "text": "tension",
+          "ipa": "ˈtenʃən",
+          "partsOfSpeechRawValues": [
+            "noun"
+          ],
+          "usageExamples": [
+            {
+              "id": "8C0C285C-11C1-5451-A7A1-46C8EBE9C61D",
+              "text": "You could feel the tension in the room.",
+              "partOfSpeechRawValue": "noun"
+            },
+            {
+              "id": "78E33A4A-A171-53FB-BA47-816B0EAB2D59",
+              "text": "A friendly joke helped ease the tension.",
+              "partOfSpeechRawValue": "noun"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "6ECF25A4-4822-5049-9AD0-F433CA6F7480",
+      "russianMeanings": [
+        {
+          "id": "E8FA2C5C-679C-5487-AFC0-0764E9F5D66B",
+          "text": "неловкий"
+        },
+        {
+          "id": "C980AA09-4A29-5AE1-B08D-00CBA94DD3A3",
+          "text": "чувствующий себя неловко"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "BC5F7CA9-4606-5C7E-9B7D-71C953F7ED29",
+          "text": "awkward",
+          "ipa": "ˈɔːkwəd",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "00B17508-FF9C-5CA7-82CE-ACF7194B1226",
+              "text": "I felt awkward because I did not know anyone.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "5AF8D8B6-5799-5CF3-BBD8-99ABDB6CCF44",
+              "text": "There was an awkward silence after his question.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "F3BF849A-69E2-5BD0-9982-4EDE356917BC",
+      "russianMeanings": [
+        {
+          "id": "C216B899-8399-5AC3-922D-B056AE7D218C",
+          "text": "приводить кого-либо в ужас"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "7A666497-B79F-5EF1-A65B-0AFF0D062F48",
+          "text": "horrify",
+          "ipa": "ˈhɒrɪfaɪ",
+          "partsOfSpeechRawValues": [
+            "verb"
+          ],
+          "usageExamples": [
+            {
+              "id": "9CECB2BC-D55B-591A-AF79-2C9FDD245D5D",
+              "text": "The news horrified everyone in the village.",
+              "partOfSpeechRawValue": "verb"
+            },
+            {
+              "id": "F597B30E-D4E6-5E77-91D5-ECEBABD18698",
+              "text": "It horrifies me to think how close we came to an accident.",
+              "partOfSpeechRawValue": "verb"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "4899060F-5572-5084-A271-253BDBB33EFA",
+      "russianMeanings": [
+        {
+          "id": "12C8BFA2-EE1A-5A61-A2DF-DE2D2585E119",
+          "text": "в восторге"
+        },
+        {
+          "id": "069654FF-E2DA-5859-8322-66239EBA32DF",
+          "text": "очень радостный и взволнованный"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "0F100AF5-F05E-5DBA-A031-E024458E8C47",
+          "text": "thrilled",
+          "ipa": "θrɪld",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "0E85E55A-9343-5C73-AD17-667F028AF695",
+              "text": "I am thrilled to hear that you passed your exam.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "79ABAA2D-C18A-5419-AB4C-3931DFCBDAD0",
+              "text": "She was thrilled about her new job.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "5DA325D5-3F61-565B-BA66-FA0447EB9B18",
+      "russianMeanings": [
+        {
+          "id": "DE89F790-1478-5519-B9E4-AD7D69DC3319",
+          "text": "Я восхищаюсь тобой"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "8D787C91-6CB2-574B-BC7B-3F3D7F96D9AF",
+          "text": "I admire you",
+          "ipa": null,
+          "partsOfSpeechRawValues": [
+            "phrase"
+          ],
+          "usageExamples": [
+            {
+              "id": "BF5E739F-0D01-553A-B1B3-99FED67071D0",
+              "text": "I admire you for staying calm under pressure.",
+              "partOfSpeechRawValue": "phrase"
+            },
+            {
+              "id": "72B4569A-0348-569E-A155-F6B7D902B7AA",
+              "text": "I admire you because you always help others.",
+              "partOfSpeechRawValue": "phrase"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "3AF4155D-9D80-590E-A768-202C7933D5D3",
+      "russianMeanings": [
+        {
+          "id": "50F30D17-47C1-5074-930C-C47D7AFADD44",
+          "text": "Я восхищаюсь твоими навыками"
+        },
+        {
+          "id": "E6797DC5-EA92-5A07-B771-5D328DCCCECA",
+          "text": "Я восхищаюсь вашим мастерством"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "660DDED6-06EC-5E6F-8BEA-0F25D9C36CAC",
+          "text": "I admire your skills",
+          "ipa": null,
+          "partsOfSpeechRawValues": [
+            "phrase"
+          ],
+          "usageExamples": [
+            {
+              "id": "BD1F8AC8-D6AA-5DC1-B306-A24A749C0ADE",
+              "text": "I admire your skills as a photographer.",
+              "partOfSpeechRawValue": "phrase"
+            },
+            {
+              "id": "2EFF7C48-7450-5F80-93FF-C2C0CBA442B1",
+              "text": "I admire your skills and the effort you put into your work.",
+              "partOfSpeechRawValue": "phrase"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "7EEA57BD-A8D0-544A-BB6B-DD7002052D61",
+      "russianMeanings": [
+        {
+          "id": "2BB9AEE7-EA72-5DA4-85EB-BA5224F15C20",
+          "text": "испанский стыд"
+        },
+        {
+          "id": "D3F1DF06-42ED-5E02-8C99-E6BC8B15872C",
+          "text": "чувство неловкости за другого человека"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "7711881B-C816-5067-A274-0DB8F9210DE6",
+          "text": "second-hand embarrassment",
+          "ipa": null,
+          "partsOfSpeechRawValues": [
+            "noun"
+          ],
+          "usageExamples": [
+            {
+              "id": "B36D075D-02D4-5BE6-A4A4-AD1975CCC318",
+              "text": "I felt second-hand embarrassment while watching his awkward speech.",
+              "partOfSpeechRawValue": "noun"
+            },
+            {
+              "id": "A894D2D6-B142-5DB0-93B7-D4E1787B6DD6",
+              "text": "That scene gave me second-hand embarrassment.",
+              "partOfSpeechRawValue": "noun"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "9D6DFFAF-3913-533B-9C2F-2A3A398B82DC",
+      "russianMeanings": [
+        {
+          "id": "73D59249-1306-5F07-8845-CC2152CB0FCB",
+          "text": "не мочь не сделать что-либо"
+        },
+        {
+          "id": "FA5E2F01-E5A1-5B36-96BA-E9D410D117D6",
+          "text": "невольно делать что-либо"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "79082442-9FD7-5F5C-87AA-E052618B2891",
+          "text": "can't help but + verb",
+          "ipa": null,
+          "partsOfSpeechRawValues": [
+            "phrase"
+          ],
+          "usageExamples": [
+            {
+              "id": "4B566F44-1B05-5BE2-8526-0E8886098D72",
+              "text": "I can't help but smile when I see this photo.",
+              "partOfSpeechRawValue": "phrase"
+            },
+            {
+              "id": "E4644D81-A0F7-5A3F-B3FD-26F9431B36E4",
+              "text": "She couldn't help but laugh at his joke.",
+              "partOfSpeechRawValue": "phrase"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "66AE1A80-1D23-5564-B159-33D850ABF306",
+      "russianMeanings": [
+        {
+          "id": "C67CFBB6-CD1B-513D-A190-3EA40665615F",
+          "text": "Я не могу не восхищаться"
+        },
+        {
+          "id": "1272AC6C-92D6-5277-B3EC-AD446963B198",
+          "text": "Это невольно производит на меня впечатление"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "8881E94E-E460-5F1D-935C-6D80E922B923",
+          "text": "I can't help but be impressed",
+          "ipa": null,
+          "partsOfSpeechRawValues": [
+            "phrase"
+          ],
+          "usageExamples": [
+            {
+              "id": "64DA0060-A82E-5071-8798-7449BB09A7FE",
+              "text": "I can't help but be impressed by your progress.",
+              "partOfSpeechRawValue": "phrase"
+            },
+            {
+              "id": "D490E440-2638-561E-802B-3C020612F140",
+              "text": "I can't help but be impressed by how calmly she handled the situation.",
+              "partOfSpeechRawValue": "phrase"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "CFC22BB9-4136-5E32-84A5-C25D6FAE9106",
+      "russianMeanings": [
+        {
+          "id": "91FFF69E-B898-5FF1-A6D5-D2B691B4FB7B",
+          "text": "становиться напряжённым"
+        },
+        {
+          "id": "A8971326-06A5-5D23-9D93-1E0A84F7A4B2",
+          "text": "начинать нервничать"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "9A5D481D-6A20-5C03-92C5-A7D49B42FCBD",
+          "text": "grow tense",
+          "ipa": null,
+          "partsOfSpeechRawValues": [
+            "phrase"
+          ],
+          "usageExamples": [
+            {
+              "id": "22654708-4892-5810-9744-0439FDAA9A6F",
+              "text": "The passengers grew tense as the storm got worse.",
+              "partOfSpeechRawValue": "phrase"
+            },
+            {
+              "id": "4DF5008E-D0B3-50A0-91C9-A2DBB1335C64",
+              "text": "I could see him grow tense while he waited for the results.",
+              "partOfSpeechRawValue": "phrase"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "3F7239A8-6191-5E61-B9FD-479C7CBF0A54",
+      "russianMeanings": [
+        {
+          "id": "3A2623AC-D977-559B-9405-79EBD3C81BF4",
+          "text": "испытывающий облегчение"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "BC18AD41-4144-5938-B61F-C05F6F8BEA1A",
+          "text": "relieved",
+          "ipa": "rɪˈliːvd",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "A2CAC3CD-31D8-5B8D-A44C-4E61F3FBE14C",
+              "text": "I was relieved to hear that everyone was safe.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "E5DA4343-463C-572A-866C-B9FD235C88B4",
+              "text": "She felt relieved when the interview was over.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "04210AE4-44EB-54CF-8F8B-4FF18D42EB2C",
+      "russianMeanings": [
+        {
+          "id": "6FF3E26C-E55B-5BC3-9B59-F15D16E37113",
+          "text": "облегчать боль или неприятное состояние"
+        },
+        {
+          "id": "597FB6B3-B6E4-5E76-B6F2-7DE9C572C92D",
+          "text": "снимать напряжение"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "6872CE37-4E80-5856-88DA-8E8F0D765FEF",
+          "text": "relieve",
+          "ipa": "rɪˈliːv",
+          "partsOfSpeechRawValues": [
+            "verb"
+          ],
+          "usageExamples": [
+            {
+              "id": "3D6A44DA-836E-5E42-AF52-439FA9094A26",
+              "text": "A short walk can help relieve stress.",
+              "partOfSpeechRawValue": "verb"
+            },
+            {
+              "id": "1A87607C-7E93-5B43-B249-766F26B287E3",
+              "text": "This medicine should relieve the pain.",
+              "partOfSpeechRawValue": "verb"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "8599463B-E15F-5932-8607-6ED10390CC37",
+      "russianMeanings": [
+        {
+          "id": "77E0F0A5-BA51-5635-850F-3C36917263AB",
+          "text": "напряжённый"
+        },
+        {
+          "id": "7CD7A3B7-955E-54F4-8F99-185B82506244",
+          "text": "встревоженный и неспособный расслабиться"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "BE097539-FB1C-5DB4-8BC4-4994221F4114",
+          "text": "tense",
+          "ipa": "tens",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "D2849301-A262-5BBA-A4C9-7ED74496D8C1",
+              "text": "I felt tense before the exam.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "1EB182AC-A0A1-5C97-B56C-D47CD3C15701",
+              "text": "The atmosphere became tense as we waited for news.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "281A60F5-2CCB-5055-95EB-F4E06B9BBDE1",
+      "russianMeanings": [
+        {
+          "id": "D9F601CF-B9D8-5CF8-9914-E017912B0C6A",
+          "text": "охваченный ужасом"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "732D3BDC-CEFC-5F46-819F-334257EBC637",
+          "text": "horrified",
+          "ipa": "ˈhɒrɪfaɪd",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "0076E303-B3E1-5ECD-A40E-CFCA5B544BFA",
+              "text": "We were horrified to see smoke coming from the house.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "D391103A-B730-525F-9630-C40C3947A96D",
+              "text": "She looked horrified when she heard what had happened.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "A6E2F3A6-5C36-5259-8C4A-18D30B7C613F",
+      "russianMeanings": [
+        {
+          "id": "BE8622E0-D381-55AB-8341-4A78B715479F",
+          "text": "впечатлённый"
+        },
+        {
+          "id": "44096C13-CCC2-555D-8004-86F79C3952F9",
+          "text": "испытывающий восхищение"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "048AF7AB-B928-508F-A0E9-E299861C1370",
+          "text": "impressed",
+          "ipa": "ɪmˈprest",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "6121D1E4-F1D9-5AFB-BA9A-9A7AADAAE4B2",
+              "text": "I was impressed by her courage.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "FA1BC44F-8846-557E-8792-39BE679BE6F6",
+              "text": "We were impressed with the quality of his work.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "8CA2A0BC-EF79-5A84-9930-7AA48840D59B",
+      "russianMeanings": [
+        {
+          "id": "B63EF593-9D22-5C47-9571-AEA1EE9D5971",
+          "text": "раздосадованный из-за неудачи или препятствий"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "5B544559-B687-55A9-AB86-64DB67E4E042",
+          "text": "frustrated",
+          "ipa": "frʌˈstreɪtɪd",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "64E2003E-95AA-5B20-85D1-F1E420E90B67",
+              "text": "I felt frustrated because I could not solve the problem.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "33311167-1051-59DE-9561-22E204353CE0",
+              "text": "She was frustrated by the constant delays.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "C4334657-274E-5928-A2A3-596C07634B77",
+      "russianMeanings": [
+        {
+          "id": "A52AF9F1-5BE4-5D77-94BF-79A8AB5228A5",
+          "text": "смущённый"
+        },
+        {
+          "id": "079E913A-E89F-5C27-A110-19E111967D8D",
+          "text": "испытывающий стыд или неловкость"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "DE556286-2A41-569A-BE56-141BA412E1D3",
+          "text": "embarrassed",
+          "ipa": "ɪmˈbærəst",
+          "partsOfSpeechRawValues": [
+            "adj"
+          ],
+          "usageExamples": [
+            {
+              "id": "562B3CD5-A028-5701-BF29-725E1D916847",
+              "text": "I was embarrassed about forgetting his name.",
+              "partOfSpeechRawValue": "adj"
+            },
+            {
+              "id": "3FC6978D-C165-51EC-ACF0-5EB4FDF6C678",
+              "text": "He felt embarrassed when everyone looked at him.",
+              "partOfSpeechRawValue": "adj"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "6BBE7DCD-8194-51C8-B22E-6755FA3A80F4",
+      "russianMeanings": [
+        {
+          "id": "A2933D31-2993-5E20-937D-42F9B997884B",
+          "text": "детская прогулочная коляска"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "D3430FB0-3B62-5F6A-817A-0DD7DA22EE30",
+          "text": "stroller",
+          "ipa": "ˈstrəʊlə",
+          "partsOfSpeechRawValues": [
+            "noun"
+          ],
+          "usageExamples": [
+            {
+              "id": "B71835C4-3126-589C-B5C7-293E2FFBD84B",
+              "text": "She pushed the stroller along the path.",
+              "partOfSpeechRawValue": "noun"
+            },
+            {
+              "id": "4AFCA615-B228-5A44-BC73-09A2F79C1EF7",
+              "text": "Always put the brake on when you stop the stroller.",
+              "partOfSpeechRawValue": "noun"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "E85A42B5-706D-5720-8EBD-2F274B6573F8",
+      "russianMeanings": [
+        {
+          "id": "020ABF5B-8FC5-5D6A-B836-B7BF5F813B62",
+          "text": "по направлению к"
+        },
+        {
+          "id": "C3C51CFE-9D2E-56E2-8D4C-12E9F65D6A7D",
+          "text": "в сторону"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "6205291E-BD1E-58E7-B300-36208F1CF0B4",
+          "text": "toward",
+          "ipa": "təˈwɔːd",
+          "partsOfSpeechRawValues": [
+            "preposition"
+          ],
+          "usageExamples": [
+            {
+              "id": "A05F826C-C673-5FCB-A842-F60C64550255",
+              "text": "The dog ran toward the beach.",
+              "partOfSpeechRawValue": "preposition"
+            },
+            {
+              "id": "8DA98344-0A35-58FE-942B-5BBB3BFFCBAA",
+              "text": "She took a step toward the door.",
+              "partOfSpeechRawValue": "preposition"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "C66FB24D-59E3-5DB6-9A4A-E40B8FA076C4",
+      "russianMeanings": [
+        {
+          "id": "2B5106EA-7421-596A-A968-D2AE864A42BD",
+          "text": "турнир"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "971D61F6-DBC4-5290-8FCD-094472A30255",
+          "text": "tournament",
+          "ipa": "ˈtʊənəmənt",
+          "partsOfSpeechRawValues": [
+            "noun"
+          ],
+          "usageExamples": [
+            {
+              "id": "BD5D703A-9596-5909-905D-26BD57DBCE3F",
+              "text": "Our team won the local football tournament.",
+              "partOfSpeechRawValue": "noun"
+            },
+            {
+              "id": "D1647640-700E-5D17-A068-8378E6A88C0D",
+              "text": "She is training for a tennis tournament.",
+              "partOfSpeechRawValue": "noun"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "1EAE33B2-38FA-56EE-B820-57C51AAA69DB",
+      "russianMeanings": [
+        {
+          "id": "956DCE26-9746-5B6F-B5EF-D1DDA58D2061",
+          "text": "человек, который хорошо плавает"
+        },
+        {
+          "id": "AC7D275E-8B57-5606-97C3-9FC44195D80D",
+          "text": "сильный пловец"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "24278066-7F4A-5E35-B273-8ADEB0628FFE",
+          "text": "a strong swimmer",
+          "ipa": null,
+          "partsOfSpeechRawValues": [
+            "phrase"
+          ],
+          "usageExamples": [
+            {
+              "id": "ECC1A5AA-7D6D-5885-AEED-1B3F8A80A2ED",
+              "text": "Even a strong swimmer can struggle in a powerful current.",
+              "partOfSpeechRawValue": "phrase"
+            },
+            {
+              "id": "FB017A59-EA93-5D15-9871-93ED6367DAA4",
+              "text": "He is a strong swimmer, but he never takes unnecessary risks.",
+              "partOfSpeechRawValue": "phrase"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "E6B91162-6989-514E-999E-1154A62432DC",
+      "russianMeanings": [
+        {
+          "id": "5DBD619F-D3CF-5DBA-BA9D-AB83680DDDAB",
+          "text": "ткань"
+        },
+        {
+          "id": "577FAC6E-E675-5D4F-89A1-883F65EB02BB",
+          "text": "тряпка для вытирания"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "49664BA9-00BF-5179-AAF4-591766ADC4A6",
+          "text": "cloth",
+          "ipa": "klɒθ",
+          "partsOfSpeechRawValues": [
+            "noun"
+          ],
+          "usageExamples": [
+            {
+              "id": "9ED0688C-A98B-53B8-95B7-BE7DED0581DD",
+              "text": "The bag is made of thick cloth.",
+              "partOfSpeechRawValue": "noun"
+            },
+            {
+              "id": "8D211F2E-50D6-5D91-A246-F6F092E351D2",
+              "text": "Wipe the table with a damp cloth.",
+              "partOfSpeechRawValue": "noun"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    },
+    {
+      "id": "0BBFCEA6-F312-5B94-80FD-917C814513DD",
+      "russianMeanings": [
+        {
+          "id": "43595ABE-3ADD-5F67-B892-D4E6C716418C",
+          "text": "кусок ткани"
+        }
+      ],
+      "englishVariants": [
+        {
+          "id": "BB28C16A-3E04-5968-9058-99EE1B9346FE",
+          "text": "a piece of cloth",
+          "ipa": null,
+          "partsOfSpeechRawValues": [
+            "phrase"
+          ],
+          "usageExamples": [
+            {
+              "id": "5A4BA060-B4A7-55E3-9CE6-E500483E6578",
+              "text": "She covered the opening with a piece of cloth.",
+              "partOfSpeechRawValue": "phrase"
+            },
+            {
+              "id": "EB166158-33FC-5E92-B916-24E29457AF37",
+              "text": "He used a clean piece of cloth to dry his hands.",
+              "partOfSpeechRawValue": "phrase"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "id": "7D0B887B-23C5-52D9-8A91-02BBE8DE3C0F",
+          "name": "English lesson · Everyday heroes & feelings"
+        }
+      ],
+      "createdAt": 810497479.992464,
+      "updatedAt": 810497479.992464,
+      "isLearned": false
+    }
+  ]
+}

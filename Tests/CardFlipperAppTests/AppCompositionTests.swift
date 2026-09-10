@@ -4,8 +4,24 @@ import Foundation
 import StudyFeature
 import SwiftUI
 import Testing
+import UIKit
 import StatisticsFeature
 @testable import CardFlipper
+
+@MainActor
+@Test func appOffersTenIconsWithLoadablePreviewsAndDeclaredAlternates() throws {
+    #expect(AppIconSettings.AppIcon.allCases.count == 10)
+    let icons = try #require(Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any])
+    let alternates = try #require(icons["CFBundleAlternateIcons"] as? [String: [String: Any]])
+    for icon in AppIconSettings.AppIcon.allCases {
+        let preview = icon == .default ? "Preview_AppIcon" : "Preview_\(icon.rawValue)"
+        #expect(UIImage(named: preview) != nil, "Missing preview: \(preview)")
+        if let name = icon.alternateIconName {
+            let entry = try #require(alternates[name])
+            #expect(entry["CFBundleIconName"] as? String == name)
+        }
+    }
+}
 
 @Test func appDeclaresAModernLaunchScreenToAvoidLegacyLetterboxing() {
     #expect(Bundle.main.object(forInfoDictionaryKey: "UILaunchScreen") != nil)
@@ -20,10 +36,19 @@ import StatisticsFeature
 
     let settings = AppearanceSettings(defaults: defaults)
     let components = try #require(settings.sRGBComponents)
+    let expected = try #require(lightSystemBlueSRGBComponents())
 
-    #expect(abs(components.red - 0.0) < 0.001)
-    #expect(abs(components.green - 0.478) < 0.001)
-    #expect(abs(components.blue - 1.0) < 0.001)
+    #expect(abs(components.red - expected.red) < 0.001)
+    #expect(abs(components.green - expected.green) < 0.001)
+    #expect(abs(components.blue - expected.blue) < 0.001)
+}
+
+@MainActor
+@Test func appIconSettingsReadTheActualSystemSelection() {
+    let settings = AppIconSettings()
+    let expected = UIApplication.shared.alternateIconName
+        .flatMap(AppIconSettings.AppIcon.init(rawValue:)) ?? .default
+    #expect(settings.selectedIcon == expected)
 }
 
 @MainActor
@@ -53,10 +78,34 @@ import StatisticsFeature
 
     let settings = AppearanceSettings(defaults: defaults)
     let components = try #require(settings.sRGBComponents)
+    let expected = try #require(lightSystemBlueSRGBComponents())
 
-    #expect(abs(components.red - 0.0) < 0.001)
-    #expect(abs(components.green - 0.478) < 0.001)
-    #expect(abs(components.blue - 1.0) < 0.001)
+    #expect(abs(components.red - expected.red) < 0.001)
+    #expect(abs(components.green - expected.green) < 0.001)
+    #expect(abs(components.blue - expected.blue) < 0.001)
+}
+
+@MainActor
+private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blue: Double)? {
+    guard
+        let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
+        let components = UIColor.systemBlue.resolvedColor(
+            with: UITraitCollection(userInterfaceStyle: .light)
+        ).cgColor.converted(
+            to: colorSpace,
+            intent: .defaultIntent,
+            options: nil
+        )?.components,
+        components.count >= 3
+    else {
+        return nil
+    }
+
+    return (
+        red: Double(components[0]),
+        green: Double(components[1]),
+        blue: Double(components[2])
+    )
 }
 
 @MainActor
@@ -262,4 +311,88 @@ private func makeRootModel(cards: AppCardRepositoryFake) -> RootViewModel {
         speech: AppSpeechServiceFake(),
         shuffler: AppIdentityShuffler()
     )
+}
+
+@MainActor
+private final class AppIconClientStub: AppIconClient {
+    var supportsAlternateIcons = true
+    var alternateIconName: String?
+    var fails = false
+    var suspends = false
+    var continuation: CheckedContinuation<Void, Never>?
+    var requests: [String?] = []
+
+    func changeIcon(to name: String?) async throws {
+        requests.append(name)
+        if suspends {
+            await withCheckedContinuation { continuation = $0 }
+        }
+        if fails { throw AppTestError.startup }
+        alternateIconName = name
+    }
+}
+
+@MainActor
+@Test func iconSelectionFollowsSystemStateAndCanReturnToPrimary() async {
+    let client = AppIconClientStub()
+    client.alternateIconName = "IconViolet3D"
+    let settings = AppIconSettings(client: client)
+    #expect(settings.selectedIcon == .violet3D)
+    await settings.select(.mint3D)
+    #expect(settings.selectedIcon == .mint3D)
+    #expect(client.requests == ["IconMint3D"])
+    await settings.select(.default)
+    #expect(settings.selectedIcon == .default)
+    #expect(client.requests.count == 2)
+    #expect(client.requests.last! == nil)
+    #expect(settings.errorMessage == nil)
+    #expect(!settings.isChanging)
+}
+
+@MainActor
+@Test func iconSelectionFailureKeepsCurrentIconAndAllowsRetry() async {
+    let client = AppIconClientStub()
+    client.fails = true
+    let settings = AppIconSettings(client: client)
+    await settings.select(.orange3D)
+    #expect(settings.selectedIcon == .default)
+    #expect(settings.errorMessage != nil)
+    #expect(!settings.isChanging)
+    client.fails = false
+    await settings.select(.orange3D)
+    #expect(settings.selectedIcon == .orange3D)
+    #expect(settings.errorMessage == nil)
+}
+
+@MainActor
+@Test func iconSelectionRejectsOverlappingRequests() async {
+    let client = AppIconClientStub()
+    client.suspends = true
+    let settings = AppIconSettings(client: client)
+    let first = Task { await settings.select(.violet3D) }
+    for _ in 0..<100 where client.continuation == nil { await Task.yield() }
+    #expect(settings.pendingIcon == .violet3D)
+    #expect(settings.selectedIcon == .default)
+    await settings.select(.orange3D)
+    #expect(client.requests == ["IconViolet3D"])
+    client.continuation?.resume()
+    await first.value
+    #expect(settings.selectedIcon == .violet3D)
+    #expect(!settings.isChanging)
+}
+
+@MainActor
+@Test func iconSelectionRefreshesExternalChangesAndSkipsUnavailableRequests() async {
+    let client = AppIconClientStub()
+    let settings = AppIconSettings(client: client)
+    client.alternateIconName = "IconMidnight3D"
+    settings.refreshSelection()
+    #expect(settings.selectedIcon == .midnight3D)
+    await settings.select(.midnight3D)
+    #expect(client.requests.isEmpty)
+    client.supportsAlternateIcons = false
+    await settings.select(.mint3D)
+    #expect(client.requests.isEmpty)
+    #expect(settings.selectedIcon == .midnight3D)
+    #expect(settings.errorMessage != nil)
 }

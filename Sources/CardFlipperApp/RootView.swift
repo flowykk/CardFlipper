@@ -175,6 +175,35 @@ final class RootViewModel {
         await loadLibrary()
     }
 
+    func prepareExport(_ completion: @escaping (CardTransferFileDocument) -> Void) async {
+        do {
+            completion(CardTransferFileDocument(transfer: CardTransferDocument(cards: try await cards.fetchCards())))
+        } catch {
+            completion(CardTransferFileDocument(transfer: CardTransferDocument(cards: [])))
+        }
+    }
+
+    func importCards(_ imported: [VocabularyCard]) async throws -> CardMergeResult {
+        let result = CardMergeService.merge(existing: try await cards.fetchCards(), imported: imported)
+        for card in result.cards {
+            var resolvedTags: [Tag] = []
+            for tag in card.tags {
+                resolvedTags.append(try await tags.create(name: tag.name))
+            }
+            let resolvedCard = VocabularyCard(
+                id: card.id,
+                russianMeanings: card.russianMeanings,
+                englishVariants: card.englishVariants,
+                tags: resolvedTags,
+                createdAt: card.createdAt,
+                updatedAt: card.updatedAt,
+                isLearned: card.isLearned
+            )
+            try await cards.save(resolvedCard)
+        }
+        return result
+    }
+
     func makeEditorModel(for presentation: AppEditorPresentation) -> CardEditorViewModel? {
         switch presentation {
         case .newCard:
@@ -249,13 +278,22 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var model: RootViewModel
     @State private var appearanceSettings: AppearanceSettings
+    @State private var iconSettings: AppIconSettings
+    @State private var exportDocument = CardTransferFileDocument(
+        transfer: CardTransferDocument(cards: [])
+    )
+    @State private var isShowingExporter = false
+    @State private var isShowingImporter = false
+    @State private var importMessage: String?
 
     init(
         container: AppContainer,
-        appearanceSettings: AppearanceSettings = AppearanceSettings()
+        appearanceSettings: AppearanceSettings = AppearanceSettings(),
+        iconSettings: AppIconSettings = AppIconSettings()
     ) {
         _model = State(initialValue: RootViewModel(container: container))
         _appearanceSettings = State(initialValue: appearanceSettings)
+        _iconSettings = State(initialValue: iconSettings)
     }
 
     var body: some View {
@@ -272,7 +310,7 @@ struct RootView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button(action: navigation.openSettings) {
-                        Label("settings.open", systemImage: "gearshape")
+                        Label("settings.open", systemImage: "gearshape.fill")
                     }
                     .accessibilityIdentifier("library.settings")
 
@@ -301,7 +339,19 @@ struct RootView: View {
                         libraryCardCount: model.libraryCardCount
                     )
                 case .settings:
-                    SettingsView(settings: appearanceSettings)
+                    SettingsView(
+                        settings: appearanceSettings,
+                        iconSettings: iconSettings,
+                        onExportCards: {
+                            Task {
+                                await model.prepareExport {
+                                    exportDocument = $0
+                                    isShowingExporter = true
+                                }
+                            }
+                        },
+                        onImportCards: { isShowingImporter = true }
+                    )
                 }
             }
         }
@@ -351,6 +401,48 @@ struct RootView: View {
         }
         .task {
             model.cleanupOrphanedActivity()
+        }
+        .fileExporter(
+            isPresented: $isShowingExporter,
+            document: exportDocument,
+            contentTypes: [.json],
+            defaultFilename: "CardFlipper-cards.json"
+        ) { _ in }
+        .fileImporter(
+            isPresented: $isShowingImporter,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            guard case let .success(urls) = result, let url = urls.first else { return }
+            Task {
+                let hasSecurityScope = url.startAccessingSecurityScopedResource()
+                defer {
+                    if hasSecurityScope {
+                        url.stopAccessingSecurityScopedResource()
+                    }
+                }
+
+                do {
+                    let data = try Data(contentsOf: url)
+                    let document = try JSONDecoder().decode(CardTransferDocument.self, from: data)
+                    let summary = try await model.importCards(document.decodedCards())
+                    importMessage = String(localized: "settings.cards.import.success", defaultValue: "Added \(summary.addedCount), merged \(summary.mergedCount)")
+                    await model.libraryChanged()
+                } catch {
+                    importMessage = String(
+                        localized: "settings.cards.import.failed",
+                        defaultValue: "Couldn’t import cards. \(error.localizedDescription)"
+                    )
+                }
+            }
+        }
+        .alert("settings.cards.import.result", isPresented: Binding(
+            get: { importMessage != nil },
+            set: { if !$0 { importMessage = nil } }
+        )) {
+            Button("common.close", role: .cancel) { importMessage = nil }
+        } message: {
+            Text(importMessage ?? "")
         }
         .tint(appearanceSettings.accentColor)
     }

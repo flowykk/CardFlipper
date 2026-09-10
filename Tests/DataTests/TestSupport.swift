@@ -96,7 +96,8 @@ enum TestDates {
 extension VocabularyCard {
     static func fixture(
         id: UUID = TestIDs.card,
-        tag: Tag? = nil
+        tag: Tag? = nil,
+        isLearned: Bool = false
     ) -> VocabularyCard {
         VocabularyCard(
             id: id,
@@ -132,7 +133,8 @@ extension VocabularyCard {
             ],
             tags: tag.map { [$0] } ?? [],
             createdAt: TestDates.created,
-            updatedAt: TestDates.updated
+            updatedAt: TestDates.updated,
+            isLearned: isLearned
         )
     }
 

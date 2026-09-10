@@ -43,7 +43,11 @@ public extension Target {
                     ]
                 ),
             ],
-            dependencies: dependencies.map { .target(name: $0) }
+            dependencies: dependencies.map { .target(name: $0) },
+            settings: .settings(base: [
+                "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
+                "ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES": "IconViolet3D IconOrange3D IconMint3D IconMidnight3D IconOrigami IconPixel IconOwl IconMonogram IconOrbit",
+            ])
         )
     }
 

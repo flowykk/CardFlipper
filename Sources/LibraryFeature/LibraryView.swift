@@ -2,6 +2,7 @@ import Core
 import SwiftUI
 
 public struct LibraryView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var model: LibraryViewModel
     @State private var showingCardDeletion = false
     @State private var showingTagDeletion = false
@@ -37,7 +38,10 @@ public struct LibraryView: View {
             .searchable(text: $model.searchText, prompt: "library.search")
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    if !model.isBulkTagSelectionActive {
+                    if model.isBulkTagSelectionActive {
+                        Button("library.bulk.cancel") { model.cancelBulkTagSelection() }
+                            .accessibilityIdentifier("library.bulk.cancel")
+                    } else {
                         Button(action: onStartStudy) {
                             Label("library.startStudy", systemImage: "rectangle.stack.fill")
                         }
@@ -127,6 +131,17 @@ public struct LibraryView: View {
                     bulkSelectionBar
                 }
             }
+            .alert(
+                "data.save.failed",
+                isPresented: learningStatusFailureBinding
+            ) {
+                Button("common.retry") {
+                    retryLearningStatusChange()
+                }
+                Button("common.cancel", role: .cancel) {
+                    model.dismissLearningStatusFailure()
+                }
+            }
             .task {
                 guard model.state == .idle else { return }
                 await model.load()
@@ -174,6 +189,7 @@ public struct LibraryView: View {
                 Button("library.clearFilters") {
                     model.searchText = ""
                     model.selectedTagIDs = []
+                    model.learningFilter = .all
                 }
                 .buttonStyle(.bordered)
             }
@@ -204,6 +220,16 @@ public struct LibraryView: View {
                     )
                     .listRowInsets(EdgeInsets())
                 }
+            }
+
+            Section {
+                Picker("library.learningFilter", selection: $model.learningFilter) {
+                    Text("learningFilter.all").tag(CardLearningFilter.all)
+                    Text("learningFilter.learned").tag(CardLearningFilter.learned)
+                    Text("learningFilter.unlearned").tag(CardLearningFilter.unlearned)
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("library.learningFilter")
             }
 
             ForEach(model.visibleCards) { card in
@@ -238,6 +264,7 @@ public struct LibraryView: View {
                 .accessibilityAddTraits(
                     model.selectedBulkCardIDs.contains(card.id) ? .isSelected : []
                 )
+                .transition(cardTransition)
                 .swipeActions {
                     if !model.isBulkTagSelectionActive {
                         Button("common.delete") {
@@ -247,9 +274,32 @@ public struct LibraryView: View {
                         .tint(.red)
                     }
                 }
+                .swipeActions(edge: .leading) {
+                    Button(card.isLearned ? "library.markUnlearned" : "library.markLearned") {
+                        Task {
+                            await model.toggleLearningStatus(for: card)
+                        }
+                    }
+                    .tint(.green)
+                    .accessibilityIdentifier(
+                        card.isLearned ? "library.markUnlearned" : "library.markLearned"
+                    )
+                }
             }
         }
         .listStyle(.plain)
+        .animation(cardListAnimation, value: model.learningFilter)
+        .animation(cardListAnimation, value: model.visibleCards.map(\.id))
+    }
+
+    private var cardTransition: AnyTransition {
+        reduceMotion
+            ? .opacity
+            : .move(edge: .top).combined(with: .opacity)
+    }
+
+    private var cardListAnimation: Animation {
+        reduceMotion ? .easeInOut(duration: 0.18) : .snappy
     }
 
     private var deletionFailureBinding: Binding<Bool> {
@@ -274,9 +324,25 @@ public struct LibraryView: View {
         )
     }
 
+    private var learningStatusFailureBinding: Binding<Bool> {
+        Binding(
+            get: { model.learningStatusFailure != nil },
+            set: { isPresented in
+                if !isPresented {
+                    model.dismissLearningStatusFailure()
+                }
+            }
+        )
+    }
+
     private var bulkSelectionBar: some View {
         HStack {
-            Text("library.bulk.selected \(model.selectedBulkCardIDs.count)")
+            Text(
+                String(
+                    format: String(localized: "library.bulk.selected", bundle: .main),
+                    model.selectedBulkCardIDs.count
+                )
+            )
                 .font(.subheadline.weight(.medium))
             Spacer()
             Button("library.bulk.tags") {
@@ -286,11 +352,6 @@ public struct LibraryView: View {
             .buttonStyle(.borderedProminent)
             .disabled(model.selectedBulkCardIDs.isEmpty || model.tags.isEmpty)
             .accessibilityIdentifier("library.bulk.tags")
-            Button("library.bulk.cancel") {
-                model.cancelBulkTagSelection()
-            }
-            .buttonStyle(.bordered)
-            .accessibilityIdentifier("library.bulk.cancel")
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -344,5 +405,12 @@ public struct LibraryView: View {
             break
         }
         model.dismissDeletionFailure()
+    }
+
+    private func retryLearningStatusChange() {
+        guard let card = model.learningStatusFailure else { return }
+        Task {
+            await model.toggleLearningStatus(for: card)
+        }
     }
 }

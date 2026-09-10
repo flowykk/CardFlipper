@@ -38,6 +38,7 @@ let project = Project(
             bundleId: "com.danilarahmanov.CardFlipper.StudyTimerWidget",
             deploymentTargets: .iOS("18.0"),
             infoPlist: .extendingDefault(with: [
+                "CFBundleDisplayName": "CardFlipper Timer",
                 "NSExtension": [
                     "NSExtensionPointIdentifier": "com.apple.widgetkit-extension",
                 ],

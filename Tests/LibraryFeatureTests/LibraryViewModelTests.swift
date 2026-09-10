@@ -112,6 +112,55 @@ func searchMatchesEitherLanguage(query: String, expectedID: UUID) async {
 }
 
 @MainActor
+@Test func learnedFilterCombinesWithTagSelection() async {
+    let learnedWork = VocabularyCard.fixture(
+        id: .fixture(201), russian: "работа", english: "work", tags: [.work], isLearned: true
+    )
+    let unlearnedWork = VocabularyCard.fixture(
+        id: .fixture(202), russian: "дело", english: "business", tags: [.work]
+    )
+    let model = LibraryViewModel(
+        cards: CardRepositoryFake([learnedWork, unlearnedWork]), tags: TagRepositoryFake([.work])
+    )
+    await model.load()
+    model.selectedTagIDs = [Tag.work.id]
+    model.learningFilter = .learned
+
+    #expect(model.visibleCards == [learnedWork])
+}
+
+@MainActor
+@Test func markingCardLearnedPersistsAndUpdatesTheVisibleCards() async {
+    let card = VocabularyCard.workCard
+    let repository = CardRepositoryFake([card])
+    let model = LibraryViewModel(cards: repository, tags: TagRepositoryFake())
+    await model.load()
+    model.learningFilter = .unlearned
+
+    let changed = await model.toggleLearningStatus(for: card)
+
+    #expect(changed)
+    #expect(model.cards.first?.isLearned == true)
+    #expect(model.visibleCards.isEmpty)
+    #expect(repository.savedCards.first?.isLearned == true)
+}
+
+@MainActor
+@Test func failedLearningStatusChangeKeepsTheCardUnchanged() async {
+    let card = VocabularyCard.workCard
+    let model = LibraryViewModel(
+        cards: CardRepositoryFake([card], saveError: LibraryTestError.delete), tags: TagRepositoryFake()
+    )
+    await model.load()
+
+    let changed = await model.toggleLearningStatus(for: card)
+
+    #expect(!changed)
+    #expect(model.cards == [card])
+    #expect(model.learningStatusFailure == card)
+}
+
+@MainActor
 @Test func deletingCardRemovesOnlyTheConfirmedCard() async {
     let repository = CardRepositoryFake([.workCard, .examCard])
     let model = LibraryViewModel(cards: repository, tags: TagRepositoryFake())

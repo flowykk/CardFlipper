@@ -130,7 +130,7 @@ import Testing
     #expect(cards.savedCards[0].englishVariants.map(\.text) == ["first", "second"])
     #expect(cards.savedCards[0].englishVariants[0].ipa == "fɜːst")
     #expect(cards.savedCards[0].englishVariants[0].partsOfSpeech == [.noun, .adj])
-    #expect(cards.savedCards[0].tags == [.work, .exam])
+    #expect(cards.savedCards[0].tags == [.exam, .work])
     #expect(model.isPresented == false)
 }
 
@@ -538,6 +538,33 @@ import Testing
     #expect(outcome == .created)
     #expect(model.availableTags == [.study, .work])
     #expect(model.selectedTagIDs == [Tag.study.id])
+}
+
+@MainActor
+@Test func creatingTagWhileLoadingPreservesExistingAndNewSelection() async {
+    let tags = TagRepositoryFake(
+        fetchedTags: [.work],
+        createdTag: .exam,
+        suspendsFetch: true
+    )
+    let model = CardEditorViewModel.edit(
+        card: .duplicate,
+        cards: CardRepositoryFake(),
+        tags: tags,
+        dictionary: DictionaryServiceFake(),
+        speech: SpeechServiceSpy()
+    )
+    let loadTask = Task { await model.loadTags() }
+    #expect(await waitUntil { await tags.hasSuspendedFetch })
+
+    model.newTagName = "Exam"
+    #expect(await model.createTag() == .created)
+
+    tags.resumeFetch(with: [.work])
+    await loadTask.value
+
+    #expect(model.availableTags == [.exam, .work])
+    #expect(model.selectedTagIDs == [Tag.work.id, Tag.exam.id])
 }
 
 @MainActor

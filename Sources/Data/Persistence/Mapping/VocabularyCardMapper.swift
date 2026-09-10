@@ -34,7 +34,8 @@ enum VocabularyCardMapper {
                 .map { Tag(id: $0.id, name: $0.name) }
                 .sorted { $0.name < $1.name },
             createdAt: entity.createdAt,
-            updatedAt: entity.updatedAt
+            updatedAt: entity.updatedAt,
+            isLearned: entity.isLearned
         )
     }
 
@@ -48,7 +49,8 @@ enum VocabularyCardMapper {
             updatedAt: card.updatedAt,
             russianMeanings: makeRussianMeanings(from: card),
             englishVariants: makeEnglishVariants(from: card),
-            tags: tags
+            tags: tags,
+            isLearned: card.isLearned
         )
     }
 
@@ -59,6 +61,7 @@ enum VocabularyCardMapper {
     ) {
         entity.createdAt = card.createdAt
         entity.updatedAt = card.updatedAt
+        entity.isLearned = card.isLearned
         entity.russianMeanings = makeRussianMeanings(from: card)
         entity.englishVariants = makeEnglishVariants(from: card)
         entity.tags = tags

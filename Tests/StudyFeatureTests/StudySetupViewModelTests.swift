@@ -36,6 +36,32 @@ import Testing
 }
 
 @MainActor
+@Test func learnedFilterCombinesWithTagSelection() {
+    let learnedWork = VocabularyCard.fixture(id: 1, tags: [.work], isLearned: true)
+    let unlearnedWork = VocabularyCard.fixture(id: 2, tags: [.work])
+    let learnedExam = VocabularyCard.fixture(id: 3, tags: [.exam], isLearned: true)
+    let model = StudySetupViewModel(
+        cards: [learnedWork, unlearnedWork, learnedExam], tags: [.work, .exam]
+    )
+    model.learningFilter = .learned
+    model.toggleTag(Tag.work.id)
+
+    #expect(model.matchingCards == [learnedWork])
+    #expect(model.configuration?.cards == [learnedWork])
+}
+
+@MainActor
+@Test func unlearnedFilterDisablesStudyWhenNoCardsMatch() {
+    let model = StudySetupViewModel(
+        cards: [.fixture(id: 1, isLearned: true)], tags: []
+    )
+    model.learningFilter = .unlearned
+
+    #expect(model.matchingCards.isEmpty)
+    #expect(model.canStart == false)
+}
+
+@MainActor
 @Test func noTagMatchesDisablesStartAndProducesNoConfiguration() {
     let model = StudySetupViewModel(
         cards: [.fixture(id: 1, tags: [.work])],

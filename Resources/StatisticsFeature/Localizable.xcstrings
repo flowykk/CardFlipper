@@ -1,22 +1,278 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "statistics.title" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Statistics" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Статистика" } } } },
-    "statistics.open" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Open Statistics" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть статистику" } } } },
-    "statistics.lessons" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Completed lessons" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Завершённые уроки" } } } },
-    "statistics.libraryCards" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards in library" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточек в библиотеке" } } } },
-    "statistics.cards" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards studied" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Изучено карточек" } } } },
-    "statistics.forgotten" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Forgotten" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Забывания" } } } },
-    "statistics.average" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards per lesson" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточек за урок" } } } },
-    "statistics.withoutForgetting" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Lessons without forgetting" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Уроков без забываний" } } } },
-    "progress.today" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Today" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сегодня" } } } },
-    "progress.editGoal" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit Goal" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Изменить цель" } } } },
-    "progress.dailyGoal" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Daily goal" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Дневная цель" } } } },
-    "progress.goalTitle" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Daily Goal" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Дневная цель" } } } },
-    "progress.done" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Готово" } } } },
-    "progress.minutesUnit" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "min" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "мин" } } } },
-    "progress.completed" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Goal completed" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Цель выполнена" } } } },
-    "progress.notCompleted" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Goal not completed" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Цель не выполнена" } } } }
+    "progress.completed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal completed"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цель выполнена"
+          }
+        }
+      }
+    },
+    "progress.dailyGoal" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily goal"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дневная цель"
+          }
+        }
+      }
+    },
+    "progress.done" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Готово"
+          }
+        }
+      }
+    },
+    "progress.editGoal" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Goal"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изменить цель"
+          }
+        }
+      }
+    },
+    "progress.goalTitle" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily Goal"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дневная цель"
+          }
+        }
+      }
+    },
+    "progress.minutesUnit" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "min"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "мин"
+          }
+        }
+      }
+    },
+    "progress.notCompleted" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal not completed"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цель не выполнена"
+          }
+        }
+      }
+    },
+    "progress.today" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сегодня"
+          }
+        }
+      }
+    },
+    "statistics.average" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cards per lesson"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Карточек за урок"
+          }
+        }
+      }
+    },
+    "statistics.cards" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cards studied"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изучено карточек"
+          }
+        }
+      }
+    },
+    "statistics.forgotten" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forgotten"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Забывания"
+          }
+        }
+      }
+    },
+    "statistics.lessons" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed lessons"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершённые уроки"
+          }
+        }
+      }
+    },
+    "statistics.libraryCards" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cards in library"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Карточек в библиотеке"
+          }
+        }
+      }
+    },
+    "statistics.open" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Statistics"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть статистику"
+          }
+        }
+      }
+    },
+    "statistics.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Statistics"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Статистика"
+          }
+        }
+      }
+    },
+    "statistics.withoutForgetting" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lessons without forgetting"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уроков без забываний"
+          }
+        }
+      }
+    }
   },
   "version" : "1.0"
 }

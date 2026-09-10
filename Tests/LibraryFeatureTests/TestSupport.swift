@@ -12,7 +12,9 @@ final class CardRepositoryFake: CardRepository {
     var fetchError: Error?
     var deletionError: Error?
     var addTagsError: Error?
+    var saveError: Error?
     private(set) var deletedIDs: [UUID] = []
+    private(set) var savedCards: [VocabularyCard] = []
     private(set) var addedTagIDs: Set<UUID> = []
     private(set) var addedTagCardIDs: Set<UUID> = []
 
@@ -20,11 +22,13 @@ final class CardRepositoryFake: CardRepository {
         _ cards: [VocabularyCard] = [],
         fetchError: Error? = nil,
         deletionError: Error? = nil,
+        saveError: Error? = nil,
         addTagsError: Error? = nil
     ) {
         fetchedCards = cards
         self.fetchError = fetchError
         self.deletionError = deletionError
+        self.saveError = saveError
         self.addTagsError = addTagsError
     }
 
@@ -35,7 +39,12 @@ final class CardRepositoryFake: CardRepository {
         return fetchedCards
     }
 
-    func save(_ card: VocabularyCard) async throws {}
+    func save(_ card: VocabularyCard) async throws {
+        if let saveError {
+            throw saveError
+        }
+        savedCards.append(card)
+    }
 
     func delete(id: UUID) async throws {
         if let deletionError {
@@ -114,7 +123,8 @@ extension VocabularyCard {
         id: UUID,
         russian: String,
         english: String,
-        tags: [Tag] = []
+        tags: [Tag] = [],
+        isLearned: Bool = false
     ) -> VocabularyCard {
         VocabularyCard(
             id: id,
@@ -131,7 +141,8 @@ extension VocabularyCard {
             ],
             tags: tags,
             createdAt: Date(timeIntervalSince1970: 1_000),
-            updatedAt: Date(timeIntervalSince1970: 2_000)
+            updatedAt: Date(timeIntervalSince1970: 2_000),
+            isLearned: isLearned
         )
     }
 

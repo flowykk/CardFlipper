@@ -14,7 +14,8 @@ extension VocabularyCard {
         id: UUID = TestFixtures.cardID,
         russian: String = "слово",
         english: String = "word",
-        tag: Tag? = nil
+        tag: Tag? = nil,
+        isLearned: Bool = false
     ) -> VocabularyCard {
         VocabularyCard(
             id: id,
@@ -22,7 +23,8 @@ extension VocabularyCard {
             englishVariants: [EnglishVariant(id: TestFixtures.englishVariantID, text: english, ipa: nil, partsOfSpeech: [])],
             tags: tag.map { [$0] } ?? [],
             createdAt: TestFixtures.date,
-            updatedAt: TestFixtures.date
+            updatedAt: TestFixtures.date,
+            isLearned: isLearned
         )
     }
 }

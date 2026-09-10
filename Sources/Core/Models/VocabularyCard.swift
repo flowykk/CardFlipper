@@ -7,6 +7,7 @@ public struct VocabularyCard: Equatable, Identifiable, Sendable {
     public let tags: [Tag]
     public let createdAt: Date
     public let updatedAt: Date
+    public let isLearned: Bool
 
     public init(
         id: UUID,
@@ -14,7 +15,8 @@ public struct VocabularyCard: Equatable, Identifiable, Sendable {
         englishVariants: [EnglishVariant],
         tags: [Tag],
         createdAt: Date,
-        updatedAt: Date
+        updatedAt: Date,
+        isLearned: Bool = false
     ) {
         self.id = id
         self.russianMeanings = russianMeanings
@@ -22,6 +24,7 @@ public struct VocabularyCard: Equatable, Identifiable, Sendable {
         self.tags = tags
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.isLearned = isLearned
     }
 
     public var searchableValues: [String] {

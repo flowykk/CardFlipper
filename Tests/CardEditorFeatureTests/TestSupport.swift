@@ -72,23 +72,41 @@ final class TagRepositoryFake: TagRepository {
     var fetchError: EditorTestError?
     var createError: EditorTestError?
     var createdTag: Tag
+    var suspendsFetch = false
     private(set) var createdNames: [String] = []
+    private var fetchContinuation: CheckedContinuation<[Tag], Error>?
 
     init(
         fetchedTags: [Tag] = [],
         fetchError: EditorTestError? = nil,
         createError: EditorTestError? = nil,
-        createdTag: Tag = .study
+        createdTag: Tag = .study,
+        suspendsFetch: Bool = false
     ) {
         self.fetchedTags = fetchedTags
         self.fetchError = fetchError
         self.createError = createError
         self.createdTag = createdTag
+        self.suspendsFetch = suspendsFetch
     }
 
     func fetchTags() async throws -> [Tag] {
         if let fetchError { throw fetchError }
+        if suspendsFetch {
+            return try await withCheckedThrowingContinuation { continuation in
+                fetchContinuation = continuation
+            }
+        }
         return fetchedTags
+    }
+
+    var hasSuspendedFetch: Bool {
+        fetchContinuation != nil
+    }
+
+    func resumeFetch(with tags: [Tag]) {
+        fetchContinuation?.resume(returning: tags)
+        fetchContinuation = nil
     }
 
     func create(name: String) async throws -> Tag {
