@@ -175,12 +175,8 @@ final class RootViewModel {
         await loadLibrary()
     }
 
-    func prepareExport(_ completion: @escaping (CardTransferFileDocument) -> Void) async {
-        do {
-            completion(CardTransferFileDocument(transfer: CardTransferDocument(cards: try await cards.fetchCards())))
-        } catch {
-            completion(CardTransferFileDocument(transfer: CardTransferDocument(cards: [])))
-        }
+    func prepareExport() async throws -> PreparedCardExport {
+        try await CardTransferCoordinator(cards: cards).prepareExport()
     }
 
     func importCards(_ imported: [VocabularyCard]) async throws -> CardMergeResult {
@@ -284,7 +280,9 @@ struct RootView: View {
     )
     @State private var isShowingExporter = false
     @State private var isShowingImporter = false
-    @State private var importMessage: String?
+    @State private var isPreparingExport = false
+    @State private var preparedExportCardCount = 0
+    @State private var transferMessage: String?
 
     init(
         container: AppContainer,
@@ -342,11 +340,19 @@ struct RootView: View {
                     SettingsView(
                         settings: appearanceSettings,
                         iconSettings: iconSettings,
+                        isPreparingExport: isPreparingExport,
                         onExportCards: {
+                            guard !isPreparingExport else { return }
+                            isPreparingExport = true
                             Task {
-                                await model.prepareExport {
-                                    exportDocument = $0
+                                defer { isPreparingExport = false }
+                                do {
+                                    let prepared = try await model.prepareExport()
+                                    exportDocument = prepared.document
+                                    preparedExportCardCount = prepared.cardCount
                                     isShowingExporter = true
+                                } catch {
+                                    transferMessage = String(localized: "settings.cards.export.failed")
                                 }
                             }
                         },
@@ -407,7 +413,19 @@ struct RootView: View {
             document: exportDocument,
             contentTypes: [.json],
             defaultFilename: "CardFlipper-cards.json"
-        ) { _ in }
+        ) { result in
+            switch result {
+            case .success:
+                let format = String(localized: "settings.cards.export.success")
+                transferMessage = String.localizedStringWithFormat(
+                    format,
+                    preparedExportCardCount
+                )
+            case let .failure(error):
+                guard (error as NSError).code != NSUserCancelledError else { return }
+                transferMessage = String(localized: "settings.cards.export.failed")
+            }
+        }
         .fileImporter(
             isPresented: $isShowingImporter,
             allowedContentTypes: [.json],
@@ -426,23 +444,25 @@ struct RootView: View {
                     let data = try Data(contentsOf: url)
                     let document = try JSONDecoder().decode(CardTransferDocument.self, from: data)
                     let summary = try await model.importCards(document.decodedCards())
-                    importMessage = String(localized: "settings.cards.import.success", defaultValue: "Added \(summary.addedCount), merged \(summary.mergedCount)")
+                    let format = String(localized: "settings.cards.import.success")
+                    transferMessage = String.localizedStringWithFormat(
+                        format,
+                        summary.addedCount,
+                        summary.mergedCount
+                    )
                     await model.libraryChanged()
                 } catch {
-                    importMessage = String(
-                        localized: "settings.cards.import.failed",
-                        defaultValue: "Couldn’t import cards. \(error.localizedDescription)"
-                    )
+                    transferMessage = String(localized: "settings.cards.import.failed")
                 }
             }
         }
         .alert("settings.cards.import.result", isPresented: Binding(
-            get: { importMessage != nil },
-            set: { if !$0 { importMessage = nil } }
+            get: { transferMessage != nil },
+            set: { if !$0 { transferMessage = nil } }
         )) {
-            Button("common.close", role: .cancel) { importMessage = nil }
+            Button("common.close", role: .cancel) { transferMessage = nil }
         } message: {
-            Text(importMessage ?? "")
+            Text(transferMessage ?? "")
         }
         .tint(appearanceSettings.accentColor)
     }

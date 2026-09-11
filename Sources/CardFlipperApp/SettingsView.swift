@@ -4,17 +4,20 @@ struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Bindable var settings: AppearanceSettings
     @Bindable var iconSettings: AppIconSettings
+    let isPreparingExport: Bool
     let onExportCards: () -> Void
     let onImportCards: () -> Void
 
     init(
         settings: AppearanceSettings,
         iconSettings: AppIconSettings,
+        isPreparingExport: Bool = false,
         onExportCards: @escaping () -> Void = {},
         onImportCards: @escaping () -> Void = {}
     ) {
         _settings = Bindable(wrappedValue: settings)
         _iconSettings = Bindable(wrappedValue: iconSettings)
+        self.isPreparingExport = isPreparingExport
         self.onExportCards = onExportCards
         self.onImportCards = onImportCards
     }
@@ -69,8 +72,16 @@ struct SettingsView: View {
 
             Section("settings.cards") {
                 Button(action: onExportCards) {
-                    Label("settings.cards.export", systemImage: "square.and.arrow.up")
+                    if isPreparingExport {
+                        HStack {
+                            ProgressView()
+                            Text("settings.cards.export.preparing")
+                        }
+                    } else {
+                        Label("settings.cards.export", systemImage: "square.and.arrow.up")
+                    }
                 }
+                .disabled(isPreparingExport)
                 Button(action: onImportCards) {
                     Label("settings.cards.import", systemImage: "square.and.arrow.down")
                 }

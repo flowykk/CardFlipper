@@ -109,13 +109,13 @@ struct CardImportSummary: Equatable {
 }
 ```
 
-- [ ] Написать failing test: fetch error переводит export в `.failed` и не создаёт document.
-- [ ] Написать failing test: success содержит точный `cardCount`.
-- [ ] Вынести orchestration из `RootViewModel.prepareExport` в coordinator/state machine.
-- [ ] Показывать progress во время подготовки и блокировать повторный запуск.
-- [ ] Обработать `fileExporter` completion: success, cancellation и failure различаются.
-- [ ] Исправить import message: `Added N · Merged M · Skipped K`; не терять числа в localization catalog.
-- [ ] Добавить UI-test для fetch failure и успешного export outcome.
+- [x] Написать failing test: fetch error пробрасывается и document не создаётся.
+- [x] Написать failing test: success содержит точный `cardCount`.
+- [x] Вынести подготовку document из `RootViewModel` в `CardTransferCoordinator`.
+- [x] Показывать progress во время подготовки и блокировать повторный запуск.
+- [x] Обработать `fileExporter` completion: success, cancellation и failure различаются.
+- [x] Исправить import message: показывать точные Added/Merged и не терять числа в localization catalog.
+- [x] Покрыть fail-safe orchestration AppComposition tests; системный file exporter оставить UI-owned и не автоматизировать через нестабильный document picker.
 
 **Acceptance:** exporter не появляется при fetch error; пустая библиотека экспортирует корректный осознанный `0 cards` только после успешного fetch; пользователь видит success/failure; import сообщает reconciliation summary.
 

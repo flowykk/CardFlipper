@@ -8,14 +8,17 @@ enum AppTestError: Error {
 @MainActor
 final class AppCardRepositoryFake: CardRepository {
     var fetchedCards: [VocabularyCard]
+    var fetchError: Error?
     private(set) var fetchCount = 0
 
-    init(_ cards: [VocabularyCard] = []) {
+    init(_ cards: [VocabularyCard] = [], fetchError: Error? = nil) {
         fetchedCards = cards
+        self.fetchError = fetchError
     }
 
     func fetchCards() async throws -> [VocabularyCard] {
         fetchCount += 1
+        if let fetchError { throw fetchError }
         return fetchedCards
     }
 

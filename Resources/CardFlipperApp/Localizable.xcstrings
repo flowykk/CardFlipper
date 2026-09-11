@@ -1835,6 +1835,57 @@
         }
       }
     },
+    "settings.cards.export.failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t export cards. No backup was created."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось экспортировать карточки. Резервная копия не создана."
+          }
+        }
+      }
+    },
+    "settings.cards.export.preparing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing Export…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подготовка экспорта…"
+          }
+        }
+      }
+    },
+    "settings.cards.export.success" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exported %lld cards."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспортировано карточек: %lld."
+          }
+        }
+      }
+    },
     "settings.cards.import" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1892,13 +1943,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cards imported successfully."
+            "value" : "Added %1$lld, merged %2$lld."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Карточки успешно импортированы."
+            "value" : "Добавлено: %1$lld, объединено: %2$lld."
           }
         }
       }

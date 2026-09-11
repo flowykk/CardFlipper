@@ -236,6 +236,36 @@ private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blu
 }
 
 @MainActor
+@Test func exportPreparationPropagatesRepositoryFailureWithoutCreatingDocument() async {
+    let cards = AppCardRepositoryFake(fetchError: AppTestError.startup)
+    let model = makeRootModel(cards: cards)
+    var didFail = false
+
+    do {
+        _ = try await model.prepareExport()
+    } catch {
+        didFail = true
+    }
+
+    #expect(didFail)
+    #expect(cards.fetchCount == 1)
+}
+
+@MainActor
+@Test func exportPreparationReportsExactCardCount() async throws {
+    let sourceCards = [
+        VocabularyCard.appFixture(id: 1, russian: "слово", english: "word"),
+        VocabularyCard.appFixture(id: 2, russian: "книга", english: "book"),
+    ]
+    let model = makeRootModel(cards: AppCardRepositoryFake(sourceCards))
+
+    let prepared = try await model.prepareExport()
+
+    #expect(prepared.cardCount == 2)
+    #expect(prepared.document.transfer.decodedCards() == sourceCards)
+}
+
+@MainActor
 @Test func activeStudyRepeatKeepsCoverPresentedWithFreshSessionIdentity() {
     let configuration = StudyConfiguration(
         direction: .englishToRussian,
