@@ -72,27 +72,36 @@ public struct EnglishVariantsSection: View {
                 VStack(alignment: .leading, spacing: 12) {
                     adaptiveInputRow(variant: $variant)
 
-                    DisclosureGroup(isExpanded: metadataExpansionBinding(for: variant.id)) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            metadataEditor(variant: $variant)
-                        }
-                        .padding(.top, 4)
+                    Button {
+                        toggleMetadata(for: variant.id)
                     } label: {
-                        HStack {
+                        Label {
                             Text(isExpanded ? "editor.details.less" : "editor.details.more")
-                                .transaction { transaction in
-                                    transaction.animation = nil
-                                }
-                                .accessibilityIdentifier(
-                                    "editor.english.\(position(of: variant.id) - 1).details"
-                                )
-                            Spacer(minLength: 0)
+                        } icon: {
+                            Image(
+                                systemName: isExpanded
+                                    ? "chevron.up.circle"
+                                    : "slider.horizontal.3"
+                            )
+                            .contentTransition(
+                                reduceMotion ? .opacity : .symbolEffect(.replace)
+                            )
                         }
                         .frame(minHeight: 44)
                     }
+                    .accessibilityIdentifier("editor.english.\(position(of: variant.id) - 1).details")
                 }
                 .padding(.vertical, 4)
                 .buttonStyle(.borderless)
+
+                if isExpanded {
+                    VStack(alignment: .leading, spacing: 12) {
+                        metadataEditor(variant: $variant)
+                    }
+                    .padding(.vertical, 4)
+                    .buttonStyle(.borderless)
+                    .transition(metadataTransition)
+                }
             }
 
             Button(action: onAdd) {
@@ -148,14 +157,10 @@ public struct EnglishVariantsSection: View {
         }
     }
 
-    private func metadataExpansionBinding(for variantID: UUID) -> Binding<Bool> {
-        Binding(
-            get: { expandedMetadataVariantIDs.contains(variantID) },
-            set: { shouldExpand in
-                guard shouldExpand != expandedMetadataVariantIDs.contains(variantID) else { return }
-                toggleMetadata(for: variantID)
-            }
-        )
+    private var metadataTransition: AnyTransition {
+        reduceMotion
+            ? .opacity
+            : .move(edge: .top).combined(with: .opacity)
     }
 
     @ViewBuilder
