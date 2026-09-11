@@ -1,8 +1,9 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 public struct LibraryView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var model: LibraryViewModel
     @State private var showingCardDeletion = false
     @State private var showingTagDeletion = false
@@ -50,13 +51,12 @@ public struct LibraryView: View {
                     if model.isBulkTagSelectionActive {
                         Button("library.bulk.cancel") { model.cancelBulkTagSelection() }
                             .accessibilityIdentifier("library.bulk.cancel")
-                    } else {
+                    } else if !model.cards.isEmpty {
                         Button {
                             model.beginBulkTagSelection()
                         } label: {
                             Label("library.bulk.select", systemImage: "checklist")
                         }
-                        .disabled(model.cards.isEmpty)
                         .accessibilityIdentifier("library.bulk.select")
                     }
                 }
@@ -180,13 +180,21 @@ public struct LibraryView: View {
     private var loadedContent: some View {
         if model.cards.isEmpty {
             ScrollView {
-                VStack(spacing: 10) {
-                    ContentUnavailableView {
-                        Label("library.empty.title", systemImage: "rectangle.stack")
-                            .accessibilityIdentifier("library.empty")
-                    } description: {
-                        Text("library.empty.message")
-                    }
+                VStack(spacing: 16) {
+                    Image(systemName: AppSymbol.library)
+                        .font(.system(size: 44, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+
+                    Text("library.empty.title")
+                        .font(.title2.bold())
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("library.empty")
+
+                    Text("library.empty.message")
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     Button(action: onAddCard) {
                         Label("library.add", systemImage: "plus")
@@ -196,7 +204,7 @@ public struct LibraryView: View {
                     .accessibilityIdentifier("library.add")
 
                     Button(action: onImportCards) {
-                        Label("settings.cards.import", systemImage: "square.and.arrow.down")
+                        Label("settings.cards.import", systemImage: AppSymbol.importCards)
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.bordered)
@@ -204,7 +212,8 @@ public struct LibraryView: View {
                 }
                 .frame(maxWidth: 360)
                 .padding(.horizontal)
-                .padding(.top, 80)
+                .padding(.top, dynamicTypeSize.isAccessibilitySize ? 24 : 80)
+                .padding(.bottom, 24)
                 .frame(maxWidth: .infinity)
             }
         } else if model.visibleCards.isEmpty {
@@ -299,7 +308,6 @@ public struct LibraryView: View {
                 .accessibilityAddTraits(
                     model.selectedBulkCardIDs.contains(card.id) ? .isSelected : []
                 )
-                .transition(cardTransition)
                 .swipeActions {
                     if !model.isBulkTagSelectionActive {
                         Button("common.delete") {
@@ -323,18 +331,6 @@ public struct LibraryView: View {
             }
         }
         .listStyle(.plain)
-        .animation(cardListAnimation, value: model.learningFilter)
-        .animation(cardListAnimation, value: model.visibleCards.map(\.id))
-    }
-
-    private var cardTransition: AnyTransition {
-        reduceMotion
-            ? .opacity
-            : .move(edge: .top).combined(with: .opacity)
-    }
-
-    private var cardListAnimation: Animation {
-        reduceMotion ? .easeInOut(duration: 0.18) : .snappy
     }
 
     private var deletionFailureBinding: Binding<Bool> {

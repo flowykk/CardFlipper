@@ -56,7 +56,7 @@ struct LibraryPrimaryActionsView: View {
                     cardCount
                 ))
             } icon: {
-                Image(systemName: "graduationcap.fill")
+                Image(systemName: AppSymbol.study)
             }
             .frame(maxWidth: .infinity, minHeight: 44)
         }

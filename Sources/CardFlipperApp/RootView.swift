@@ -1,6 +1,7 @@
 import CardEditorFeature
 import Core
 import Data
+import DesignSystem
 import LibraryFeature
 import Observation
 import StudyFeature
@@ -384,7 +385,7 @@ struct RootView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button(action: navigation.openSettings) {
-                        Label("settings.open", systemImage: "gearshape.fill")
+                        Label("settings.open", systemImage: AppSymbol.settings)
                     }
                     .accessibilityIdentifier("library.settings")
 
@@ -394,7 +395,7 @@ struct RootView: View {
                         Label {
                             Text("statistics.open", bundle: StatisticsFeatureResources.bundle)
                         } icon: {
-                            Image(systemName: "chart.bar.xaxis")
+                            Image(systemName: AppSymbol.statistics)
                         }
                     }
                     .accessibilityIdentifier("library.statistics")

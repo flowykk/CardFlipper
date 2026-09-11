@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 public struct TagManagementView: View {
@@ -29,7 +30,7 @@ public struct TagManagementView: View {
                 if model.tags.isEmpty {
                     ContentUnavailableView(
                         "tag.empty.title",
-                        systemImage: "tag",
+                        systemImage: AppSymbol.tags,
                         description: Text("tag.empty.message")
                     )
                 } else {
@@ -38,7 +39,7 @@ public struct TagManagementView: View {
                             selectedTag = tag
                         } label: {
                             HStack(spacing: 12) {
-                                Image(systemName: "tag")
+                                Image(systemName: AppSymbol.tags)
                                     .foregroundStyle(Color.accentColor)
                                     .accessibilityHidden(true)
                                 VStack(alignment: .leading, spacing: 4) {

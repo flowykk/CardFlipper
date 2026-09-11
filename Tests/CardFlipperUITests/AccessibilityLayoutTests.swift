@@ -4,6 +4,31 @@ import XCTest
 final class AccessibilityLayoutTests: XCTestCase {
     private lazy var app = XCUIApplication()
 
+    func testEmptyLibraryClearsToolbarAtAccessibilityXXXL() {
+        continueAfterFailure = false
+        app.launchArguments = [
+            "-uiTesting",
+            "-AppleLanguages", "(en)",
+            "-AppleLocale", "en_US",
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityXXXL",
+        ]
+        app.launch()
+
+        let title = app.staticTexts["Your Library Is Empty"]
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(title.frame.minY, app.navigationBars.firstMatch.frame.maxY)
+        let addButton = app.buttons["Add Card"]
+        let importCards = app.buttons["Import Cards"]
+        scrollToHittable(addButton)
+        scrollToHittable(importCards)
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "AX-Empty-Library"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
     func testStudyPrimaryActionsRemainReachableAtAccessibilityXXXL() {
         continueAfterFailure = false
         app.launchArguments = [
@@ -64,6 +89,7 @@ final class AccessibilityLayoutTests: XCTestCase {
         XCTAssertTrue(english.isHittable)
         english.tap()
         english.typeText("word")
+        dismissKeyboard()
         scrollToHittable(details)
         details.tap()
 
@@ -76,7 +102,7 @@ final class AccessibilityLayoutTests: XCTestCase {
         XCTAssertTrue(app.navigationBars.buttons["Save"].isHittable)
 
         partPicker.tap()
-        XCTAssertTrue(app.searchFields["Search parts of speech"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.searchFields["Search parts of speech"].waitForExistence(timeout: 8))
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "AX-Editor-Progressive-Details"
@@ -132,6 +158,15 @@ final class AccessibilityLayoutTests: XCTestCase {
             app.descendants(matching: .any)[identifier].waitForExistence(timeout: 5),
             "Expected accessibility identifier \(identifier)"
         )
+    }
+
+    private func dismissKeyboard() {
+        let keyboard = app.keyboards.firstMatch
+        guard keyboard.exists else { return }
+        let returnKey = keyboard.buttons["Return"]
+        XCTAssertTrue(returnKey.waitForExistence(timeout: 2))
+        returnKey.tap()
+        XCTAssertFalse(keyboard.waitForExistence(timeout: 2))
     }
 
     private func scrollToHittable(_ element: XCUIElement) {

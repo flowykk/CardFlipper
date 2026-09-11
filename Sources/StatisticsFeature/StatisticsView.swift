@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 
 public struct StatisticsView: View {
@@ -113,7 +114,7 @@ public struct StatisticsView: View {
             Label {
                 Text("statistics.zero.title", bundle: .module)
             } icon: {
-                Image(systemName: "chart.bar.xaxis")
+                Image(systemName: AppSymbol.statistics)
             }
         } description: {
             Text("statistics.zero.message", bundle: .module)
@@ -122,7 +123,7 @@ public struct StatisticsView: View {
                 Label {
                     Text("statistics.zero.action", bundle: .module)
                 } icon: {
-                    Image(systemName: "graduationcap.fill")
+                    Image(systemName: AppSymbol.study)
                 }
                     .frame(minHeight: 44)
             }

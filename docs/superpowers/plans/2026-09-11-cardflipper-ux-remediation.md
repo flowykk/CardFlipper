@@ -182,9 +182,9 @@ public enum AdaptiveControlLayout {
 ```
 
 - [x] Написать unit tests для standard и accessibility Dynamic Type размеров.
-- [ ] Добавить UI launch helpers для locale, content size и appearance.
-- [ ] Добавить screenshot/accessibility assertions для Empty, Editor, Setup, Prompt, Answer, Result, Statistics, Settings.
-- [ ] Проверять существование и hittability primary action на каждом экране.
+- [x] Добавить UI launch helpers для locale, content size и appearance.
+- [x] Добавить screenshot/accessibility assertions для Empty, Editor, Setup, Prompt, Answer, Result, Statistics, Settings.
+- [x] Проверять существование и hittability primary action на каждом экране.
 - [x] Документировать правило: segmented/horizontal controls обязаны иметь vertical alternative при accessibility sizes.
 
 **Acceptance:** один test matrix запускается на iPhone 16e и 17 Pro; primary actions остаются в AX tree и viewport; screenshots сохраняются с устойчивыми именами.
@@ -580,14 +580,14 @@ public struct AccessibleAccent: Identifiable, Equatable, Sendable {
 
 **Icon contract:** единый Library symbol; Study — отдельный узнаваемый symbol; Tags — `tag`; destructive actions сохраняют system semantics.
 
-- [ ] Ввести semantic `AppSymbol`, исключить разные literal SF Symbol names для одной сущности.
-- [ ] Исправить copy: `Show Russian meanings`, `cards repeated`, локализованный timer, точные import/export summaries.
-- [ ] Убрать motion, имитирующий delete/reorder при обычной фильтрации.
-- [ ] Проверить Reduce Motion, VoiceOver reading order, Increase Contrast и button shapes.
-- [ ] Запустить полный `tuist test CardFlipper --no-selective-testing`.
-- [ ] Запустить UI matrix на двух устройствах и сохранить финальные screenshots/filmstrip.
-- [ ] Проверить отсутствие literal localization keys и accidental truncation.
-- [ ] Обновить `docs/ui-ux.md` фактическими правилами и принятыми решениями.
+- [x] Ввести semantic `AppSymbol`, исключить разные literal SF Symbol names для одной сущности.
+- [x] Исправить copy: `Show Russian meanings`, `cards repeated`, локализованный timer, точные import/export summaries.
+- [x] Убрать motion, имитирующий delete/reorder при обычной фильтрации.
+- [x] Проверить Reduce Motion, VoiceOver reading order, Increase Contrast и button shapes.
+- [x] Запустить полный `tuist test CardFlipper --no-selective-testing`.
+- [x] Запустить UI matrix на двух устройствах и сохранить финальные screenshots/filmstrip.
+- [x] Проверить отсутствие literal localization keys и accidental truncation.
+- [x] Обновить `docs/ui-ux.md` фактическими правилами и принятыми решениями.
 
 **Acceptance:** все tests зелёные; primary flows проходят EN/RU, light/dark и MAX AX; одна сущность имеет одну icon semantics; финальные screenshots не содержат overlap, ghosting или случайного truncation.
 

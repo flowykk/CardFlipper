@@ -29,7 +29,7 @@ let project = Project(
             infoPlist: .default,
             sources: ["Sources/StatisticsFeature/**"],
             resources: ["Resources/StatisticsFeature/**"],
-            dependencies: [.target(name: "Core")]
+            dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]
         ),
         .target(
             name: "StudyTimerWidgetExtension",

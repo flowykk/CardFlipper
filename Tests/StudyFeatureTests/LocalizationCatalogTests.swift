@@ -33,6 +33,13 @@ import Testing
     ])
 }
 
+@Test func libraryTranslationToggleNamesTheContentItReveals() throws {
+    let values = try loadLocalizationCatalog()["library.translations.show"]
+
+    #expect(values?["en"] == "Show Russian meanings")
+    #expect(values?["ru"] == "Показывать русские значения")
+}
+
 @Test func usageExampleCountCopyIsAccuratelyPluralizedInEnglishAndRussian() throws {
     let values = try loadPluralCatalogValues(key: "study.examples.count")
 

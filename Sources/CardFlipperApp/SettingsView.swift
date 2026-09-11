@@ -82,12 +82,12 @@ struct SettingsView: View {
                             Text("settings.cards.export.preparing")
                         }
                     } else {
-                        Label("settings.cards.export", systemImage: "square.and.arrow.up")
+                        Label("settings.cards.export", systemImage: AppSymbol.exportCards)
                     }
                 }
                 .disabled(isPreparingExport)
                 Button(action: onImportCards) {
-                    Label("settings.cards.import", systemImage: "square.and.arrow.down")
+                    Label("settings.cards.import", systemImage: AppSymbol.importCards)
                 }
             }
         }

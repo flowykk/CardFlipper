@@ -31,7 +31,7 @@ public struct TagFilterView: View {
             .contentMargins(.leading, 20, for: .scrollContent)
 
             Button(action: onManageTags) {
-                Label("tag.manage", systemImage: "tag")
+                Label("tag.manage", systemImage: AppSymbol.tags)
                     .frame(minHeight: 44)
             }
             .buttonStyle(.bordered)

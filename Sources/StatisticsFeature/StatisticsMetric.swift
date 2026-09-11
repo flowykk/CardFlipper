@@ -1,3 +1,4 @@
+import DesignSystem
 import Foundation
 
 struct StatisticsMetric: Equatable, Sendable {
@@ -15,19 +16,19 @@ struct StatisticsMetric: Equatable, Sendable {
             StatisticsMetric(
                 titleKey: "statistics.lessons",
                 value: statistics.completedLessonCount.formatted(),
-                systemImage: "graduationcap.fill",
+                systemImage: AppSymbol.study,
                 detail: nil
             ),
             StatisticsMetric(
                 titleKey: "statistics.cards",
                 value: statistics.studiedCardCount.formatted(),
-                systemImage: "rectangle.stack.fill",
+                systemImage: AppSymbol.library,
                 detail: nil
             ),
             StatisticsMetric(
                 titleKey: "statistics.repeated",
                 value: statistics.repeatedCardCount.formatted(),
-                systemImage: "arrow.uturn.backward.circle.fill",
+                systemImage: AppSymbol.repeatedCards,
                 detail: nil
             ),
             StatisticsMetric(

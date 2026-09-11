@@ -83,11 +83,11 @@ public struct StudyResultView: View {
                 VStack(spacing: 14) {
                     resultRow(
                         title: Text(verbatim: localizedCount(presentation.reviewedCards)),
-                        systemImage: "rectangle.stack.fill"
+                        systemImage: AppSymbol.library
                     )
                     resultRow(
                         title: Text(verbatim: localizedCount(presentation.repeatedCards)),
-                        systemImage: "arrow.uturn.backward.circle.fill"
+                        systemImage: AppSymbol.repeatedCards
                     )
                     resultRow(
                         title: Text(verbatim: localizedPercentage(

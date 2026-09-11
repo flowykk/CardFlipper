@@ -173,7 +173,7 @@ public struct StudySessionView: View {
         Button {
             try? model.forget()
         } label: {
-            Label("study.forget", systemImage: "arrow.uturn.backward.circle.fill")
+            Label("study.forget", systemImage: AppSymbol.repeatedCards)
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.bordered)

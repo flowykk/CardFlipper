@@ -1766,13 +1766,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show translations"
+            "value" : "Show Russian meanings"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Показывать переводы"
+            "value" : "Показывать русские значения"
           }
         }
       }
