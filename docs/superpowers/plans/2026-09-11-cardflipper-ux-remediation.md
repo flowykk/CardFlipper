@@ -310,13 +310,13 @@ public var hasAttemptedSave = false
 public var expandedMetadataVariantIDs: Set<UUID> = []
 ```
 
-- [ ] Добавить test: pristine editor не показывает validation errors.
-- [ ] Validation показывать после blur соответствующего поля или `hasAttemptedSave`.
-- [ ] Первый слой оставить Russian, English и Save; IPA/POS/examples раскрывать через `More details`.
-- [ ] Заменить 14-chip strip на searchable picker: common/recent items сверху, полный список ниже.
-- [ ] English TextField и speaker/remove раскладывать через `ViewThatFits`; placeholder не должен ellipsize при стандартном размере.
-- [ ] Для examples явно показывать, почему сначала требуется POS.
-- [ ] Проверить keyboard avoidance и сохранение scroll position.
+- [x] Добавить test: pristine editor не показывает validation errors.
+- [x] Validation показывать после blur соответствующего поля или `hasAttemptedSave`.
+- [x] Первый слой оставить Russian, English и Save; IPA/POS/examples раскрывать через `More details`.
+- [x] Заменить 14-chip strip на searchable picker: common/recent items сверху, полный список ниже.
+- [x] English TextField и speaker/remove раскладывать через `ViewThatFits`; placeholder не должен ellipsize при стандартном размере.
+- [x] Для examples явно показывать, почему сначала требуется POS.
+- [x] Проверить keyboard avoidance и сохранение scroll position.
 
 **Acceptance:** чистый editor не выглядит ошибочным; базовая карточка создаётся без встречи с advanced controls; все функции остаются доступны; MAX AX не режет поле и actions.
 

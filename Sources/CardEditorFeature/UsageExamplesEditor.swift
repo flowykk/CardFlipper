@@ -27,37 +27,17 @@ struct UsageExamplesEditor: View {
                     .textInputAutocapitalization(.sentences)
                     .accessibilityIdentifier(identifier(for: example.id, suffix: "text"))
 
-                    HStack {
-                        partOfSpeechMenu(example: example)
-
-                        Spacer()
-
-                        Button {
-                            onSpeak(example.id)
-                        } label: {
-                            Image(systemName: "speaker.wave.2")
-                                .frame(minWidth: 44, minHeight: 44)
+                    ViewThatFits(in: .horizontal) {
+                        HStack {
+                            partOfSpeechMenu(example: example)
+                            Spacer()
+                            exampleActions(example: example)
                         }
-                        .buttonStyle(.plain)
-                        .disabled(example.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        .accessibilityIdentifier(identifier(for: example.id, suffix: "speak"))
-                        .accessibilityLabel(Text(verbatim: accessibilityLabels.speakUsageExample(
-                            variantPosition: variantPosition,
-                            examplePosition: position(of: example.id)
-                        )))
-
-                        Button(role: .destructive) {
-                            onRemove(example.id)
-                        } label: {
-                            Image(systemName: "minus.circle")
-                                .frame(minWidth: 44, minHeight: 44)
+                        VStack(alignment: .leading, spacing: 4) {
+                            partOfSpeechMenu(example: example)
+                            exampleActions(example: example)
+                                .frame(maxWidth: .infinity, alignment: .trailing)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier(identifier(for: example.id, suffix: "remove"))
-                        .accessibilityLabel(Text(verbatim: accessibilityLabels.removeUsageExample(
-                            variantPosition: variantPosition,
-                            examplePosition: position(of: example.id)
-                        )))
                     }
 
                     if requiresPartOfSpeech(example) {
@@ -84,6 +64,37 @@ struct UsageExamplesEditor: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
+        }
+    }
+
+    private func exampleActions(example: UsageExampleInput) -> some View {
+        HStack(spacing: 0) {
+            Button {
+                onSpeak(example.id)
+            } label: {
+                Image(systemName: "speaker.wave.2")
+                    .frame(minWidth: 44, minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            .disabled(example.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .accessibilityIdentifier(identifier(for: example.id, suffix: "speak"))
+            .accessibilityLabel(Text(verbatim: accessibilityLabels.speakUsageExample(
+                variantPosition: variantPosition,
+                examplePosition: position(of: example.id)
+            )))
+
+            Button(role: .destructive) {
+                onRemove(example.id)
+            } label: {
+                Image(systemName: "minus.circle")
+                    .frame(minWidth: 44, minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(identifier(for: example.id, suffix: "remove"))
+            .accessibilityLabel(Text(verbatim: accessibilityLabels.removeUsageExample(
+                variantPosition: variantPosition,
+                examplePosition: position(of: example.id)
+            )))
         }
     }
 

@@ -91,6 +91,8 @@ public final class CardEditorViewModel {
     public private(set) var isPresented = true
     public private(set) var isSaving = false
     public private(set) var didSave = false
+    public private(set) var hasAttemptedSave = false
+    public var expandedMetadataVariantIDs: Set<UUID>
 
     private let existingCard: VocabularyCard?
     private let draftCardID: UUID
@@ -164,6 +166,11 @@ public final class CardEditorViewModel {
         englishVariants = initialEnglishVariants
         selectedTagIDs = initialSelectedTagIDs
         availableTags = initialAvailableTags
+        expandedMetadataVariantIDs = Set(
+            initialEnglishVariants.filter {
+                !$0.ipa.isEmpty || !$0.partsOfSpeech.isEmpty || !$0.usageExamples.isEmpty
+            }.map(\.id)
+        )
         draftCardID = card?.id ?? UUID()
         initialContent = EditorContentSnapshot(
             russianMeanings: initialRussianMeanings,
@@ -212,6 +219,10 @@ public final class CardEditorViewModel {
         draft.validationErrors
     }
 
+    public var displayedValidationErrors: [CardDraft.ValidationError] {
+        hasAttemptedSave ? validationErrors : []
+    }
+
     public var isDirty: Bool {
         currentContent != initialContent
     }
@@ -237,7 +248,16 @@ public final class CardEditorViewModel {
         lookupTasks[id] = nil
         lookupRequestIDs[id] = nil
         lookupState[id] = nil
+        expandedMetadataVariantIDs.remove(id)
         englishVariants.removeAll { $0.id == id }
+    }
+
+    public func toggleMetadata(for variantID: UUID) {
+        if expandedMetadataVariantIDs.contains(variantID) {
+            expandedMetadataVariantIDs.remove(variantID)
+        } else {
+            expandedMetadataVariantIDs.insert(variantID)
+        }
     }
 
     public func addUsageExample(variantID: UUID) {
@@ -353,6 +373,7 @@ public final class CardEditorViewModel {
     @discardableResult
     public func save() async -> SaveOutcome {
         guard !isSaving else { return .failed }
+        hasAttemptedSave = true
         isSaving = true
         defer { isSaving = false }
         saveError = nil

@@ -155,7 +155,10 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(noun.waitForExistence(timeout: 3))
         XCTAssertTrue(noun.label.contains("Noun"), "Expected localized POS label, got \(noun.label)")
         XCTAssertFalse(noun.label.contains("partOfSpeech.noun"))
-        tap("editor.english.0.example.add")
+        let addExample = app.buttons["Add Example"].firstMatch
+        scrollToHittable(addExample)
+        XCTAssertTrue(addExample.isEnabled)
+        addExample.tap()
         let newExample = app.descendants(matching: .any)["editor.english.0.example.1.text"]
         scrollToHittable(newExample)
         newExample.tap()
@@ -479,7 +482,9 @@ final class CardFlipperFlowTests: XCTestCase {
     }
 
     private func tap(_ identifier: String) {
-        let element = app.descendants(matching: .any)[identifier]
+        let element = identifier == "library.add"
+            ? app.buttons["Add Card"].firstMatch
+            : app.descendants(matching: .any)[identifier]
         scrollToHittable(element)
         element.tap()
     }

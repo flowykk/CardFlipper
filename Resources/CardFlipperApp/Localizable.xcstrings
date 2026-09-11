@@ -374,6 +374,13 @@
         }
       }
     },
+    "common.done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Готово" } }
+      }
+    },
     "common.delete" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -627,6 +634,20 @@
             "value" : "Возможный дубликат"
           }
         }
+      }
+    },
+    "editor.details.less" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hide Details" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Скрыть детали" } }
+      }
+    },
+    "editor.details.more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "More Details" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Больше деталей" } }
       }
     },
     "editor.english.add" : {
@@ -1001,6 +1022,48 @@
             "value" : "Подсказка добавлена"
           }
         }
+      }
+    },
+    "editor.partOfSpeech.all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "All Parts of Speech" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Все части речи" } }
+      }
+    },
+    "editor.partOfSpeech.choose" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose Parts of Speech" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выбрать части речи" } }
+      }
+    },
+    "editor.partOfSpeech.common" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Common" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Частые" } }
+      }
+    },
+    "editor.partOfSpeech.results" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Results" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Результаты" } }
+      }
+    },
+    "editor.partOfSpeech.search" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search parts of speech" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Поиск частей речи" } }
+      }
+    },
+    "editor.partOfSpeech.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Parts of Speech" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Части речи" } }
       }
     },
     "editor.russian.add" : {

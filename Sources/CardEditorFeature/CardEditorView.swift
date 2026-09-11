@@ -27,15 +27,16 @@ public struct CardEditorView: View {
             Form {
                 RussianMeaningsSection(
                     meanings: $model.russianMeanings,
-                    showsValidationError: model.validationErrors.contains(.missingRussianMeaning),
+                    showsValidationError: model.displayedValidationErrors.contains(.missingRussianMeaning),
                     onAdd: model.addRussianMeaning,
                     onRemove: model.removeRussianMeaning
                 )
 
                 EnglishVariantsSection(
                     variants: $model.englishVariants,
+                    expandedMetadataVariantIDs: $model.expandedMetadataVariantIDs,
                     lookupState: model.lookupState,
-                    showsValidationError: model.validationErrors.contains(.missingEnglishVariant),
+                    showsValidationError: model.displayedValidationErrors.contains(.missingEnglishVariant),
                     onAdd: model.addEnglishVariant,
                     onRemove: model.removeEnglishVariant,
                     onTextChanged: model.scheduleLookup,
@@ -43,6 +44,7 @@ public struct CardEditorView: View {
                         Task { await model.lookup(variantID: variantID) }
                     },
                     onSpeak: model.speak,
+                    onToggleMetadata: model.toggleMetadata,
                     onTogglePartOfSpeech: model.togglePartOfSpeech,
                     onAddUsageExample: model.addUsageExample,
                     onRemoveUsageExample: model.removeUsageExample,
@@ -76,6 +78,7 @@ public struct CardEditorView: View {
                     }
                 }
             }
+            .scrollDismissesKeyboard(.immediately)
             .accessibilityIdentifier("editor.root")
             .navigationTitle("editor.title")
             .navigationBarTitleDisplayMode(.inline)

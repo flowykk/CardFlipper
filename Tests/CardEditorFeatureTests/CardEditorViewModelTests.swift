@@ -22,6 +22,34 @@ import Testing
 }
 
 @MainActor
+@Test func pristineEditorDoesNotExposeValidationErrorsUntilSaveIsAttempted() async {
+    let model = makeNewEditor()
+
+    #expect(!model.validationErrors.isEmpty)
+    #expect(model.displayedValidationErrors.isEmpty)
+    #expect(!model.hasAttemptedSave)
+
+    let outcome = await model.save()
+
+    #expect(outcome == .invalid)
+    #expect(model.hasAttemptedSave)
+    #expect(model.displayedValidationErrors == model.validationErrors)
+}
+
+@MainActor
+@Test func existingAdvancedMetadataStartsExpanded() {
+    let model = CardEditorViewModel.edit(
+        card: .duplicate,
+        cards: CardRepositoryFake(),
+        tags: TagRepositoryFake(),
+        dictionary: DictionaryServiceFake(),
+        speech: SpeechServiceSpy()
+    )
+
+    #expect(model.expandedMetadataVariantIDs == [model.englishVariants[0].id])
+}
+
+@MainActor
 @Test func editingLoadsAllValuesAndTagSelectionsInOrder() {
     let model = CardEditorViewModel.edit(
         card: .duplicate,

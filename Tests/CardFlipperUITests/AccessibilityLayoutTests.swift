@@ -40,6 +40,50 @@ final class AccessibilityLayoutTests: XCTestCase {
         add(screenshot)
     }
 
+    func testEditorProgressiveDetailsRemainReachableAtAccessibilityXXXL() {
+        continueAfterFailure = false
+        app.launchArguments = [
+            "-uiTesting",
+            "-AppleLanguages", "(en)",
+            "-AppleLocale", "en_US",
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityXXXL",
+        ]
+        app.launch()
+
+        tap("library.add")
+        assertExists("editor.root")
+        XCTAssertFalse(app.staticTexts["Add at least one English translation."].exists)
+        XCTAssertFalse(app.staticTexts["Add at least one Russian meaning."].exists)
+
+        let russian = app.textFields["editor.russian.0"]
+        let english = app.textFields["editor.english.0"]
+        let details = app.descendants(matching: .any)["editor.english.0.details"]
+        XCTAssertTrue(russian.waitForExistence(timeout: 3))
+        scrollToHittable(english)
+        XCTAssertTrue(english.isHittable)
+        english.tap()
+        english.typeText("word")
+        scrollToHittable(details)
+        details.tap()
+
+        let ipa = app.textFields["editor.ipa.0"]
+        let partPicker = app.descendants(matching: .any)["editor.english.0.partOfSpeechPicker"]
+        scrollToHittable(ipa)
+        XCTAssertTrue(ipa.isHittable)
+        scrollToHittable(partPicker)
+        XCTAssertTrue(partPicker.isHittable)
+        XCTAssertTrue(app.navigationBars.buttons["Save"].isHittable)
+
+        partPicker.tap()
+        XCTAssertTrue(app.searchFields["Search parts of speech"].waitForExistence(timeout: 3))
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "AX-Editor-Progressive-Details"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
     private func tap(_ identifier: String) {
         let element = app.descendants(matching: .any)[identifier]
         scrollToHittable(element)
