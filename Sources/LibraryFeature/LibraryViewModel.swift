@@ -30,6 +30,8 @@ public final class LibraryViewModel {
     public var pendingTagDeletion: Tag?
     public private(set) var deletionFailure: LibraryDeletionFailure?
     public private(set) var learningStatusFailure: VocabularyCard?
+    public private(set) var undoAction: LibraryUndoAction?
+    public private(set) var undoFailed = false
 
     private let cardRepository: any CardRepository
     private let tagRepository: any TagRepository
@@ -63,6 +65,8 @@ public final class LibraryViewModel {
             let loadedTags = try await tagRepository.fetchTags()
             cards = loadedCards
             tags = loadedTags
+            undoAction = nil
+            undoFailed = false
             selectedTagIDs.formIntersection(loadedTags.map(\.id))
             state = .loaded
         } catch {
@@ -79,6 +83,8 @@ public final class LibraryViewModel {
             try await cardRepository.delete(id: card.id)
             cards.removeAll { $0.id == card.id }
             pendingDeletion = nil
+            undoAction = .deletedCard(card)
+            undoFailed = false
             return true
         } catch {
             deletionFailure = .card
@@ -164,6 +170,8 @@ public final class LibraryViewModel {
             try await cardRepository.save(updatedCard)
             guard let index = cards.firstIndex(where: { $0.id == card.id }) else { return false }
             cards[index] = updatedCard
+            undoAction = .learningStatus(cardID: card.id, previousValue: card.isLearned)
+            undoFailed = false
             return true
         } catch {
             learningStatusFailure = card
@@ -173,6 +181,45 @@ public final class LibraryViewModel {
 
     public func dismissLearningStatusFailure() {
         learningStatusFailure = nil
+    }
+
+    @discardableResult
+    public func performUndo() async -> Bool {
+        guard let undoAction else { return false }
+        undoFailed = false
+
+        do {
+            switch undoAction {
+            case let .learningStatus(cardID, previousValue):
+                guard let index = cards.firstIndex(where: { $0.id == cardID }) else {
+                    self.undoAction = nil
+                    return false
+                }
+                let restoredCard = cards[index].updatingLearningStatus(
+                    previousValue,
+                    updatedAt: Date()
+                )
+                try await cardRepository.save(restoredCard)
+                cards[index] = restoredCard
+
+            case let .deletedCard(card):
+                try await cardRepository.save(card)
+                if !cards.contains(where: { $0.id == card.id }) {
+                    cards.append(card)
+                }
+            }
+
+            self.undoAction = nil
+            return true
+        } catch {
+            undoFailed = true
+            return false
+        }
+    }
+
+    public func dismissUndo() {
+        undoAction = nil
+        undoFailed = false
     }
 }
 

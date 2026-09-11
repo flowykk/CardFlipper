@@ -161,6 +161,54 @@ func searchMatchesEitherLanguage(query: String, expectedID: UUID) async {
 }
 
 @MainActor
+@Test func successfulLearningStatusChangeOffersUndo() async {
+    let card = VocabularyCard.workCard
+    let model = LibraryViewModel(
+        cards: CardRepositoryFake([card]),
+        tags: TagRepositoryFake()
+    )
+    await model.load()
+
+    await model.toggleLearningStatus(for: card)
+
+    #expect(model.undoAction == .learningStatus(cardID: card.id, previousValue: false))
+}
+
+@MainActor
+@Test func undoLearningStatusPersistsThePreviousValue() async {
+    let card = VocabularyCard.workCard
+    let repository = CardRepositoryFake([card])
+    let model = LibraryViewModel(cards: repository, tags: TagRepositoryFake())
+    await model.load()
+    await model.toggleLearningStatus(for: card)
+
+    let undone = await model.performUndo()
+
+    #expect(undone)
+    #expect(model.cards.first?.isLearned == false)
+    #expect(repository.savedCards.map(\.isLearned) == [true, false])
+    #expect(model.undoAction == nil)
+    #expect(!model.undoFailed)
+}
+
+@MainActor
+@Test func failedUndoKeepsCurrentStateAndOffersRetry() async {
+    let card = VocabularyCard.workCard
+    let repository = CardRepositoryFake([card])
+    let model = LibraryViewModel(cards: repository, tags: TagRepositoryFake())
+    await model.load()
+    await model.toggleLearningStatus(for: card)
+    repository.saveError = LibraryTestError.delete
+
+    let undone = await model.performUndo()
+
+    #expect(!undone)
+    #expect(model.cards.first?.isLearned == true)
+    #expect(model.undoAction == .learningStatus(cardID: card.id, previousValue: false))
+    #expect(model.undoFailed)
+}
+
+@MainActor
 @Test func deletingCardRemovesOnlyTheConfirmedCard() async {
     let repository = CardRepositoryFake([.workCard, .examCard])
     let model = LibraryViewModel(cards: repository, tags: TagRepositoryFake())
@@ -173,6 +221,23 @@ func searchMatchesEitherLanguage(query: String, expectedID: UUID) async {
     #expect(model.pendingDeletion == nil)
     #expect(model.deletionFailure == nil)
     #expect(repository.deletedIDs == [.fixture(101)])
+    #expect(model.undoAction == .deletedCard(.workCard))
+}
+
+@MainActor
+@Test func undoCardDeletionRestoresAndPersistsTheCard() async {
+    let repository = CardRepositoryFake([.workCard, .examCard])
+    let model = LibraryViewModel(cards: repository, tags: TagRepositoryFake())
+    await model.load()
+    model.pendingDeletion = .workCard
+    await model.deletePendingCard()
+
+    let undone = await model.performUndo()
+
+    #expect(undone)
+    #expect(model.cards.contains(.workCard))
+    #expect(repository.savedCards == [.workCard])
+    #expect(model.undoAction == nil)
 }
 
 @MainActor

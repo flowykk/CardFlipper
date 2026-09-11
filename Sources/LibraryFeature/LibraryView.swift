@@ -121,6 +121,8 @@ public struct LibraryView: View {
             .safeAreaInset(edge: .bottom) {
                 if model.isBulkTagSelectionActive {
                     bulkSelectionBar
+                } else if model.undoAction != nil {
+                    undoBanner
                 }
             }
             .alert(
@@ -132,6 +134,14 @@ public struct LibraryView: View {
                 }
                 Button("common.cancel", role: .cancel) {
                     model.dismissLearningStatusFailure()
+                }
+            }
+            .alert("library.undo.failed", isPresented: undoFailureBinding) {
+                Button("common.retry") {
+                    performUndo()
+                }
+                Button("common.cancel", role: .cancel) {
+                    model.dismissUndo()
                 }
             }
             .task {
@@ -279,15 +289,15 @@ public struct LibraryView: View {
                     }
                 }
                 .swipeActions(edge: .leading) {
-                    Button(card.isLearned ? "library.markUnlearned" : "library.markLearned") {
-                        Task {
-                            await model.toggleLearningStatus(for: card)
-                        }
+                    learningStatusButton(for: card)
+                        .tint(.green)
+                }
+                .contextMenu {
+                    learningStatusButton(for: card)
+                    Button("common.delete", role: .destructive) {
+                        model.pendingDeletion = card
+                        showingCardDeletion = true
                     }
-                    .tint(.green)
-                    .accessibilityIdentifier(
-                        card.isLearned ? "library.markUnlearned" : "library.markLearned"
-                    )
                 }
             }
         }
@@ -337,6 +347,74 @@ public struct LibraryView: View {
                 }
             }
         )
+    }
+
+    private var undoFailureBinding: Binding<Bool> {
+        Binding(
+            get: { model.undoFailed },
+            set: { isPresented in
+                if !isPresented, model.undoFailed {
+                    model.dismissUndo()
+                }
+            }
+        )
+    }
+
+    @ViewBuilder
+    private func learningStatusButton(for card: VocabularyCard) -> some View {
+        Button(card.isLearned ? "library.markUnlearned" : "library.markLearned") {
+            Task {
+                await model.toggleLearningStatus(for: card)
+            }
+        }
+        .accessibilityIdentifier(
+            card.isLearned ? "library.markUnlearned" : "library.markLearned"
+        )
+    }
+
+    private var undoBanner: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "arrow.uturn.backward.circle.fill")
+                .foregroundStyle(Color.accentColor)
+                .accessibilityHidden(true)
+            Text(undoMessageKey)
+                .font(.subheadline)
+                .lineLimit(2)
+            Spacer(minLength: 8)
+            Button("library.undo", action: performUndo)
+                .fontWeight(.semibold)
+                .accessibilityIdentifier("library.undo")
+            Button {
+                model.dismissUndo()
+            } label: {
+                Image(systemName: "xmark")
+            }
+            .accessibilityLabel("common.close")
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .background(.bar)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("library.undoBanner")
+    }
+
+    private var undoMessageKey: LocalizedStringKey {
+        switch model.undoAction {
+        case .learningStatus:
+            "library.undo.learningStatus"
+        case .deletedCard:
+            "library.undo.deletedCard"
+        case nil:
+            ""
+        }
+    }
+
+    private func performUndo() {
+        Task {
+            if await model.performUndo() {
+                await onDataChanged()
+            }
+        }
     }
 
     private var bulkSelectionBar: some View {

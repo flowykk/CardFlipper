@@ -277,11 +277,11 @@ public enum LibraryUndoAction: Equatable {
 }
 ```
 
-- [ ] Написать tests для visible status, toggle failure и undo learning status.
-- [ ] Добавить badge/check с текстовым accessibility value `Learned/Unlearned`.
-- [ ] Оставить swipe как shortcut, добавить context menu/visible action.
-- [ ] После status/delete показывать undo banner; repository rollback должен быть fallible и сообщать failure.
-- [ ] Проверить контраст без опоры только на цвет.
+- [x] Написать tests для visible status, toggle failure и undo learning status.
+- [x] Добавить badge/check с текстовым accessibility value `Learned/Unlearned`.
+- [x] Оставить swipe как shortcut, добавить context menu/visible action.
+- [x] После status/delete показывать undo banner; repository rollback должен быть fallible и сообщать failure.
+- [x] Проверить контраст без опоры только на цвет.
 
 **Acceptance:** статус читается из строки; VoiceOver объявляет его; ошибочный toggle можно отменить; failure не оставляет UI и repository в разных состояниях.
 

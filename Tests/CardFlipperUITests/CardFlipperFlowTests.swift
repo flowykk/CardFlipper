@@ -119,6 +119,26 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("library-primary-actions")
     }
 
+    func testLearningStatusIsVisibleAndCanBeUndone() {
+        launch(seed: true)
+
+        let firstCard = app.buttons.matching(identifier: "library.card").firstMatch
+        XCTAssertTrue(firstCard.waitForExistence(timeout: 5))
+        XCTAssertTrue(firstCard.label.contains("Unlearned"))
+
+        firstCard.swipeRight()
+        tap("library.markLearned")
+
+        XCTAssertTrue(app.descendants(matching: .any)["library.undoBanner"].waitForExistence(timeout: 3))
+        XCTAssertTrue(firstCard.label.contains("Learned"))
+        tap("library.undo")
+
+        XCTAssertTrue(firstCard.waitForExistence(timeout: 3))
+        XCTAssertTrue(firstCard.label.contains("Unlearned"))
+        XCTAssertFalse(app.descendants(matching: .any)["library.undoBanner"].exists)
+        snap("library-visible-learning-status")
+    }
+
     func testF1SeededLibraryReopensPrefilledEditor() throws {
         launch(seed: true)
         assertExists("library.card")
