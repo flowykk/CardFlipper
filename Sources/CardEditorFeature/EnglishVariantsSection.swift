@@ -69,7 +69,7 @@ public struct EnglishVariantsSection: View {
             ForEach($variants) { $variant in
                 let isExpanded = expandedMetadataVariantIDs.contains(variant.id)
 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
                     adaptiveInputRow(variant: $variant)
 
                     Button {
@@ -87,11 +87,11 @@ public struct EnglishVariantsSection: View {
                                 reduceMotion ? .opacity : .symbolEffect(.replace)
                             )
                         }
-                        .frame(minHeight: 44)
+                        .frame(minHeight: 32)
                     }
                     .accessibilityIdentifier("editor.english.\(position(of: variant.id) - 1).details")
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, 2)
                 .buttonStyle(.borderless)
 
                 if isExpanded {
