@@ -379,11 +379,11 @@ struct StudyCardPresentation {
 
 Ровно одна opacity должна быть ненулевой возле midpoint; смена содержимого происходит около 90°.
 
-- [ ] Добавить deterministic tests для start/midpoint/end и Reduce Motion.
-- [ ] Развести phase/face visibility вместо одновременного implicit animation обеих сторон.
-- [ ] Зафиксировать размер карточки на время flip.
-- [ ] На answer-side заменить hint на `Hide answer` или отключить обратный toggle.
-- [ ] Записать filmstrip и проверить отсутствие mirrored/double text.
+- [x] Добавить deterministic tests для start/midpoint/end и Reduce Motion.
+- [x] Развести phase/face visibility вместо одновременного implicit animation обеих сторон.
+- [x] Зафиксировать размер карточки на время flip.
+- [x] На answer-side заменить hint на `Hide answer` или отключить обратный toggle.
+- [x] Записать filmstrip и проверить отсутствие mirrored/double text.
 
 **Acceptance:** ghosting отсутствует; focus переходит prompt → answer; AX label/hint соответствует фактическому tap; Reduce Motion использует короткий crossfade.
 

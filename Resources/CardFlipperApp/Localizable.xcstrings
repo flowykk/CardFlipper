@@ -2819,6 +2819,13 @@
         }
       }
     },
+    "study.hideAnswerHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tap the card to hide the answer" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Нажмите на карточку, чтобы скрыть ответ" } }
+      }
+    },
     "study.flipHint" : {
       "extractionState" : "stale",
       "localizations" : {

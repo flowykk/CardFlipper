@@ -328,6 +328,34 @@ import Testing
     #expect(reducedAnswer.backOpacity == 1)
 }
 
+@Test func cardPresentationShowsExactlyOneFaceAcrossTheFlip() {
+    let start = StudyCardPresentation(progress: 0, reduceMotion: false)
+    let beforeMidpoint = StudyCardPresentation(progress: 0.49, reduceMotion: false)
+    let midpoint = StudyCardPresentation(progress: 0.5, reduceMotion: false)
+    let afterMidpoint = StudyCardPresentation(progress: 0.51, reduceMotion: false)
+    let end = StudyCardPresentation(progress: 1, reduceMotion: false)
+
+    #expect(start.visibleFace == .front)
+    #expect(start.frontOpacity == 1 && start.backOpacity == 0)
+    #expect(beforeMidpoint.frontOpacity == 1 && beforeMidpoint.backOpacity == 0)
+    #expect(midpoint.frontOpacity == 0 && midpoint.backOpacity == 1)
+    #expect(afterMidpoint.frontOpacity == 0 && afterMidpoint.backOpacity == 1)
+    #expect(end.visibleFace == .back)
+    #expect(end.frontOpacity == 0 && end.backOpacity == 1)
+}
+
+@Test func reducedMotionFadesOutBeforeTheVisibleFaceChanges() {
+    let firstHalf = StudyCardPresentation(progress: 0.25, reduceMotion: true)
+    let midpoint = StudyCardPresentation(progress: 0.5, reduceMotion: true)
+    let secondHalf = StudyCardPresentation(progress: 0.75, reduceMotion: true)
+
+    #expect(firstHalf.frontOpacity == 0.5 && firstHalf.backOpacity == 0)
+    #expect(midpoint.frontOpacity == 0 && midpoint.backOpacity == 0)
+    #expect(secondHalf.frontOpacity == 0 && secondHalf.backOpacity == 0.5)
+    #expect(firstHalf.frontOpacity * firstHalf.backOpacity == 0)
+    #expect(secondHalf.frontOpacity * secondHalf.backOpacity == 0)
+}
+
 @Test func changingCardsResetsFacesWithoutAnimatingTheNextAnswerOut() {
     let revealedFirstCard = StudyCardPresentation(
         cardID: .fixture(1),
