@@ -12,6 +12,7 @@ public struct LibraryView: View {
     @State private var showingFilters = false
     @State private var showingBulkTagPicker = false
     @State private var selectedBulkTagIDs: Set<UUID> = []
+    @State private var showsBulkSelectionIndicators = false
 
     private let onAddCard: () -> Void
     private let onEditCard: (VocabularyCard) -> Void
@@ -52,16 +53,12 @@ public struct LibraryView: View {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if model.isBulkTagSelectionActive {
                         Button("library.bulk.cancel") {
-                            withAnimation(selectionModeExitAnimation) {
-                                model.cancelBulkTagSelection()
-                            }
+                            cancelBulkSelection()
                         }
                             .accessibilityIdentifier("library.bulk.cancel")
                     } else if !model.cards.isEmpty {
                         Button {
-                            withAnimation(selectionModeEntranceAnimation) {
-                                model.beginBulkTagSelection()
-                            }
+                            beginBulkSelection()
                         } label: {
                             Label("library.bulk.select", systemImage: "checklist")
                         }
@@ -294,10 +291,15 @@ public struct LibraryView: View {
                             .foregroundStyle(
                                 model.selectedBulkCardIDs.contains(card.id) ? Color.accentColor : .secondary
                             )
+                            .opacity(showsBulkSelectionIndicators ? 1 : 0)
+                            .offset(x: showsBulkSelectionIndicators || reduceMotion ? 0 : -8)
                             .contentTransition(
                                 reduceMotion ? .opacity : .symbolEffect(.replace)
                             )
-                            .transition(selectionIndicatorTransition)
+                            .animation(
+                                selectionIndicatorRevealAnimation(for: index),
+                                value: showsBulkSelectionIndicators
+                            )
                             .accessibilityHidden(true)
                         }
 
@@ -306,10 +308,6 @@ public struct LibraryView: View {
                             showRussianMeanings: showsRussianMeanings
                         )
                     }
-                    .animation(
-                        selectorAnimation(for: index),
-                        value: model.isBulkTagSelectionActive
-                    )
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("library.card")
@@ -512,29 +510,44 @@ public struct LibraryView: View {
         .easeOut(duration: reduceMotion ? 0.12 : 0.16)
     }
 
-    private var selectionIndicatorTransition: AnyTransition {
-        reduceMotion
-            ? .opacity
-            : .move(edge: .leading).combined(with: .opacity)
-    }
-
     private var selectionBarTransition: AnyTransition {
         reduceMotion
             ? .opacity
             : .move(edge: .bottom).combined(with: .opacity)
     }
 
-    private func selectorAnimation(for index: Int) -> Animation {
-        guard !reduceMotion else { return selectionModeEntranceAnimation }
+    private func selectionIndicatorRevealAnimation(for index: Int) -> Animation {
+        guard !reduceMotion else { return .easeOut(duration: 0.12) }
         let cappedDelay = min(Double(index) * 0.025, 0.12)
-        return model.isBulkTagSelectionActive
-            ? selectionModeEntranceAnimation.delay(cappedDelay)
-            : selectionModeExitAnimation
+        return .easeOut(duration: 0.15).delay(cappedDelay)
+    }
+
+    private func beginBulkSelection() {
+        showsBulkSelectionIndicators = false
+        withAnimation(selectionModeEntranceAnimation) {
+            model.beginBulkTagSelection()
+        }
+
+        Task { @MainActor in
+            if !reduceMotion {
+                try? await Task.sleep(for: .milliseconds(90))
+            }
+            guard model.isBulkTagSelectionActive else { return }
+            showsBulkSelectionIndicators = true
+        }
+    }
+
+    private func cancelBulkSelection() {
+        showsBulkSelectionIndicators = false
+        withAnimation(selectionModeExitAnimation) {
+            model.cancelBulkTagSelection()
+        }
     }
 
     private func addSelectedTags() {
         Task {
             if await model.addTagsToSelectedCards(ids: selectedBulkTagIDs) {
+                showsBulkSelectionIndicators = false
                 showingBulkTagPicker = false
                 selectedBulkTagIDs = []
                 await onDataChanged()
