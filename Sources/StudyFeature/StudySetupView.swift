@@ -69,6 +69,7 @@ public struct StudySetupView: View {
                     onStart(configuration)
                 } label: {
                     Label("study.start", systemImage: "play.fill")
+                        .foregroundStyle(.white)
                 }
                 .buttonStyle(PrimaryActionButtonStyle())
                 .disabled(!model.canStart)
