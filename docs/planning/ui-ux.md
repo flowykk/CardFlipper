@@ -68,3 +68,11 @@ The library is the root. `NavigationStack` handles linear destinations; card edi
 - Minimum 44-point interactive targets.
 - Meaning never depends on color alone.
 - Russian and English strings are stored in a String Catalog.
+
+### Adaptive control policy
+
+- At accessibility Dynamic Type sizes, horizontal segmented controls and paired actions use a vertical alternative.
+- Bottom primary actions use safe-area insets and remain visible when scrollable content grows.
+- Persistent status UI such as the study timer must not intersect the content or primary actions.
+- Horizontal carousels provide a grid or list alternative when their labels no longer fit.
+- Regression coverage includes iPhone 16e and iPhone 17 Pro in light/dark, English/Russian, standard text and Accessibility XXXL.

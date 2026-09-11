@@ -54,6 +54,7 @@ let project = Project(
         ),
         .tests(name: "CoreTests", host: "Core"),
         .tests(name: "DataTests", host: "Data"),
+        .tests(name: "DesignSystemTests", host: "DesignSystem"),
         .tests(name: "LibraryFeatureTests", host: "LibraryFeature"),
         .tests(name: "CardEditorFeatureTests", host: "CardEditorFeature"),
         .tests(name: "StudyFeatureTests", host: "StudyFeature"),
@@ -73,6 +74,7 @@ let project = Project(
             testAction: .targets([
                 "CoreTests",
                 "DataTests",
+                "DesignSystemTests",
                 "LibraryFeatureTests",
                 "CardEditorFeatureTests",
                 "StudyFeatureTests",
