@@ -384,6 +384,11 @@ struct RootView: View {
             )
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button(action: navigation.openNewEditor) {
+                        Label("library.add", systemImage: "plus")
+                    }
+                    .accessibilityIdentifier("library.add")
+
                     Button(action: navigation.openSettings) {
                         Label("settings.open", systemImage: AppSymbol.settings)
                     }

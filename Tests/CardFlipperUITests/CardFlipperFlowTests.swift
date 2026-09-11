@@ -115,12 +115,19 @@ final class CardFlipperFlowTests: XCTestCase {
         app.terminate()
         launch(seed: true)
 
-        let study = app.descendants(matching: .any)["library.study"]
+        let study = app.buttons["library.study"].firstMatch
         XCTAssertTrue(study.waitForExistence(timeout: 3))
         XCTAssertTrue(study.label.contains("Study Today"))
         XCTAssertTrue(study.label.contains("3"))
         XCTAssertTrue(study.isHittable)
-        XCTAssertTrue(app.descendants(matching: .any)["library.add"].isHittable)
+        let add = app.navigationBars.buttons["library.add"]
+        XCTAssertTrue(add.isHittable)
+
+        let search = app.searchFields["Search cards"]
+        XCTAssertTrue(search.waitForExistence(timeout: 3))
+        XCTAssertGreaterThan(study.frame.minX, search.frame.maxX)
+        XCTAssertLessThan(study.frame.minY, search.frame.maxY)
+        XCTAssertGreaterThan(study.frame.maxY, search.frame.minY)
         snap("library-primary-actions")
     }
 

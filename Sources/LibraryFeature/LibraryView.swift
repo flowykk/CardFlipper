@@ -60,6 +60,17 @@ public struct LibraryView: View {
                         .accessibilityIdentifier("library.bulk.select")
                     }
                 }
+
+                if !model.cards.isEmpty {
+                    if #available(iOS 26.0, *) {
+                        DefaultToolbarItem(kind: .search, placement: .bottomBar)
+                        ToolbarSpacer(.fixed, placement: .bottomBar)
+                    }
+
+                    ToolbarItem(placement: .bottomBar) {
+                        studyToolbarButton
+                    }
+                }
             }
             .confirmationDialog(
                 "card.delete.title",
@@ -237,14 +248,6 @@ public struct LibraryView: View {
     private var cardList: some View {
         List {
             Section {
-                LibraryPrimaryActionsView(
-                    cardCount: model.cards.count,
-                    onStartStudy: onStartStudy,
-                    onAddCard: onAddCard
-                )
-            }
-
-            Section {
                 Toggle(
                     "library.translations.show",
                     isOn: $showsRussianMeanings
@@ -331,6 +334,13 @@ public struct LibraryView: View {
             }
         }
         .listStyle(.plain)
+    }
+
+    private var studyToolbarButton: some View {
+        LibraryStudyToolbarButton(
+            cardCount: model.cards.count,
+            onStartStudy: onStartStudy
+        )
     }
 
     private var deletionFailureBinding: Binding<Bool> {
