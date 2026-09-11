@@ -17,6 +17,8 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
         var studiedCardCount = 0
         var forgottenCount = 0
         var lessonsWithoutForgettingCount = 0
+        var repeatedCardCount: Int?
+        var totalAssessmentCount: Int?
         var recordedSessionIDs: Set<UUID> = []
 
         var value: StudyStatistics {
@@ -24,7 +26,9 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
                 completedLessonCount: completedLessonCount,
                 studiedCardCount: studiedCardCount,
                 forgottenCount: forgottenCount,
-                lessonsWithoutForgettingCount: lessonsWithoutForgettingCount
+                lessonsWithoutForgettingCount: lessonsWithoutForgettingCount,
+                repeatedCardCount: repeatedCardCount ?? 0,
+                totalAssessmentCount: totalAssessmentCount ?? studiedCardCount + forgottenCount
             )
         }
     }
@@ -51,6 +55,8 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
         stored.completedLessonCount += 1
         stored.studiedCardCount += result.uniqueCardCount
         stored.forgottenCount += result.forgottenCount
+        stored.repeatedCardCount = (stored.repeatedCardCount ?? 0) + result.repeatedCardCount
+        stored.totalAssessmentCount = (stored.totalAssessmentCount ?? 0) + result.totalAssessmentCount
         if result.forgottenCount == 0 {
             stored.lessonsWithoutForgettingCount += 1
         }

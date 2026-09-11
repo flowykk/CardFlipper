@@ -10,6 +10,20 @@ public enum StudyFeedbackEvent: Equatable, Sendable {
     case completion
 }
 
+public struct StudyDailyGoalProgress: Equatable, Sendable {
+    public let elapsedSeconds: Int
+    public let goalSeconds: Int
+
+    public init(elapsedSeconds: Int, goalSeconds: Int) {
+        self.elapsedSeconds = max(0, elapsedSeconds)
+        self.goalSeconds = max(1, goalSeconds)
+    }
+
+    public var fractionCompleted: Double {
+        min(1, Double(elapsedSeconds) / Double(goalSeconds))
+    }
+}
+
 @MainActor
 public protocol StudyFeedback: AnyObject {
     func perform(_ event: StudyFeedbackEvent)
@@ -44,12 +58,17 @@ public final class StudySessionViewModel {
 
     private let speech: any SpeechService
     private let feedback: any StudyFeedback
+    private let now: @MainActor () -> Date
+    private let startedAt: Date
+    private let initialDailyGoalProgress: StudyDailyGoalProgress?
 
     public init(
         configuration: StudyConfiguration,
         shuffler: any CardShuffler = SystemCardShuffler(),
         speech: any SpeechService,
-        feedback: any StudyFeedback = SystemStudyFeedback()
+        feedback: any StudyFeedback = SystemStudyFeedback(),
+        initialDailyGoalProgress: StudyDailyGoalProgress? = nil,
+        now: @escaping @MainActor () -> Date = Date.init
     ) {
         repeatConfiguration = configuration
         session = StudySession(
@@ -58,6 +77,9 @@ public final class StudySessionViewModel {
         )
         self.speech = speech
         self.feedback = feedback
+        self.initialDailyGoalProgress = initialDailyGoalProgress
+        self.now = now
+        startedAt = now()
     }
 
     public var canAssess: Bool {
@@ -70,6 +92,29 @@ public final class StudySessionViewModel {
 
     public var hasUsageExamples: Bool {
         session.currentCard?.englishVariants.contains { !$0.usageExamples.isEmpty } == true
+    }
+
+    public var difficultCards: [VocabularyCard] {
+        guard let result else { return [] }
+        let repeatedIDs = Set(result.repeatedCardIDs)
+        return repeatConfiguration.cards.filter { repeatedIDs.contains($0.id) }
+    }
+
+    public var difficultRepeatConfiguration: StudyConfiguration? {
+        guard !difficultCards.isEmpty else { return nil }
+        return StudyConfiguration(
+            direction: repeatConfiguration.direction,
+            selectedTagIDs: repeatConfiguration.selectedTagIDs,
+            cards: difficultCards
+        )
+    }
+
+    public var dailyGoalProgress: StudyDailyGoalProgress? {
+        guard let initialDailyGoalProgress else { return nil }
+        return StudyDailyGoalProgress(
+            elapsedSeconds: initialDailyGoalProgress.elapsedSeconds + (result?.elapsedSeconds ?? 0),
+            goalSeconds: initialDailyGoalProgress.goalSeconds
+        )
     }
 
     public func toggleCardSide() {
@@ -95,8 +140,10 @@ public final class StudySessionViewModel {
 
         if session.isComplete {
             result = StudyResult(
-                uniqueCardCount: session.initialCardCount,
-                forgottenCount: session.forgottenCount
+                reviewedCardCount: session.initialCardCount,
+                repeatedCardIDs: session.repeatedCardIDs,
+                totalAssessmentCount: session.totalAssessmentCount,
+                elapsedSeconds: Int(now().timeIntervalSince(startedAt).rounded(.down))
             )
             feedback.perform(.completion)
         } else {

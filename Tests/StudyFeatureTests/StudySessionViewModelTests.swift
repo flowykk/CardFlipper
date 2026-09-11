@@ -1,4 +1,5 @@
 import Core
+import Foundation
 import Testing
 @testable import StudyFeature
 
@@ -132,8 +133,14 @@ import Testing
     model.toggleCardSide()
     try model.remember()
 
-    #expect(model.result == StudyResult(uniqueCardCount: 2, forgottenCount: 1))
+    #expect(model.result == StudyResult(
+        reviewedCardCount: 2,
+        repeatedCardIDs: [StudyConfiguration.fixture.cards[0].id],
+        totalAssessmentCount: 3,
+        elapsedSeconds: 0
+    ))
     #expect(model.repeatConfiguration == .fixture)
+    #expect(model.difficultRepeatConfiguration?.cards == [StudyConfiguration.fixture.cards[0]])
     #expect(feedback.events == [
         .reveal,
         .forget,
@@ -144,19 +151,63 @@ import Testing
     ])
 }
 
-@Test func resultPresentationMapsDontRememberActionsToExtraAttempts() {
+@Test func resultPresentationMapsRepeatedCardsAndProgress() {
+    let difficultCards = Array(StudyConfiguration.fixture.cards.prefix(2))
     let presentation = StudyResultPresentation(
-        result: StudyResult(uniqueCardCount: 3, forgottenCount: 2)
+        result: StudyResult(
+            reviewedCardCount: 3,
+            repeatedCardIDs: difficultCards.map(\.id),
+            totalAssessmentCount: 5,
+            elapsedSeconds: 125
+        ),
+        difficultCards: difficultCards,
+        dailyGoalProgress: StudyDailyGoalProgress(elapsedSeconds: 450, goalSeconds: 900)
     )
 
     #expect(presentation.reviewedCards == StudyResultMetric(
         localizationKey: "study.result.cards",
         count: 3
     ))
-    #expect(presentation.extraAttempts == StudyResultMetric(
-        localizationKey: "study.result.extraAttempts",
+    #expect(presentation.repeatedCards == StudyResultMetric(
+        localizationKey: "study.result.cardsRepeated",
         count: 2
     ))
+    #expect(presentation.recallRatePercentage == 33)
+    #expect(presentation.durationText == "2:05")
+    #expect(presentation.difficultCardTitles.count == 2)
+    #expect(presentation.dailyGoalPercentage == 50)
+}
+
+@Test func resultPresentationHandlesNoDifficultCards() {
+    let presentation = StudyResultPresentation(
+        result: StudyResult(
+            reviewedCardCount: 2,
+            repeatedCardIDs: [],
+            totalAssessmentCount: 2,
+            elapsedSeconds: 9
+        )
+    )
+
+    #expect(presentation.repeatedCards.count == 0)
+    #expect(presentation.recallRatePercentage == 100)
+    #expect(presentation.difficultCardTitles.isEmpty)
+    #expect(presentation.dailyGoalPercentage == nil)
+}
+
+@Test func resultPresentationPreservesVeryLongDifficultCardText() {
+    let longWord = "pneumonoultramicroscopicsilicovolcanoconiosis"
+    let card = VocabularyCard.fixture(id: 99, english: longWord)
+    let presentation = StudyResultPresentation(
+        result: StudyResult(
+            reviewedCardCount: 1,
+            repeatedCardIDs: [card.id],
+            totalAssessmentCount: 2,
+            elapsedSeconds: 1
+        ),
+        difficultCards: [card]
+    )
+
+    #expect(presentation.difficultCardTitles == [longWord])
 }
 
 @MainActor
@@ -435,12 +486,14 @@ private let configurationWithUsageExamples = StudyConfiguration(
 private func makeSession(
     configuration: StudyConfiguration = .fixture,
     speech: SpeechServiceSpy = SpeechServiceSpy(),
-    feedback: StudyFeedbackSpy = StudyFeedbackSpy()
+    feedback: StudyFeedbackSpy = StudyFeedbackSpy(),
+    now: @escaping @MainActor () -> Date = { Date(timeIntervalSince1970: 1_000) }
 ) -> StudySessionViewModel {
     StudySessionViewModel(
         configuration: configuration,
         shuffler: IdentityShuffler(),
         speech: speech,
-        feedback: feedback
+        feedback: feedback,
+        now: now
     )
 }

@@ -51,7 +51,7 @@ struct ActiveStudy: Equatable, Identifiable {
         self.configuration = configuration
     }
 
-    func repeated() -> ActiveStudy {
+    func repeated(with configuration: StudyConfiguration) -> ActiveStudy {
         ActiveStudy(id: id, configuration: configuration)
     }
 }
@@ -91,8 +91,8 @@ final class AppNavigationState {
         activeStudy = ActiveStudy(configuration: configuration)
     }
 
-    func repeatStudy() {
-        activeStudy = activeStudy?.repeated()
+    func repeatStudy(_ configuration: StudyConfiguration) {
+        activeStudy = activeStudy?.repeated(with: configuration)
     }
 
     func finishStudy() {
@@ -228,10 +228,15 @@ final class RootViewModel {
     }
 
     func makeStudySessionModel(configuration: StudyConfiguration) -> StudySessionViewModel {
-        StudySessionViewModel(
+        let today = dailyProgress.progress(for: Date(), calendar: .current)
+        return StudySessionViewModel(
             configuration: configuration,
             shuffler: shuffler,
-            speech: speech
+            speech: speech,
+            initialDailyGoalProgress: StudyDailyGoalProgress(
+                elapsedSeconds: today.elapsedSeconds,
+                goalSeconds: today.goalSeconds
+            )
         )
     }
 
@@ -373,7 +378,7 @@ struct RootView: View {
                     model: model.makeStudySessionModel(
                         configuration: presentation.configuration
                     ),
-                    onRepeat: { _ in navigation.repeatStudy() },
+                    onRepeat: navigation.repeatStudy,
                     onFinish: { model.finishStudy(sessionID: presentation.sessionID) },
                     onComplete: {
                         model.recordCompletedStudy(

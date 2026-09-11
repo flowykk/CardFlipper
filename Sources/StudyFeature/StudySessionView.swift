@@ -29,7 +29,11 @@ public struct StudySessionView: View {
             if let result = model.result {
                 StudyResultView(
                     result: result,
-                    onRepeat: { onRepeat(model.repeatConfiguration) },
+                    difficultCards: model.difficultCards,
+                    dailyGoalProgress: model.dailyGoalProgress,
+                    onRepeatDifficult: model.difficultRepeatConfiguration.map { configuration in
+                        { onRepeat(configuration) }
+                    },
                     onFinish: onFinish
                 )
             } else {

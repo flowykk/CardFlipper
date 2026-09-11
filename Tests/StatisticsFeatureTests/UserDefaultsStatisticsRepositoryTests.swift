@@ -25,6 +25,7 @@ import Testing
     #expect(restored.forgottenCount == 2)
     #expect(restored.averageCardsPerLesson == 5)
     #expect(restored.lessonsWithoutForgettingPercentage == 50)
+    #expect(restored.totalAssessmentCount == 12)
 }
 
 @MainActor

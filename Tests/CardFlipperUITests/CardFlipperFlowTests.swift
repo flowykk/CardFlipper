@@ -257,8 +257,6 @@ final class CardFlipperFlowTests: XCTestCase {
         assertExists("study.card.prompt")
         snap("F2-07-repeat-session")
         rememberCurrentCard()
-        rememberCurrentCard()
-        rememberCurrentCard()
         assertExists("study.result")
         tap("study.finish")
         assertExists("library.root")

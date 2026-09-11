@@ -415,11 +415,11 @@ public struct StudyResult: Equatable, Sendable {
 }
 ```
 
-- [ ] Добавить result tests для recall rate, repeated cards и zero-repeat case.
-- [ ] Заменить `extra attempts` на `cards repeated` с корректной pluralization.
-- [ ] Показать duration, recall rate, daily-goal progress и список difficult cards.
-- [ ] Добавить отдельное действие `Repeat difficult cards`; `Done` оставить primary exit.
-- [ ] Проверить очень длинные слова и пустой difficult list.
+- [x] Добавить result tests для recall rate, repeated cards и zero-repeat case.
+- [x] Заменить `extra attempts` на `cards repeated` с корректной pluralization.
+- [x] Показать duration, recall rate, daily-goal progress и список difficult cards.
+- [x] Добавить отдельное действие `Repeat difficult cards`; `Done` оставить primary exit.
+- [x] Проверить очень длинные слова и пустой difficult list.
 
 **Acceptance:** пользователь понимает результат без знания внутренней queue-модели; repeat затрагивает только difficult cards; VoiceOver читает summary в логичном порядке.
 

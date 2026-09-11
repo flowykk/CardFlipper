@@ -277,7 +277,7 @@ private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blu
 
     navigation.startStudy(configuration)
     let first = navigation.activeStudy
-    navigation.repeatStudy()
+    navigation.repeatStudy(configuration)
     let repeated = navigation.activeStudy
     navigation.studyPresentationDidDismiss()
 
