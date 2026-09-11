@@ -128,6 +128,7 @@ private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blu
 
     #expect(configuration.usesInMemoryStore)
     #expect(configuration.seedsDeterministicVocabulary)
+    #expect(!configuration.preservesStudySession)
 }
 
 @Test func uiTestSeedCannotSelectThePersistentStore() {

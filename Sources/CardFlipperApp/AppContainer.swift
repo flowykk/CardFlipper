@@ -8,10 +8,12 @@ import StatisticsFeature
 struct AppLaunchConfiguration: Equatable {
     let usesInMemoryStore: Bool
     let seedsDeterministicVocabulary: Bool
+    let preservesStudySession: Bool
 
     init(arguments: [String]) {
         seedsDeterministicVocabulary = arguments.contains("-uiTestSeed")
         usesInMemoryStore = arguments.contains("-uiTesting") || seedsDeterministicVocabulary
+        preservesStudySession = arguments.contains("-uiTestPreserveStudySession")
     }
 
     static var seededCardIDs: [UUID] { UITestVocabularySeed.cardIDs }
@@ -51,6 +53,9 @@ final class AppContainer {
             try UITestVocabularySeed.insert(into: container)
         }
         self.init(modelContainer: container)
+        if configuration.usesInMemoryStore, !configuration.preservesStudySession {
+            studySessionStore.clear()
+        }
     }
 #endif
 
