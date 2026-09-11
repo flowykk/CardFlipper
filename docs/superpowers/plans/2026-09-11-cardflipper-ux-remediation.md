@@ -343,11 +343,11 @@ enum SuggestedField<Value: Equatable>: Equatable {
 }
 ```
 
-- [ ] Добавить failing test: delayed lookup не меняет `.userEdited` IPA/POS.
-- [ ] Добавить test: suggestion заполняет только пустое или предыдущее suggested value.
-- [ ] Отмечать поле manual после прямого пользовательского изменения.
-- [ ] Выбрать одну понятную модель: automatic lookup с retry либо manual button; не показывать обе как равноправные.
-- [ ] Добавить `Use suggestion` для конфликта вместо автоматической замены.
+- [x] Добавить failing test: delayed lookup не меняет `.userEdited` IPA/POS.
+- [x] Добавить test: suggestion заполняет только пустое или предыдущее suggested value.
+- [x] Отмечать поле manual после прямого пользовательского изменения.
+- [x] Выбрать одну понятную модель: automatic lookup с retry либо manual button; не показывать обе как равноправные.
+- [x] Добавить `Use suggestion` для конфликта вместо автоматической замены.
 
 **Acceptance:** ручной IPA/POS никогда не меняется сетевым ответом без явного согласия; cancellation/race tests остаются зелёными; offline не мешает save.
 

@@ -956,6 +956,13 @@
         }
       }
     },
+    "editor.lookup.conflict" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Suggestion available; manual values kept" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Есть подсказка; ручные значения сохранены" } }
+      }
+    },
     "editor.lookup.failed" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1022,6 +1029,13 @@
             "value" : "Подсказка добавлена"
           }
         }
+      }
+    },
+    "editor.lookup.useSuggestion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Use Suggestion" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Применить подсказку" } }
       }
     },
     "editor.partOfSpeech.all" : {

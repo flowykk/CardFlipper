@@ -44,12 +44,14 @@ public struct CardEditorView: View {
                         Task { await model.lookup(variantID: variantID) }
                     },
                     onSpeak: model.speak,
+                    onIPAChanged: model.markIPAUserEdited,
                     onToggleMetadata: model.toggleMetadata,
                     onTogglePartOfSpeech: model.togglePartOfSpeech,
                     onAddUsageExample: model.addUsageExample,
                     onRemoveUsageExample: model.removeUsageExample,
                     onSpeakUsageExample: model.speakUsageExample,
-                    onChooseUsageExamplePart: model.chooseUsageExamplePartOfSpeech
+                    onChooseUsageExamplePart: model.chooseUsageExamplePartOfSpeech,
+                    onUseSuggestion: model.useDictionarySuggestion
                 )
 
                 TagPickerSection(

@@ -437,6 +437,80 @@ import Testing
 }
 
 @MainActor
+@Test func delayedLookupDoesNotOverwriteUserEditedIPAOrPartsOfSpeech() async {
+    let dictionary = ControlledDictionaryService()
+    let model = makeNewEditor(dictionary: dictionary)
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0].text = "word"
+    let lookup = Task { await model.lookup(variantID: variantID) }
+    #expect(await waitUntil { await dictionary.hasRequest(for: "word") })
+
+    model.englishVariants[0].ipa = "manual"
+    model.markIPAUserEdited(variantID: variantID)
+    model.englishVariants[0].partsOfSpeech = [.verb]
+    model.markPartsOfSpeechUserEdited(variantID: variantID)
+    await dictionary.resolve(
+        "word",
+        with: .init(ipa: "wɜːd", partOfSpeech: .noun)
+    )
+    await lookup.value
+
+    #expect(model.englishVariants[0].ipa == "manual")
+    #expect(model.englishVariants[0].partsOfSpeech == [.verb])
+    #expect(model.lookupState[variantID] == .conflict)
+    #expect(model.pendingDictionarySuggestions[variantID] == .init(
+        ipa: "wɜːd",
+        partOfSpeech: .noun
+    ))
+}
+
+@MainActor
+@Test func suggestionFillsEmptyFieldsAndCanReplaceItsPreviousSuggestion() async {
+    let dictionary = ControlledDictionaryService()
+    let model = makeNewEditor(dictionary: dictionary)
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0].text = "word"
+
+    let firstLookup = Task { await model.lookup(variantID: variantID) }
+    #expect(await waitUntil { await dictionary.hasRequest(for: "word") })
+    await dictionary.resolve("word", with: .init(ipa: "first", partOfSpeech: .noun))
+    await firstLookup.value
+
+    let secondLookup = Task { await model.lookup(variantID: variantID) }
+    #expect(await waitUntil { await dictionary.hasRequest(for: "word") })
+    await dictionary.resolve("word", with: .init(ipa: "second", partOfSpeech: .adj))
+    await secondLookup.value
+
+    #expect(model.englishVariants[0].ipa == "second")
+    #expect(model.englishVariants[0].partsOfSpeech == [.adj])
+    #expect(model.lookupState[variantID] == .suggested)
+    #expect(model.pendingDictionarySuggestions[variantID] == nil)
+}
+
+@MainActor
+@Test func userCanExplicitlyApplyAConflictingSuggestion() async {
+    let dictionary = DictionaryServiceFake(
+        result: .success(.init(ipa: "wɜːd", partOfSpeech: .noun))
+    )
+    let model = makeNewEditor(dictionary: dictionary)
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0] = .init(
+        id: variantID,
+        text: "word",
+        ipa: "manual",
+        partsOfSpeech: [.verb]
+    )
+
+    await model.lookup(variantID: variantID)
+    model.useDictionarySuggestion(variantID: variantID)
+
+    #expect(model.englishVariants[0].ipa == "wɜːd")
+    #expect(model.englishVariants[0].partsOfSpeech == [.noun])
+    #expect(model.lookupState[variantID] == .suggested)
+    #expect(model.pendingDictionarySuggestions[variantID] == nil)
+}
+
+@MainActor
 @Test func dictionaryFailurePreservesManualVariantFields() async {
     let dictionary = DictionaryServiceFake(result: .failure(.dictionary))
     let model = makeNewEditor(dictionary: dictionary)

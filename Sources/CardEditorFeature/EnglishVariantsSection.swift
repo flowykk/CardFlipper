@@ -15,12 +15,14 @@ public struct EnglishVariantsSection: View {
     private let onTextChanged: (UUID) -> Void
     private let onLookup: (UUID) -> Void
     private let onSpeak: (UUID) -> Void
+    private let onIPAChanged: (UUID) -> Void
     private let onToggleMetadata: (UUID) -> Void
     private let onTogglePartOfSpeech: (PartOfSpeech, UUID) -> Void
     private let onAddUsageExample: (UUID) -> Void
     private let onRemoveUsageExample: (UUID, UUID) -> Void
     private let onSpeakUsageExample: (UUID, UUID) -> Void
     private let onChooseUsageExamplePart: (PartOfSpeech, UUID, UUID) -> Void
+    private let onUseSuggestion: (UUID) -> Void
     private let accessibilityLabels = EditorAccessibilityLabels()
 
     public init(
@@ -33,12 +35,14 @@ public struct EnglishVariantsSection: View {
         onTextChanged: @escaping (UUID) -> Void,
         onLookup: @escaping (UUID) -> Void,
         onSpeak: @escaping (UUID) -> Void,
+        onIPAChanged: @escaping (UUID) -> Void,
         onToggleMetadata: @escaping (UUID) -> Void,
         onTogglePartOfSpeech: @escaping (PartOfSpeech, UUID) -> Void,
         onAddUsageExample: @escaping (UUID) -> Void,
         onRemoveUsageExample: @escaping (UUID, UUID) -> Void,
         onSpeakUsageExample: @escaping (UUID, UUID) -> Void,
-        onChooseUsageExamplePart: @escaping (PartOfSpeech, UUID, UUID) -> Void
+        onChooseUsageExamplePart: @escaping (PartOfSpeech, UUID, UUID) -> Void,
+        onUseSuggestion: @escaping (UUID) -> Void
     ) {
         _variants = variants
         _expandedMetadataVariantIDs = expandedMetadataVariantIDs
@@ -49,12 +53,14 @@ public struct EnglishVariantsSection: View {
         self.onTextChanged = onTextChanged
         self.onLookup = onLookup
         self.onSpeak = onSpeak
+        self.onIPAChanged = onIPAChanged
         self.onToggleMetadata = onToggleMetadata
         self.onTogglePartOfSpeech = onTogglePartOfSpeech
         self.onAddUsageExample = onAddUsageExample
         self.onRemoveUsageExample = onRemoveUsageExample
         self.onSpeakUsageExample = onSpeakUsageExample
         self.onChooseUsageExamplePart = onChooseUsageExamplePart
+        self.onUseSuggestion = onUseSuggestion
     }
 
     public var body: some View {
@@ -187,7 +193,16 @@ public struct EnglishVariantsSection: View {
     private func metadataEditor(variant: Binding<EnglishVariantInput>) -> some View {
         let id = variant.wrappedValue.id
 
-        TextField("editor.ipa.placeholder", text: variant.ipa)
+        TextField(
+            "editor.ipa.placeholder",
+            text: Binding(
+                get: { variant.wrappedValue.ipa },
+                set: { value in
+                    variant.wrappedValue.ipa = value
+                    onIPAChanged(id)
+                }
+            )
+        )
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
             .accessibilityLabel("editor.ipa.value")
@@ -225,12 +240,16 @@ public struct EnglishVariantsSection: View {
         HStack {
             lookupStatus(for: id)
             Spacer()
-            Button {
-                onLookup(id)
-            } label: {
-                Label("editor.lookup.action", systemImage: "text.magnifyingglass")
+            if lookupState[id] == .conflict {
+                Button("editor.lookup.useSuggestion") {
+                    onUseSuggestion(id)
+                }
+                .accessibilityIdentifier("editor.english.\(position(of: id) - 1).useSuggestion")
+            } else if lookupState[id] == .failed {
+                Button("common.retry") {
+                    onLookup(id)
+                }
             }
-            .disabled(variant.wrappedValue.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
     }
 
@@ -256,6 +275,10 @@ public struct EnglishVariantsSection: View {
                 .accessibilityLabel("editor.lookup.loading")
         case .suggested:
             Label("editor.lookup.suggested", systemImage: "checkmark.circle")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        case .conflict:
+            Label("editor.lookup.conflict", systemImage: "person.crop.circle.badge.exclamationmark")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         case .notFound:

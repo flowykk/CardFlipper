@@ -65,8 +65,15 @@ public enum SaveError: Equatable, Sendable {
 public enum LookupState: Equatable, Sendable {
     case loading
     case suggested
+    case conflict
     case notFound
     case failed
+}
+
+public enum SuggestedField<Value: Equatable & Sendable>: Equatable, Sendable {
+    case empty
+    case suggested(Value)
+    case userEdited(Value)
 }
 
 public enum TagCreationOutcome: Equatable, Sendable {
@@ -84,6 +91,7 @@ public final class CardEditorViewModel {
     public private(set) var availableTags: [Tag]
     public var newTagName = ""
     public private(set) var lookupState: [UUID: LookupState] = [:]
+    public private(set) var pendingDictionarySuggestions: [UUID: DictionarySuggestion] = [:]
     public private(set) var saveError: SaveError?
     public private(set) var tagLoadError = false
     public private(set) var tagCreationError = false
@@ -106,6 +114,8 @@ public final class CardEditorViewModel {
     private let lookupSleep: @Sendable (Duration) async throws -> Void
     private var lookupTasks: [UUID: Task<Void, Never>] = [:]
     private var lookupRequestIDs: [UUID: UUID] = [:]
+    private var ipaFieldStates: [UUID: SuggestedField<String>] = [:]
+    private var partsOfSpeechFieldStates: [UUID: SuggestedField<[PartOfSpeech]>] = [:]
     private var pendingDuplicateSaveSnapshot: SaveSnapshot?
 
     public init(
@@ -178,6 +188,14 @@ public final class CardEditorViewModel {
             selectedTagIDs: initialSelectedTagIDs,
             newTagName: ""
         )
+        for variant in initialEnglishVariants {
+            ipaFieldStates[variant.id] = variant.ipa.isEmpty
+                ? .empty
+                : .userEdited(variant.ipa)
+            partsOfSpeechFieldStates[variant.id] = variant.partsOfSpeech.isEmpty
+                ? .empty
+                : .userEdited(variant.partsOfSpeech)
+        }
     }
 
     public static func newCard(
@@ -240,7 +258,10 @@ public final class CardEditorViewModel {
     }
 
     public func addEnglishVariant() {
-        englishVariants.append(EnglishVariantInput())
+        let variant = EnglishVariantInput()
+        englishVariants.append(variant)
+        ipaFieldStates[variant.id] = .empty
+        partsOfSpeechFieldStates[variant.id] = .empty
     }
 
     public func removeEnglishVariant(id: UUID) {
@@ -248,6 +269,9 @@ public final class CardEditorViewModel {
         lookupTasks[id] = nil
         lookupRequestIDs[id] = nil
         lookupState[id] = nil
+        pendingDictionarySuggestions[id] = nil
+        ipaFieldStates[id] = nil
+        partsOfSpeechFieldStates[id] = nil
         expandedMetadataVariantIDs.remove(id)
         englishVariants.removeAll { $0.id == id }
     }
@@ -313,6 +337,37 @@ public final class CardEditorViewModel {
         } else {
             englishVariants[index].partsOfSpeech.append(partOfSpeech)
         }
+        markPartsOfSpeechUserEdited(variantID: variantID)
+    }
+
+    public func markIPAUserEdited(variantID: UUID) {
+        guard let variant = englishVariants.first(where: { $0.id == variantID }) else { return }
+        ipaFieldStates[variantID] = .userEdited(variant.ipa)
+    }
+
+    public func markPartsOfSpeechUserEdited(variantID: UUID) {
+        guard let variant = englishVariants.first(where: { $0.id == variantID }) else { return }
+        partsOfSpeechFieldStates[variantID] = .userEdited(variant.partsOfSpeech)
+    }
+
+    public func useDictionarySuggestion(variantID: UUID) {
+        guard let suggestion = pendingDictionarySuggestions[variantID],
+              let index = englishVariants.firstIndex(where: { $0.id == variantID }) else {
+            return
+        }
+
+        if let ipa = suggestion.ipa?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !ipa.isEmpty {
+            englishVariants[index].ipa = ipa
+            ipaFieldStates[variantID] = .suggested(ipa)
+        }
+        if let partOfSpeech = suggestion.partOfSpeech {
+            let parts = [partOfSpeech]
+            englishVariants[index].partsOfSpeech = parts
+            partsOfSpeechFieldStates[variantID] = .suggested(parts)
+        }
+        pendingDictionarySuggestions[variantID] = nil
+        lookupState[variantID] = .suggested
     }
 
     public func loadTags() async {
@@ -475,6 +530,7 @@ public final class CardEditorViewModel {
         lookupTasks.removeAll()
         lookupRequestIDs.removeAll()
         lookupState.removeAll()
+        pendingDictionarySuggestions.removeAll()
         for task in tasks {
             task.cancel()
         }
@@ -661,19 +717,38 @@ public final class CardEditorViewModel {
                 return
             }
 
+            synchronizeDictionaryFieldStates(for: variantID, at: index)
             var appliedSuggestion = false
+            var hasConflict = false
             if let ipa = suggestion.ipa?.trimmingCharacters(in: .whitespacesAndNewlines),
                !ipa.isEmpty {
-                englishVariants[index].ipa = ipa
-                appliedSuggestion = true
+                switch ipaFieldStates[variantID] ?? .empty {
+                case .empty, .suggested:
+                    englishVariants[index].ipa = ipa
+                    ipaFieldStates[variantID] = .suggested(ipa)
+                    appliedSuggestion = true
+                case let .userEdited(value):
+                    hasConflict = hasConflict || value != ipa
+                }
             }
             if let partOfSpeech = suggestion.partOfSpeech {
-                if !englishVariants[index].partsOfSpeech.contains(partOfSpeech) {
-                    englishVariants[index].partsOfSpeech.append(partOfSpeech)
+                let parts = [partOfSpeech]
+                switch partsOfSpeechFieldStates[variantID] ?? .empty {
+                case .empty, .suggested:
+                    englishVariants[index].partsOfSpeech = parts
+                    partsOfSpeechFieldStates[variantID] = .suggested(parts)
+                    appliedSuggestion = true
+                case let .userEdited(value):
+                    hasConflict = hasConflict || value != parts
                 }
-                appliedSuggestion = true
             }
-            lookupState[variantID] = appliedSuggestion ? .suggested : .notFound
+            if hasConflict {
+                pendingDictionarySuggestions[variantID] = suggestion
+                lookupState[variantID] = .conflict
+            } else {
+                pendingDictionarySuggestions[variantID] = nil
+                lookupState[variantID] = appliedSuggestion ? .suggested : .notFound
+            }
         } catch is CancellationError {
             return
         } catch {
@@ -698,5 +773,31 @@ public final class CardEditorViewModel {
             return false
         }
         return variant.text.trimmingCharacters(in: .whitespacesAndNewlines) == text
+    }
+
+    private func synchronizeDictionaryFieldStates(for variantID: UUID, at index: Int) {
+        let ipa = englishVariants[index].ipa
+        switch ipaFieldStates[variantID] {
+        case .none, .some(.empty):
+            ipaFieldStates[variantID] = ipa.isEmpty ? .empty : .userEdited(ipa)
+        case let .some(.suggested(value)) where value != ipa:
+            ipaFieldStates[variantID] = .userEdited(ipa)
+        case let .some(.userEdited(value)) where value != ipa:
+            ipaFieldStates[variantID] = .userEdited(ipa)
+        default:
+            break
+        }
+
+        let parts = englishVariants[index].partsOfSpeech
+        switch partsOfSpeechFieldStates[variantID] {
+        case .none, .some(.empty):
+            partsOfSpeechFieldStates[variantID] = parts.isEmpty ? .empty : .userEdited(parts)
+        case let .some(.suggested(value)) where value != parts:
+            partsOfSpeechFieldStates[variantID] = .userEdited(parts)
+        case let .some(.userEdited(value)) where value != parts:
+            partsOfSpeechFieldStates[variantID] = .userEdited(parts)
+        default:
+            break
+        }
     }
 }
