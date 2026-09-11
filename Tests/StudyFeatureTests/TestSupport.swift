@@ -37,6 +37,25 @@ final class StudyFeedbackSpy: StudyFeedback {
     }
 }
 
+@MainActor
+final class StudySessionStoreSpy: StudySessionStore {
+    var storedSnapshot: StudySessionSnapshot?
+    private(set) var saveCount = 0
+    private(set) var clearCount = 0
+
+    func load() -> StudySessionSnapshot? { storedSnapshot }
+
+    func save(_ snapshot: StudySessionSnapshot) {
+        storedSnapshot = snapshot
+        saveCount += 1
+    }
+
+    func clear() {
+        storedSnapshot = nil
+        clearCount += 1
+    }
+}
+
 extension UUID {
     static func fixture(_ value: Int) -> UUID {
         UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", value))!

@@ -1,5 +1,6 @@
 import CardEditorFeature
 import Core
+import Data
 import LibraryFeature
 import Observation
 import StudyFeature
@@ -40,15 +41,18 @@ struct ActiveStudy: Equatable, Identifiable {
     let id: UUID
     let sessionID: UUID
     let configuration: StudyConfiguration
+    let snapshot: StudySessionSnapshot?
 
     init(
         id: UUID = UUID(),
         sessionID: UUID = UUID(),
-        configuration: StudyConfiguration
+        configuration: StudyConfiguration,
+        snapshot: StudySessionSnapshot? = nil
     ) {
         self.id = id
         self.sessionID = sessionID
         self.configuration = configuration
+        self.snapshot = snapshot
     }
 
     func repeated(with configuration: StudyConfiguration) -> ActiveStudy {
@@ -87,12 +91,19 @@ final class AppNavigationState {
         }
     }
 
-    func startStudy(_ configuration: StudyConfiguration) {
-        activeStudy = ActiveStudy(configuration: configuration)
+    func startStudy(
+        _ configuration: StudyConfiguration,
+        snapshot: StudySessionSnapshot? = nil
+    ) {
+        activeStudy = ActiveStudy(configuration: configuration, snapshot: snapshot)
     }
 
     func repeatStudy(_ configuration: StudyConfiguration) {
         activeStudy = activeStudy?.repeated(with: configuration)
+    }
+
+    func resumeStudy(_ study: ActiveStudy) {
+        activeStudy = study
     }
 
     func finishStudy() {
@@ -112,6 +123,7 @@ final class RootViewModel {
     let library: LibraryViewModel
     let navigation: AppNavigationState
     let studyTimer: StudyTimerController
+    private(set) var resumableStudy: ActiveStudy?
 
     private let cards: any CardRepository
     private let tags: any TagRepository
@@ -119,6 +131,7 @@ final class RootViewModel {
     private let speech: any SpeechService
     private let shuffler: any CardShuffler
     private let statistics: any StatisticsRepository
+    private let studySessionStore: any StudySessionStore
     let dailyProgress: any DailyProgressRepository
 
     init(
@@ -129,6 +142,7 @@ final class RootViewModel {
         shuffler: any CardShuffler,
         statistics: any StatisticsRepository = UserDefaultsStatisticsRepository(),
         dailyProgress: any DailyProgressRepository = UserDefaultsDailyProgressRepository(),
+        studySessionStore: any StudySessionStore = UserDefaultsStudySessionStore(),
         studyTimer: StudyTimerController? = nil,
         navigation: AppNavigationState = AppNavigationState()
     ) {
@@ -139,6 +153,7 @@ final class RootViewModel {
         self.shuffler = shuffler
         self.statistics = statistics
         self.dailyProgress = dailyProgress
+        self.studySessionStore = studySessionStore
         self.studyTimer = studyTimer ?? StudyTimerController(progress: dailyProgress)
         self.navigation = navigation
         library = LibraryViewModel(cards: cards, tags: tags)
@@ -153,6 +168,7 @@ final class RootViewModel {
             shuffler: container.shuffler,
             statistics: container.statistics,
             dailyProgress: container.dailyProgress,
+            studySessionStore: container.studySessionStore,
             studyTimer: container.studyTimer
         )
     }
@@ -164,6 +180,17 @@ final class RootViewModel {
 
     func loadLibrary() async {
         await library.load()
+        prepareInterruptedStudyIfNeeded()
+    }
+
+    func loadInitialLibrary() async {
+        if library.state == .idle {
+            await library.load()
+        }
+        while library.state == .loading {
+            await Task.yield()
+        }
+        prepareInterruptedStudyIfNeeded()
     }
 
     func editorSaved() async {
@@ -227,17 +254,30 @@ final class RootViewModel {
         StudySetupViewModel(cards: library.cards, tags: library.tags)
     }
 
-    func makeStudySessionModel(configuration: StudyConfiguration) -> StudySessionViewModel {
+    func makeStudySessionModel(for activeStudy: ActiveStudy) -> StudySessionViewModel {
         let today = dailyProgress.progress(for: Date(), calendar: .current)
         return StudySessionViewModel(
-            configuration: configuration,
+            configuration: activeStudy.configuration,
+            snapshot: activeStudy.snapshot,
             shuffler: shuffler,
             speech: speech,
             initialDailyGoalProgress: StudyDailyGoalProgress(
                 elapsedSeconds: today.elapsedSeconds,
                 goalSeconds: today.goalSeconds
-            )
+            ),
+            store: studySessionStore
         )
+    }
+
+    func resumeInterruptedStudy() {
+        guard let resumableStudy else { return }
+        navigation.resumeStudy(resumableStudy)
+        self.resumableStudy = nil
+    }
+
+    func discardInterruptedStudy() {
+        studySessionStore.clear()
+        resumableStudy = nil
     }
 
     var studyStatistics: StudyStatistics {
@@ -263,6 +303,7 @@ final class RootViewModel {
 
     func finishStudy(sessionID: UUID) {
         studyTimer.endSession(id: sessionID)
+        studySessionStore.clear()
         navigation.finishStudy()
     }
 
@@ -272,6 +313,33 @@ final class RootViewModel {
 
     func cleanupOrphanedActivity() {
         studyTimer.cleanupOrphanedActivity()
+    }
+
+    private func prepareInterruptedStudyIfNeeded() {
+        guard library.state == .loaded,
+              navigation.activeStudy == nil,
+              resumableStudy == nil,
+              let snapshot = studySessionStore.load() else {
+            return
+        }
+
+        let cardsByID = Dictionary(uniqueKeysWithValues: library.cards.map { ($0.id, $0) })
+        let availableCards = snapshot.originalCardIDs.compactMap { cardsByID[$0] }
+        let hasAvailableQueuedCard = snapshot.queueCardIDs.contains { cardsByID[$0] != nil }
+        guard !availableCards.isEmpty,
+              snapshot.completedResult != nil || hasAvailableQueuedCard else {
+            studySessionStore.clear()
+            return
+        }
+
+        resumableStudy = ActiveStudy(
+            configuration: StudyConfiguration(
+                direction: snapshot.direction,
+                selectedTagIDs: snapshot.selectedTagIDs,
+                cards: availableCards
+            ),
+            snapshot: snapshot
+        )
     }
 }
 
@@ -375,9 +443,7 @@ struct RootView: View {
         ) { presentation in
             NavigationStack {
                 StudySessionView(
-                    model: model.makeStudySessionModel(
-                        configuration: presentation.configuration
-                    ),
+                    model: model.makeStudySessionModel(for: presentation),
                     onRepeat: navigation.repeatStudy,
                     onFinish: { model.finishStudy(sessionID: presentation.sessionID) },
                     onComplete: {
@@ -412,6 +478,23 @@ struct RootView: View {
         }
         .task {
             model.cleanupOrphanedActivity()
+            await model.loadInitialLibrary()
+        }
+        .alert(
+            "study.resume.title",
+            isPresented: Binding(
+                get: { model.resumableStudy != nil },
+                set: { _ in }
+            )
+        ) {
+            Button("study.resume.action", action: model.resumeInterruptedStudy)
+            Button(
+                "study.resume.discard",
+                role: .destructive,
+                action: model.discardInterruptedStudy
+            )
+        } message: {
+            Text("study.resume.message")
         }
         .fileExporter(
             isPresented: $isShowingExporter,

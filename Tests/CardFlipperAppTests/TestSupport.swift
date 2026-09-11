@@ -61,6 +61,29 @@ final class AppSpeechServiceFake: SpeechService {
     func speak(_ text: String) {}
 }
 
+@MainActor
+final class AppStudySessionStoreFake: StudySessionStore {
+    var snapshot: StudySessionSnapshot?
+    private(set) var saveCount = 0
+    private(set) var clearCount = 0
+
+    init(snapshot: StudySessionSnapshot? = nil) {
+        self.snapshot = snapshot
+    }
+
+    func load() -> StudySessionSnapshot? { snapshot }
+
+    func save(_ snapshot: StudySessionSnapshot) {
+        self.snapshot = snapshot
+        saveCount += 1
+    }
+
+    func clear() {
+        snapshot = nil
+        clearCount += 1
+    }
+}
+
 struct AppIdentityShuffler: CardShuffler {
     func shuffle(_ cards: [VocabularyCard]) -> [VocabularyCard] { cards }
 }

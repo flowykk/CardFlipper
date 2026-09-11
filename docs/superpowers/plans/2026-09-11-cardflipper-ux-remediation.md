@@ -452,11 +452,11 @@ public protocol StudySessionStore: Sendable {
 }
 ```
 
-- [ ] Определить Codable snapshot: configuration, ordered queue IDs, current face, forget counts, startedAt и accumulated duration.
-- [ ] Написать round-trip/corrupt-payload/versioning tests.
-- [ ] Сохранять snapshot после reveal/assessment/background, а не каждую timer tick.
-- [ ] При launch предлагать `Resume session` / `Discard`; отсутствующие карточки безопасно исключать.
-- [ ] Очищать snapshot только после Finish или явного Discard.
+- [x] Определить Codable snapshot: configuration, ordered queue IDs, current face, forget counts, startedAt и accumulated duration.
+- [x] Написать round-trip/corrupt-payload/versioning tests.
+- [x] Сохранять snapshot после reveal/assessment/background, а не каждую timer tick.
+- [x] При launch предлагать `Resume session` / `Discard`; отсутствующие карточки безопасно исключать.
+- [x] Очищать snapshot только после Finish или явного Discard.
 
 **Acceptance:** relaunch восстанавливает ту же текущую карточку и очередь; corrupt snapshot не блокирует app launch; completed session не воскресает.
 

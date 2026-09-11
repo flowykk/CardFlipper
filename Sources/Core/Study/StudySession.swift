@@ -5,7 +5,7 @@ public enum StudySessionError: Error, Equatable, Sendable {
     case noCurrentCard
 }
 
-public struct StudyResult: Equatable, Sendable {
+public struct StudyResult: Codable, Equatable, Sendable {
     public let reviewedCardCount: Int
     public let repeatedCardIDs: [UUID]
     public let totalAssessmentCount: Int
@@ -58,6 +58,24 @@ public struct StudySession: Sendable {
         self.direction = direction
         initialCardCount = cards.count
         queue = cards
+    }
+
+    public init(
+        cards: [VocabularyCard],
+        direction: StudyDirection,
+        initialCardCount: Int,
+        forgottenCount: Int,
+        repeatedCardIDs: [UUID],
+        totalAssessmentCount: Int,
+        isRevealed: Bool
+    ) {
+        self.direction = direction
+        self.initialCardCount = max(cards.count, initialCardCount)
+        queue = cards
+        self.forgottenCount = max(0, forgottenCount)
+        self.repeatedCardIDs = repeatedCardIDs
+        self.totalAssessmentCount = max(0, totalAssessmentCount)
+        self.isRevealed = isRevealed && !cards.isEmpty
     }
 
     public var currentCard: VocabularyCard? { queue.first }

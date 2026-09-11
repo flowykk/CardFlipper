@@ -95,6 +95,54 @@ private extension VocabularyCard {
     #expect(session.isComplete == true)
 }
 
+@Test func studySnapshotRoundTripsEveryRestorableField() throws {
+    let result = StudyResult(
+        reviewedCardCount: 2,
+        repeatedCardIDs: [.fixture(1)],
+        totalAssessmentCount: 3,
+        elapsedSeconds: 42
+    )
+    let snapshot = StudySessionSnapshot(
+        direction: .englishToRussian,
+        selectedTagIDs: [.fixture(9)],
+        originalCardIDs: [.fixture(1), .fixture(2)],
+        queueCardIDs: [.fixture(2), .fixture(1)],
+        isShowingAnswer: true,
+        isRevealed: true,
+        forgottenCount: 1,
+        repeatedCardIDs: [.fixture(1)],
+        totalAssessmentCount: 2,
+        accumulatedDurationSeconds: 37,
+        completedResult: result
+    )
+
+    let data = try JSONEncoder().encode(snapshot)
+    let decoded = try JSONDecoder().decode(StudySessionSnapshot.self, from: data)
+
+    #expect(decoded == snapshot)
+    #expect(decoded.version == StudySessionSnapshot.currentVersion)
+}
+
+@Test func sessionCanRestoreQueueAndCountersWithoutLosingAssessmentState() {
+    let cards = [VocabularyCard.fixture(id: 2), .fixture(id: 1)]
+    let session = StudySession(
+        cards: cards,
+        direction: .englishToRussian,
+        initialCardCount: 3,
+        forgottenCount: 2,
+        repeatedCardIDs: [.fixture(1)],
+        totalAssessmentCount: 4,
+        isRevealed: true
+    )
+
+    #expect(session.queue.map(\.id) == [.fixture(2), .fixture(1)])
+    #expect(session.initialCardCount == 3)
+    #expect(session.forgottenCount == 2)
+    #expect(session.repeatedCardIDs == [.fixture(1)])
+    #expect(session.totalAssessmentCount == 4)
+    #expect(session.isRevealed)
+}
+
 @Test func assessmentOfAnEmptySessionIsRejectedWithoutMutatingState() {
     var rememberedSession = StudySession(cards: [], direction: .russianToEnglish)
     rememberedSession.reveal()

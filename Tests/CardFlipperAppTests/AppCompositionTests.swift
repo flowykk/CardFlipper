@@ -308,6 +308,92 @@ private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blu
 }
 
 @MainActor
+@Test func loadingLibraryOffersAnInterruptedSessionWithMissingCardsRemoved() async throws {
+    let first = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let second = VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")
+    let store = AppStudySessionStoreFake(snapshot: StudySessionSnapshot(
+        direction: .englishToRussian,
+        selectedTagIDs: [],
+        originalCardIDs: [first.id, second.id],
+        queueCardIDs: [first.id, second.id],
+        isShowingAnswer: true,
+        isRevealed: true,
+        forgottenCount: 1,
+        repeatedCardIDs: [first.id],
+        totalAssessmentCount: 2,
+        accumulatedDurationSeconds: 15
+    ))
+    let model = makeRootModel(
+        cards: AppCardRepositoryFake([second]),
+        studySessionStore: store
+    )
+
+    await model.loadLibrary()
+    let resumable = try #require(model.resumableStudy)
+
+    #expect(resumable.configuration.cards == [second])
+    #expect(resumable.snapshot?.queueCardIDs == [first.id, second.id])
+
+    model.resumeInterruptedStudy()
+    #expect(model.navigation.activeStudy == resumable)
+    #expect(model.resumableStudy == nil)
+}
+
+@MainActor
+@Test func emptyInterruptedSessionIsDiscardedAndExplicitActionsClearStorage() async {
+    let missingID = UUID.appFixture(999)
+    let invalidStore = AppStudySessionStoreFake(snapshot: StudySessionSnapshot(
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        originalCardIDs: [missingID],
+        queueCardIDs: [missingID],
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 0,
+        repeatedCardIDs: [],
+        totalAssessmentCount: 0,
+        accumulatedDurationSeconds: 0
+    ))
+    let invalidModel = makeRootModel(
+        cards: AppCardRepositoryFake(),
+        studySessionStore: invalidStore
+    )
+
+    await invalidModel.loadLibrary()
+    #expect(invalidModel.resumableStudy == nil)
+    #expect(invalidStore.clearCount == 1)
+
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let validStore = AppStudySessionStoreFake(snapshot: StudySessionSnapshot(
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        originalCardIDs: [card.id],
+        queueCardIDs: [card.id],
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 0,
+        repeatedCardIDs: [],
+        totalAssessmentCount: 0,
+        accumulatedDurationSeconds: 0
+    ))
+    let validModel = makeRootModel(
+        cards: AppCardRepositoryFake([card]),
+        studySessionStore: validStore
+    )
+    await validModel.loadLibrary()
+    validModel.discardInterruptedStudy()
+    #expect(validStore.clearCount == 1)
+
+    validModel.navigation.startStudy(StudyConfiguration(
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        cards: [card]
+    ))
+    validModel.finishStudy(sessionID: validModel.navigation.activeStudy!.sessionID)
+    #expect(validStore.clearCount == 2)
+}
+
+@MainActor
 @Test func rootModelCoordinatesStudyTimerLifecycleIdempotently() {
     let defaults = UserDefaults(suiteName: "AppTimerLifecycle.\(UUID().uuidString)")!
     let progress = UserDefaultsDailyProgressRepository(defaults: defaults)
@@ -333,13 +419,17 @@ private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blu
 }
 
 @MainActor
-private func makeRootModel(cards: AppCardRepositoryFake) -> RootViewModel {
+private func makeRootModel(
+    cards: AppCardRepositoryFake,
+    studySessionStore: any StudySessionStore = AppStudySessionStoreFake()
+) -> RootViewModel {
     RootViewModel(
         cards: cards,
         tags: AppTagRepositoryFake(),
         dictionary: AppDictionaryServiceFake(),
         speech: AppSpeechServiceFake(),
-        shuffler: AppIdentityShuffler()
+        shuffler: AppIdentityShuffler(),
+        studySessionStore: studySessionStore
     )
 }
 

@@ -58,28 +58,56 @@ public final class StudySessionViewModel {
 
     private let speech: any SpeechService
     private let feedback: any StudyFeedback
+    private let store: (any StudySessionStore)?
     private let now: @MainActor () -> Date
-    private let startedAt: Date
+    private let sessionStartedAt: Date
+    private let segmentStartedAt: Date
+    private let accumulatedDurationAtStart: Int
     private let initialDailyGoalProgress: StudyDailyGoalProgress?
 
     public init(
         configuration: StudyConfiguration,
+        snapshot: StudySessionSnapshot? = nil,
         shuffler: any CardShuffler = SystemCardShuffler(),
         speech: any SpeechService,
         feedback: any StudyFeedback = SystemStudyFeedback(),
         initialDailyGoalProgress: StudyDailyGoalProgress? = nil,
+        store: (any StudySessionStore)? = nil,
         now: @escaping @MainActor () -> Date = Date.init
     ) {
         repeatConfiguration = configuration
-        session = StudySession(
-            cards: shuffler.shuffle(configuration.cards),
-            direction: configuration.direction
-        )
+        let initializationDate = now()
+        if let snapshot {
+            let cardsByID = Dictionary(uniqueKeysWithValues: configuration.cards.map { ($0.id, $0) })
+            let queue = snapshot.queueCardIDs.compactMap { cardsByID[$0] }
+            session = StudySession(
+                cards: queue,
+                direction: snapshot.direction,
+                initialCardCount: configuration.cards.count,
+                forgottenCount: snapshot.forgottenCount,
+                repeatedCardIDs: snapshot.repeatedCardIDs.filter { cardsByID[$0] != nil },
+                totalAssessmentCount: snapshot.totalAssessmentCount,
+                isRevealed: snapshot.isRevealed
+            )
+            isShowingAnswer = snapshot.isShowingAnswer && !queue.isEmpty
+            result = snapshot.completedResult
+            accumulatedDurationAtStart = snapshot.accumulatedDurationSeconds
+            sessionStartedAt = snapshot.startedAt
+        } else {
+            session = StudySession(
+                cards: shuffler.shuffle(configuration.cards),
+                direction: configuration.direction
+            )
+            accumulatedDurationAtStart = 0
+            sessionStartedAt = initializationDate
+        }
         self.speech = speech
         self.feedback = feedback
+        self.store = store
         self.initialDailyGoalProgress = initialDailyGoalProgress
         self.now = now
-        startedAt = now()
+        segmentStartedAt = initializationDate
+        persistSnapshot()
     }
 
     public var canAssess: Bool {
@@ -126,6 +154,7 @@ public final class StudySessionViewModel {
 
         isShowingAnswer.toggle()
         feedback.perform(.reveal)
+        persistSnapshot()
     }
 
     public func toggleUsageExamples() {
@@ -143,12 +172,13 @@ public final class StudySessionViewModel {
                 reviewedCardCount: session.initialCardCount,
                 repeatedCardIDs: session.repeatedCardIDs,
                 totalAssessmentCount: session.totalAssessmentCount,
-                elapsedSeconds: Int(now().timeIntervalSince(startedAt).rounded(.down))
+                elapsedSeconds: elapsedSeconds
             )
             feedback.perform(.completion)
         } else {
             feedback.perform(.remember)
         }
+        persistSnapshot()
     }
 
     public func forget() throws {
@@ -156,6 +186,7 @@ public final class StudySessionViewModel {
         isShowingAnswer = false
         isShowingUsageExamples = false
         feedback.perform(.forget)
+        persistSnapshot()
     }
 
     public func speakEnglish(variantID: UUID) {
@@ -187,6 +218,28 @@ public final class StudySessionViewModel {
 
     public func cancelExit() {
         isExitConfirmationPresented = false
+    }
+
+    public func persistSnapshot() {
+        store?.save(StudySessionSnapshot(
+            direction: session.direction,
+            selectedTagIDs: repeatConfiguration.selectedTagIDs,
+            originalCardIDs: repeatConfiguration.cards.map(\.id),
+            queueCardIDs: session.queue.map(\.id),
+            isShowingAnswer: isShowingAnswer,
+            isRevealed: session.isRevealed,
+            forgottenCount: session.forgottenCount,
+            repeatedCardIDs: session.repeatedCardIDs,
+            totalAssessmentCount: session.totalAssessmentCount,
+            startedAt: sessionStartedAt,
+            accumulatedDurationSeconds: result?.elapsedSeconds ?? elapsedSeconds,
+            completedResult: result
+        ))
+    }
+
+    private var elapsedSeconds: Int {
+        accumulatedDurationAtStart
+            + max(0, Int(now().timeIntervalSince(segmentStartedAt).rounded(.down)))
     }
 
     private var isEnglishSideVisible: Bool {

@@ -28,6 +28,7 @@ final class AppContainer {
     let shuffler: any CardShuffler
     let statistics: any StatisticsRepository
     let dailyProgress: any DailyProgressRepository
+    let studySessionStore: any StudySessionStore
     let studyTimer: StudyTimerController
 
     convenience init() throws {
@@ -65,6 +66,7 @@ final class AppContainer {
         speech = SystemSpeechService()
         shuffler = SystemCardShuffler()
         statistics = UserDefaultsStatisticsRepository(defaults: defaults)
+        studySessionStore = UserDefaultsStudySessionStore(defaults: defaults)
         let dailyProgress = UserDefaultsDailyProgressRepository(defaults: defaults)
         self.dailyProgress = dailyProgress
         studyTimer = StudyTimerController(

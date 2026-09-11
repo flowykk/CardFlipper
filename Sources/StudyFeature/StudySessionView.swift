@@ -7,6 +7,7 @@ public struct StudySessionView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.scenePhase) private var scenePhase
 
     private let onRepeat: (StudyConfiguration) -> Void
     private let onFinish: () -> Void
@@ -70,6 +71,11 @@ public struct StudySessionView: View {
         .onChange(of: model.result) { _, result in
             if let result {
                 onComplete(result)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                model.persistSnapshot()
             }
         }
         .safeAreaInset(edge: .bottom) {

@@ -19,6 +19,106 @@ import Testing
 }
 
 @MainActor
+@Test func sessionPersistsAfterRevealAssessmentAndExplicitBackgroundSave() throws {
+    let store = StudySessionStoreSpy()
+    let model = makeSession(store: store)
+    let initialSaves = store.saveCount
+
+    model.toggleCardSide()
+    #expect(store.saveCount == initialSaves + 1)
+    #expect(store.storedSnapshot?.isShowingAnswer == true)
+    #expect(store.storedSnapshot?.isRevealed == true)
+
+    try model.forget()
+    #expect(store.saveCount == initialSaves + 2)
+    #expect(store.storedSnapshot?.queueCardIDs == [
+        StudyConfiguration.fixture.cards[1].id,
+        StudyConfiguration.fixture.cards[0].id,
+    ])
+
+    model.persistSnapshot()
+    #expect(store.saveCount == initialSaves + 3)
+}
+
+@MainActor
+@Test func snapshotRestoresExactQueueFaceCountersAndElapsedTimeWithoutShuffling() throws {
+    let configuration = StudyConfiguration.fixture
+    let snapshot = StudySessionSnapshot(
+        direction: configuration.direction,
+        selectedTagIDs: configuration.selectedTagIDs,
+        originalCardIDs: configuration.cards.map(\.id),
+        queueCardIDs: [configuration.cards[1].id, configuration.cards[0].id],
+        isShowingAnswer: true,
+        isRevealed: true,
+        forgottenCount: 1,
+        repeatedCardIDs: [configuration.cards[0].id],
+        totalAssessmentCount: 2,
+        accumulatedDurationSeconds: 30
+    )
+    let shuffler = CountingShuffler()
+    var currentTime = Date(timeIntervalSince1970: 1_000)
+    let model = StudySessionViewModel(
+        configuration: configuration,
+        snapshot: snapshot,
+        shuffler: shuffler,
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy(),
+        now: { currentTime }
+    )
+
+    #expect(shuffler.invocationCount == 0)
+    #expect(model.session.queue.map(\.id) == snapshot.queueCardIDs)
+    #expect(model.isShowingAnswer)
+    #expect(model.canAssess)
+    #expect(model.session.forgottenCount == 1)
+    currentTime = Date(timeIntervalSince1970: 1_012)
+    model.toggleCardSide()
+    try model.remember()
+    model.toggleCardSide()
+    try model.remember()
+    #expect(model.result?.elapsedSeconds == 42)
+}
+
+@MainActor
+@Test func snapshotExcludesMissingCardsAndCompletedResultDoesNotRestartQueue() {
+    let available = StudyConfiguration.fixture.cards[1]
+    let result = StudyResult(
+        reviewedCardCount: 2,
+        repeatedCardIDs: [StudyConfiguration.fixture.cards[0].id],
+        totalAssessmentCount: 3,
+        elapsedSeconds: 20
+    )
+    let snapshot = StudySessionSnapshot(
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        originalCardIDs: StudyConfiguration.fixture.cards.map(\.id),
+        queueCardIDs: StudyConfiguration.fixture.cards.map(\.id),
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 1,
+        repeatedCardIDs: result.repeatedCardIDs,
+        totalAssessmentCount: 3,
+        accumulatedDurationSeconds: 20,
+        completedResult: result
+    )
+    let model = StudySessionViewModel(
+        configuration: StudyConfiguration(
+            direction: .russianToEnglish,
+            selectedTagIDs: [],
+            cards: [available]
+        ),
+        snapshot: snapshot,
+        shuffler: CountingShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy()
+    )
+
+    #expect(model.session.queue.map(\.id) == [available.id])
+    #expect(model.session.initialCardCount == 1)
+    #expect(model.result == result)
+}
+
+@MainActor
 @Test func assessmentIsGuardedUntilReveal() {
     let feedback = StudyFeedbackSpy()
     let model = makeSession(feedback: feedback)
@@ -487,6 +587,7 @@ private func makeSession(
     configuration: StudyConfiguration = .fixture,
     speech: SpeechServiceSpy = SpeechServiceSpy(),
     feedback: StudyFeedbackSpy = StudyFeedbackSpy(),
+    store: (any StudySessionStore)? = nil,
     now: @escaping @MainActor () -> Date = { Date(timeIntervalSince1970: 1_000) }
 ) -> StudySessionViewModel {
     StudySessionViewModel(
@@ -494,6 +595,7 @@ private func makeSession(
         shuffler: IdentityShuffler(),
         speech: speech,
         feedback: feedback,
+        store: store,
         now: now
     )
 }
