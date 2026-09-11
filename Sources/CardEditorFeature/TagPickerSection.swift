@@ -37,7 +37,7 @@ public struct TagPickerSection: View {
                         tagButton(tag)
                     }
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, 2)
             }
 
             HStack {
@@ -48,7 +48,7 @@ public struct TagPickerSection: View {
 
                 Button(action: onCreate) {
                     Image(systemName: "plus.circle.fill")
-                        .frame(minWidth: 44, minHeight: 44)
+                        .frame(minWidth: 32, minHeight: 32)
                 }
                 .buttonStyle(.plain)
                 .disabled(newTagName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -98,7 +98,7 @@ public struct TagPickerSection: View {
             .font(.subheadline.weight(.medium))
             .foregroundStyle(isSelected ? Color.accentColor : .primary)
             .padding(.horizontal, 12)
-            .frame(minHeight: 44)
+            .frame(minHeight: 32)
             .background {
                 Capsule()
                     .fill(isSelected ? Color.accentColor.opacity(0.16) : Color.secondary.opacity(0.1))
