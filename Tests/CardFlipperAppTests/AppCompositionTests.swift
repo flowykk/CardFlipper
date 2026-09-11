@@ -1,5 +1,6 @@
 import Core
 import Data
+import DesignSystem
 import Foundation
 import StudyFeature
 import SwiftUI
@@ -28,7 +29,7 @@ import StatisticsFeature
 }
 
 @MainActor
-@Test func appearanceSettingsDefaultToSystemBlue() throws {
+@Test func appearanceSettingsDefaultToSystemAccent() throws {
     let suiteName = "AppearanceSettingsTests.default"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defaults.removePersistentDomain(forName: suiteName)
@@ -36,7 +37,7 @@ import StatisticsFeature
 
     let settings = AppearanceSettings(defaults: defaults)
     let components = try #require(settings.sRGBComponents)
-    let expected = try #require(lightSystemBlueSRGBComponents())
+    let expected = try #require(lightSRGBComponents(of: AccessibleAccent.all[0].lightColor))
 
     #expect(abs(components.red - expected.red) < 0.001)
     #expect(abs(components.green - expected.green) < 0.001)
@@ -52,20 +53,34 @@ import StatisticsFeature
 }
 
 @MainActor
-@Test func appearanceSettingsPersistAndRestoreOpaqueSRGBColor() throws {
+@Test func appearanceSettingsPersistAndRestoreCuratedAccent() throws {
     let suiteName = "AppearanceSettingsTests.persistence"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defaults.removePersistentDomain(forName: suiteName)
     defer { defaults.removePersistentDomain(forName: suiteName) }
 
     let settings = AppearanceSettings(defaults: defaults)
-    settings.accentColor = Color(.sRGB, red: 0.25, green: 0.5, blue: 0.75)
+    settings.selectAccent(id: "berry")
 
     let restored = AppearanceSettings(defaults: defaults)
-    let components = try #require(restored.sRGBComponents)
-    #expect(abs(components.red - 0.25) < 0.001)
-    #expect(abs(components.green - 0.5) < 0.001)
-    #expect(abs(components.blue - 0.75) < 0.001)
+    #expect(restored.selectedAccent.id == "berry")
+}
+
+@MainActor
+@Test func appearanceSettingsMigratesLegacyColorToNearestSafeAccent() throws {
+    let suiteName = "AppearanceSettingsTests.migration"
+    let defaults = try #require(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+    defaults.set(
+        Data("{\"red\":0.68,\"green\":0,\"blue\":0.29}".utf8),
+        forKey: AppearanceSettings.storageKey
+    )
+
+    let settings = AppearanceSettings(defaults: defaults)
+
+    #expect(settings.selectedAccent.id == "berry")
+    #expect(defaults.string(forKey: AppearanceSettings.selectionKey) == "berry")
 }
 
 @MainActor
@@ -78,7 +93,7 @@ import StatisticsFeature
 
     let settings = AppearanceSettings(defaults: defaults)
     let components = try #require(settings.sRGBComponents)
-    let expected = try #require(lightSystemBlueSRGBComponents())
+    let expected = try #require(lightSRGBComponents(of: AccessibleAccent.all[0].lightColor))
 
     #expect(abs(components.red - expected.red) < 0.001)
     #expect(abs(components.green - expected.green) < 0.001)
@@ -86,10 +101,10 @@ import StatisticsFeature
 }
 
 @MainActor
-private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blue: Double)? {
+private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double, blue: Double)? {
     guard
         let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
-        let components = UIColor.systemBlue.resolvedColor(
+        let components = UIColor(color).resolvedColor(
             with: UITraitCollection(userInterfaceStyle: .light)
         ).cgColor.converted(
             to: colorSpace,

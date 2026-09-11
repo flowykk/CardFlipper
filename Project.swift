@@ -62,7 +62,7 @@ let project = Project(
         .tests(
             name: "CardFlipperAppTests",
             host: "CardFlipper",
-            dependencies: ["Core", "Data", "LibraryFeature", "StudyFeature", "StatisticsFeature"]
+            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "StudyFeature", "StatisticsFeature"]
         ),
         .uiTests(name: "CardFlipperUITests", host: "CardFlipper"),
     ],

@@ -1,3 +1,4 @@
+import DesignSystem
 import Foundation
 import Observation
 import SwiftUI
@@ -7,6 +8,7 @@ import UIKit
 @Observable
 final class AppearanceSettings {
     static let storageKey = "com.danilarahmanov.CardFlipper.appearance.accentColor"
+    static let selectionKey = "com.danilarahmanov.CardFlipper.appearance.accent"
 
     private struct PersistedColor: Codable {
         let red: Double
@@ -20,29 +22,36 @@ final class AppearanceSettings {
 
     private let defaults: UserDefaults
 
-    var accentColor: Color {
+    private(set) var selectedAccent: AccessibleAccent {
         didSet {
-            persist(accentColor)
+            defaults.set(selectedAccent.id, forKey: Self.selectionKey)
         }
     }
+
+    var accentColor: Color { selectedAccent.adaptiveColor }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        accentColor = Self.restore(from: defaults) ?? Color(uiColor: .systemBlue)
+        if
+            let id = defaults.string(forKey: Self.selectionKey),
+            let saved = AccessibleAccent.all.first(where: { $0.id == id })
+        {
+            selectedAccent = saved
+        } else if let legacy = Self.restore(from: defaults) {
+            selectedAccent = Self.nearestAccent(to: legacy)
+            defaults.set(selectedAccent.id, forKey: Self.selectionKey)
+        } else {
+            selectedAccent = AccessibleAccent.all[0]
+        }
+    }
+
+    func selectAccent(id: String) {
+        guard let accent = AccessibleAccent.all.first(where: { $0.id == id }) else { return }
+        selectedAccent = accent
     }
 
     var sRGBComponents: (red: Double, green: Double, blue: Double)? {
-        Self.components(for: accentColor).map { ($0.red, $0.green, $0.blue) }
-    }
-
-    private func persist(_ color: Color) {
-        guard
-            let components = Self.components(for: color),
-            let data = try? JSONEncoder().encode(components)
-        else {
-            return
-        }
-        defaults.set(data, forKey: Self.storageKey)
+        Self.components(for: selectedAccent.lightColor).map { ($0.red, $0.green, $0.blue) }
     }
 
     private static func restore(from defaults: UserDefaults) -> Color? {
@@ -84,5 +93,19 @@ final class AppearanceSettings {
             blue: Double(components[2])
         )
         return persisted.isValid ? persisted : nil
+    }
+
+    private static func nearestAccent(to legacy: Color) -> AccessibleAccent {
+        guard let legacy = components(for: legacy) else { return AccessibleAccent.all[0] }
+        return AccessibleAccent.all.min { lhs, rhs in
+            distance(from: legacy, to: lhs.lightColor) < distance(from: legacy, to: rhs.lightColor)
+        } ?? AccessibleAccent.all[0]
+    }
+
+    private static func distance(from legacy: PersistedColor, to color: Color) -> Double {
+        guard let candidate = components(for: color) else { return .infinity }
+        return pow(legacy.red - candidate.red, 2)
+            + pow(legacy.green - candidate.green, 2)
+            + pow(legacy.blue - candidate.blue, 2)
     }
 }

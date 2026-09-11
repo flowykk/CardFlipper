@@ -551,11 +551,11 @@ public struct AccessibleAccent: Identifiable, Equatable, Sendable {
 }
 ```
 
-- [ ] Зафиксировать curated palette + `System`; проверить контраст primary foreground/background в light/dark.
-- [ ] Мигрировать существующий raw sRGB value к ближайшему допустимому accent либо сохранить custom как explicit advanced option с warning.
-- [ ] Primary button foreground выбирать по luminance/contrast, а не `.background` без проверки.
-- [ ] App-icon carousel заменить adaptive grid/list при AX sizes; labels многострочные без искусственной ширины 88pt.
-- [ ] Показать pending/error state рядом с выбранной иконкой.
+- [x] Зафиксировать curated palette + `System`; проверить контраст primary foreground/background в light/dark.
+- [x] Мигрировать существующий raw sRGB value к ближайшему допустимому accent либо сохранить custom как explicit advanced option с warning.
+- [x] Primary button foreground выбирать по luminance/contrast, а не `.background` без проверки.
+- [x] App-icon carousel заменить adaptive grid/list при AX sizes; labels многострочные без искусственной ширины 88pt.
+- [x] Показать pending/error state рядом с выбранной иконкой.
 - [ ] Проверить смену всех десяти иконок на физическом устройстве; simulator failure не считать acceptance gate для system limitation.
 
 **Acceptance:** любой предлагаемый accent сохраняет читаемость; выбранность видна не только по цвету; полные icon names доступны визуально и VoiceOver; picker не ломается при MAX AX.

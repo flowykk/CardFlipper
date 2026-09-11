@@ -2201,6 +2201,41 @@
         }
       }
     },
+    "settings.accent.amber" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Amber" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Янтарь" } }
+      }
+    },
+    "settings.accent.berry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Berry" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ягода" } }
+      }
+    },
+    "settings.accent.forest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Forest" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Лес" } }
+      }
+    },
+    "settings.accent.indigo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Indigo" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Индиго" } }
+      }
+    },
+    "settings.accent.system" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "System" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Системный" } }
+      }
+    },
     "settings.icon.default" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2250,6 +2285,20 @@
             "value" : "Не удалось сменить иконку"
           }
         }
+      }
+    },
+    "settings.icon.pending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Changing" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Меняется" } }
+      }
+    },
+    "settings.icon.selected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Selected" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выбрано" } }
       }
     },
     "settings.icon.IconBlue3D" : {

@@ -1,7 +1,9 @@
+import DesignSystem
 import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Bindable var settings: AppearanceSettings
     @Bindable var iconSettings: AppIconSettings
     let isPreparingExport: Bool
@@ -25,48 +27,50 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section("settings.appearance") {
-                ColorPicker(
-                    "settings.interfaceColor",
-                    selection: $settings.accentColor,
-                    supportsOpacity: false
-                )
-                .accessibilityIdentifier("settings.colorPicker")
-
-                Label("settings.preview", systemImage: "paintpalette.fill")
-                    .foregroundStyle(Color.accentColor)
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: dynamicTypeSize.isAccessibilitySize ? 180 : 112))],
+                    spacing: 12
+                ) {
+                    ForEach(AccessibleAccent.all) { accent in
+                        accentButton(accent)
+                    }
+                }
+                .accessibilityIdentifier("settings.accentPicker")
             }
 
             Section {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: 16) {
-                        ForEach(AppIconSettings.AppIcon.allCases) { icon in
-                            Button {
-                                Task { await iconSettings.select(icon) }
-                            } label: {
-                                AppIconPreview(
-                                    icon: icon,
-                                    isSelected: icon == iconSettings.selectedIcon,
-                                    isPending: icon == iconSettings.pendingIcon
-                                )
-                            }
-                            .frame(width: 88)
-                            .buttonStyle(.plain)
-                            .disabled(iconSettings.isChanging || !iconSettings.supportsAlternateIcons)
-                            .accessibilityLabel(Text(icon.titleKey))
-                            .accessibilityIdentifier(icon.accessibilityIdentifier)
-                            .accessibilityAddTraits(icon == iconSettings.selectedIcon ? .isSelected : [])
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: dynamicTypeSize.isAccessibilitySize ? 240 : 100))],
+                    spacing: 16
+                ) {
+                    ForEach(AppIconSettings.AppIcon.allCases) { icon in
+                        Button {
+                            Task { await iconSettings.select(icon) }
+                        } label: {
+                            AppIconPreview(
+                                icon: icon,
+                                isSelected: icon == iconSettings.selectedIcon,
+                                isPending: icon == iconSettings.pendingIcon
+                            )
                         }
+                        .buttonStyle(.plain)
+                        .disabled(iconSettings.isChanging || !iconSettings.supportsAlternateIcons)
+                        .accessibilityLabel(Text(icon.titleKey))
+                        .accessibilityValue(iconAccessibilityValue(icon))
+                        .accessibilityIdentifier(icon.accessibilityIdentifier)
+                        .accessibilityAddTraits(icon == iconSettings.selectedIcon ? .isSelected : [])
                     }
                 }
-                .contentMargins(.horizontal, 16, for: .scrollContent)
                 .accessibilityIdentifier("settings.iconPicker")
                 .padding(.vertical, 8)
-                .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
             } header: {
                 Text("settings.appIcon")
             } footer: {
                 if !iconSettings.supportsAlternateIcons {
                     Text("settings.icon.unsupported")
+                } else if iconSettings.errorMessage != nil {
+                    Label("settings.icon.error.message", systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
                 }
             }
 
@@ -100,15 +104,74 @@ struct SettingsView: View {
             Text(iconSettings.errorMessage ?? "")
         }
     }
+
+    private func accentButton(_ accent: AccessibleAccent) -> some View {
+        let isSelected = settings.selectedAccent == accent
+        return Button {
+            settings.selectAccent(id: accent.id)
+        } label: {
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(accent.adaptiveColor)
+                    .frame(width: 28, height: 28)
+                    .overlay {
+                        Circle().stroke(.primary.opacity(0.18), lineWidth: 1)
+                    }
+                accentTitle(accent)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 4)
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(Color.accentColor)
+                        .accessibilityHidden(true)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accentTitle(accent))
+        .accessibilityIdentifier("settings.accent.\(accent.id)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func accentTitle(_ accent: AccessibleAccent) -> Text {
+        switch accent.id {
+        case "indigo": Text("settings.accent.indigo")
+        case "berry": Text("settings.accent.berry")
+        case "forest": Text("settings.accent.forest")
+        case "amber": Text("settings.accent.amber")
+        default: Text("settings.accent.system")
+        }
+    }
+
+    private func iconAccessibilityValue(_ icon: AppIconSettings.AppIcon) -> Text {
+        if icon == iconSettings.pendingIcon { return Text("settings.icon.pending") }
+        if icon == iconSettings.selectedIcon { return Text("settings.icon.selected") }
+        return Text("")
+    }
 }
 
 private struct AppIconPreview: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let icon: AppIconSettings.AppIcon
     let isSelected: Bool
     let isPending: Bool
 
     var body: some View {
-        VStack(spacing: 8) {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                HStack(spacing: 12) { previewImage; title }
+            } else {
+                VStack(spacing: 8) { previewImage; title }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+    }
+
+    private var previewImage: some View {
             Image(icon.previewAssetName)
                 .resizable()
                 .scaledToFit()
@@ -132,13 +195,13 @@ private struct AppIconPreview: View {
                             .background(.background, in: Circle())
                     }
                 }
-            Text(icon.titleKey)
-                .font(.caption)
-                .foregroundStyle(isSelected ? Color.accentColor : .primary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .ignore)
+    }
+
+    private var title: some View {
+        Text(icon.titleKey)
+            .font(.caption)
+            .foregroundStyle(.primary)
+            .multilineTextAlignment(dynamicTypeSize.isAccessibilitySize ? .leading : .center)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }

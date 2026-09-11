@@ -84,6 +84,37 @@ final class AccessibilityLayoutTests: XCTestCase {
         add(screenshot)
     }
 
+    func testAppearancePickersRemainReadableAtAccessibilityXXXL() {
+        continueAfterFailure = false
+        app.launchArguments = [
+            "-uiTesting",
+            "-uiTestSeed",
+            "-AppleLanguages", "(en)",
+            "-AppleLocale", "en_US",
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityXXXL",
+        ]
+        app.launch()
+
+        tap("library.settings")
+        assertExists("settings.accentPicker")
+        let systemAccent = app.buttons["settings.accent.system"]
+        scrollToHittable(systemAccent)
+        XCTAssertTrue(systemAccent.label.contains("System"))
+
+        let iconPicker = app.descendants(matching: .any)["settings.iconPicker"]
+        scrollToHittable(iconPicker)
+        let midnight = app.buttons["settings.icon.IconMidnight3D"]
+        scrollToHittable(midnight)
+        XCTAssertTrue(midnight.label.contains("Night"))
+        XCTAssertTrue(midnight.isHittable)
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "AX-Appearance-Pickers"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
     private func tap(_ identifier: String) {
         let element = app.descendants(matching: .any)[identifier]
         scrollToHittable(element)
