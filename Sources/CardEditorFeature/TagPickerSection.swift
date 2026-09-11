@@ -92,7 +92,8 @@ public struct TagPickerSection: View {
                     Image(systemName: "checkmark")
                 }
                 Text(verbatim: tag.name)
-                    .lineLimit(1)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .font(.subheadline.weight(.medium))
             .foregroundStyle(isSelected ? Color.accentColor : .primary)

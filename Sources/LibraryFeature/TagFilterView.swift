@@ -5,16 +5,16 @@ import SwiftUI
 public struct TagFilterView: View {
     private let tags: [Tag]
     @Binding private var selectedTagIDs: Set<UUID>
-    private let onRequestDeletion: (Tag) -> Void
+    private let onManageTags: () -> Void
 
     public init(
         tags: [Tag],
         selectedTagIDs: Binding<Set<UUID>>,
-        onRequestDeletion: @escaping (Tag) -> Void
+        onManageTags: @escaping () -> Void
     ) {
         self.tags = tags
         _selectedTagIDs = selectedTagIDs
-        self.onRequestDeletion = onRequestDeletion
+        self.onManageTags = onManageTags
     }
 
     public var body: some View {
@@ -30,7 +30,12 @@ public struct TagFilterView: View {
             .scrollIndicators(.hidden)
             .contentMargins(.leading, 20, for: .scrollContent)
 
-            tagManagementMenu
+            Button(action: onManageTags) {
+                Label("tag.manage", systemImage: "tag")
+                    .frame(minHeight: 44)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("library.tags.manage")
         }
     }
 
@@ -61,33 +66,5 @@ public struct TagFilterView: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .contextMenu {
-            Button(role: .destructive) {
-                onRequestDeletion(tag)
-            } label: {
-                Label("common.delete", systemImage: "trash")
-            }
-        }
-    }
-
-    private var tagManagementMenu: some View {
-        Menu {
-            ForEach(tags) { tag in
-                Button(role: .destructive) {
-                    onRequestDeletion(tag)
-                } label: {
-                    Label {
-                        Text(verbatim: tag.name)
-                    } icon: {
-                        Image(systemName: "trash")
-                    }
-                }
-            }
-        } label: {
-            Label("tag.manage", systemImage: "ellipsis.circle")
-                .labelStyle(.iconOnly)
-                .frame(minWidth: 44, minHeight: 44)
-        }
-        .accessibilityLabel(Text("tag.manage"))
     }
 }

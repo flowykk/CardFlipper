@@ -13,6 +13,8 @@ public struct LibraryView: View {
     private let onAddCard: () -> Void
     private let onEditCard: (VocabularyCard) -> Void
     private let onStartStudy: () -> Void
+    private let onImportCards: () -> Void
+    private let onManageTags: () -> Void
     private let onDataChanged: @MainActor () async -> Void
 
     public init(
@@ -20,12 +22,16 @@ public struct LibraryView: View {
         onAddCard: @escaping () -> Void,
         onEditCard: @escaping (VocabularyCard) -> Void,
         onStartStudy: @escaping () -> Void,
+        onImportCards: @escaping () -> Void = {},
+        onManageTags: @escaping () -> Void = {},
         onDataChanged: @escaping @MainActor () async -> Void = {}
     ) {
         _model = State(initialValue: model)
         self.onAddCard = onAddCard
         self.onEditCard = onEditCard
         self.onStartStudy = onStartStudy
+        self.onImportCards = onImportCards
+        self.onManageTags = onManageTags
         self.onDataChanged = onDataChanged
     }
 
@@ -173,18 +179,33 @@ public struct LibraryView: View {
     @ViewBuilder
     private var loadedContent: some View {
         if model.cards.isEmpty {
-            ContentUnavailableView {
-                Label("library.empty.title", systemImage: "rectangle.stack")
-                    .accessibilityIdentifier("library.empty")
-            } description: {
-                Text("library.empty.message")
-            } actions: {
-                LibraryPrimaryActionsView(
-                    cardCount: 0,
-                    isStudyEnabled: false,
-                    onStartStudy: onStartStudy,
-                    onAddCard: onAddCard
-                )
+            ScrollView {
+                VStack(spacing: 10) {
+                    ContentUnavailableView {
+                        Label("library.empty.title", systemImage: "rectangle.stack")
+                            .accessibilityIdentifier("library.empty")
+                    } description: {
+                        Text("library.empty.message")
+                    }
+
+                    Button(action: onAddCard) {
+                        Label("library.add", systemImage: "plus")
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("library.add")
+
+                    Button(action: onImportCards) {
+                        Label("settings.cards.import", systemImage: "square.and.arrow.down")
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("library.import")
+                }
+                .frame(maxWidth: 360)
+                .padding(.horizontal)
+                .padding(.top, 80)
+                .frame(maxWidth: .infinity)
             }
         } else if model.visibleCards.isEmpty {
             ContentUnavailableView {
@@ -230,7 +251,7 @@ public struct LibraryView: View {
                             get: { model.selectedTagIDs },
                             set: { model.selectedTagIDs = $0 }
                         ),
-                        onRequestDeletion: requestTagDeletion
+                        onManageTags: onManageTags
                     )
                     .listRowInsets(EdgeInsets())
                 }

@@ -11,6 +11,7 @@ enum AppRoute: Hashable {
     case studySetup
     case statistics
     case settings
+    case tags
 }
 
 enum AppEditorPresentation: Equatable, Identifiable {
@@ -376,6 +377,8 @@ struct RootView: View {
                 onAddCard: navigation.openNewEditor,
                 onEditCard: { navigation.openEditor(cardID: $0.id) },
                 onStartStudy: navigation.openStudySetup,
+                onImportCards: { isShowingImporter = true },
+                onManageTags: { navigation.path.append(.tags) },
                 onDataChanged: model.libraryChanged
             )
             .toolbar {
@@ -430,6 +433,11 @@ struct RootView: View {
                             }
                         },
                         onImportCards: { isShowingImporter = true }
+                    )
+                case .tags:
+                    TagManagementView(
+                        model: model.library,
+                        onDataChanged: model.libraryChanged
                     )
                 }
             }

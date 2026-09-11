@@ -3356,6 +3356,48 @@
         }
       }
     },
+    "tag.affected" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld cards use this tag" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "%lld карточек используют этот тег" } }
+      }
+    },
+    "tag.create.action" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Create" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Создать" } }
+      }
+    },
+    "tag.create.placeholder" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tag name" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Название тега" } }
+      }
+    },
+    "tag.create.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Tag" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Новый тег" } }
+      }
+    },
+    "tag.delete.action" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete Tag" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить тег" } }
+      }
+    },
+    "tag.empty.message" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Create a tag to group related cards." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Создайте тег, чтобы объединить связанные карточки." } }
+      }
+    },
+    "tag.empty.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Tags Yet" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Тегов пока нет" } }
+      }
+    },
     "tag.manage" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3371,6 +3413,48 @@
             "value" : "Управление тегами"
           }
         }
+      }
+    },
+    "tag.merge.action" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Merge Tag" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Объединить тег" } }
+      }
+    },
+    "tag.merge.choose" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose a tag" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выберите тег" } }
+      }
+    },
+    "tag.merge.confirm.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Merge These Tags?" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Объединить эти теги?" } }
+      }
+    },
+    "tag.merge.destination" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Merge into" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Объединить с" } }
+      }
+    },
+    "tag.merge.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Merge" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Объединение" } }
+      }
+    },
+    "tag.rename.action" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rename Tag" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Переименовать тег" } }
+      }
+    },
+    "tag.rename.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Name" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Название" } }
       }
     }
   },

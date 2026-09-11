@@ -308,6 +308,52 @@ func searchMatchesEitherLanguage(query: String, expectedID: UUID) async {
 }
 
 @MainActor
+@Test func tagManagementReportsAffectedCardsAndRenamesEveryReference() async {
+    let repository = TagRepositoryFake(Tag.fixtures)
+    let model = LibraryViewModel(
+        cards: CardRepositoryFake(VocabularyCard.taggedFixtures),
+        tags: repository
+    )
+    await model.load()
+
+    #expect(model.affectedCardCount(for: Tag.work.id) == 2)
+    let didRename = await model.renameTag(id: Tag.work.id, name: "Deep Work")
+
+    let renamed = Tag(id: Tag.work.id, name: "Deep Work")
+    #expect(didRename)
+    #expect(model.tags.contains(renamed))
+    #expect(model.cards.filter { $0.tags.contains(where: { $0.id == Tag.work.id }) }
+        .allSatisfy { $0.tags.contains(renamed) })
+    #expect(repository.renameRequests.count == 1)
+}
+
+@MainActor
+@Test func mergingTagsReplacesSourceOnceAndPreservesCardState() async {
+    let repository = TagRepositoryFake(Tag.fixtures)
+    let originalCards = VocabularyCard.taggedFixtures.map {
+        $0.updating(isLearned: true)
+    }
+    let model = LibraryViewModel(
+        cards: CardRepositoryFake(originalCards),
+        tags: repository
+    )
+    await model.load()
+
+    let didMerge = await model.mergeTag(id: Tag.work.id, into: Tag.exam.id)
+    let allCardsRemainLearned = model.cards.allSatisfy(\.isLearned)
+    let allCardsHaveMergedTags = model.cards.allSatisfy { card in
+        card.tags.filter { $0.id == Tag.exam.id }.count <= 1
+            && !card.tags.contains(where: { $0.id == Tag.work.id })
+    }
+
+    #expect(didMerge)
+    #expect(model.tags == [Tag.exam, Tag.travel])
+    #expect(allCardsRemainLearned)
+    #expect(allCardsHaveMergedTags)
+    #expect(repository.mergeRequests.count == 1)
+}
+
+@MainActor
 @Test func failedTagDeletionPreservesCardsTagsAndSelection() async {
     let repository = TagRepositoryFake(
         Tag.fixtures,

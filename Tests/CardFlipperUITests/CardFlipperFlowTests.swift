@@ -119,6 +119,39 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("library-primary-actions")
     }
 
+    func testEmptyLibraryOffersAddAndImportAsVisibleActions() {
+        launch(seed: false)
+
+        let add = app.descendants(matching: .any)["library.add"]
+        let importCards = app.descendants(matching: .any)["library.import"]
+        XCTAssertTrue(add.waitForExistence(timeout: 3))
+        XCTAssertTrue(importCards.waitForExistence(timeout: 3))
+        XCTAssertTrue(add.isHittable)
+        XCTAssertTrue(importCards.isHittable)
+        XCTAssertEqual(importCards.label, "Import Cards")
+        snap("library-empty-actions")
+    }
+
+    func testTagManagementShowsLifecycleActionsAndAffectedCardCount() {
+        launch(seed: true)
+
+        tap("library.tags.manage")
+        XCTAssertTrue(app.navigationBars["Manage Tags"].waitForExistence(timeout: 3))
+        assertExists("tag.create.name")
+        assertExists("tag.create")
+
+        let basics = app.buttons["tag.manage.00000000-0000-0000-0000-000000000100"]
+        XCTAssertTrue(basics.waitForExistence(timeout: 3))
+        XCTAssertTrue(basics.label.contains("Основы"))
+        XCTAssertTrue(basics.label.contains("3 cards"))
+        basics.tap()
+
+        XCTAssertTrue(app.buttons["Rename Tag"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Merge Tag"].exists)
+        XCTAssertTrue(app.buttons["Delete Tag"].exists)
+        snap("tag-management-detail")
+    }
+
     func testLearningStatusIsVisibleAndCanBeUndone() {
         launch(seed: true)
 

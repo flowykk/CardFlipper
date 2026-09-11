@@ -485,12 +485,12 @@ public protocol StudySessionStore: Sendable {
 - Tags: create, rename, merge, delete, affected-card count.
 - Long tag labels wrap and expose full accessibility value.
 
-- [ ] Добавить UI-tests для Add/Import с empty library.
-- [ ] Добавить repository/model tests для rename/merge/delete, включая одинаковые normalized names.
-- [ ] Создать явный Tag Management destination вместо `ellipsis.circle`-only affordance.
-- [ ] Перед merge/delete показывать количество затрагиваемых карточек.
-- [ ] Убрать `.lineLimit(1)` из tag chips и проверить AX sizes.
-- [ ] Добавить optional sample-card action только если это не смешивает demo и реальные данные без явного согласия.
+- [x] Добавить UI-tests для Add/Import с empty library.
+- [x] Добавить repository/model tests для rename/merge/delete, включая одинаковые normalized names.
+- [x] Создать явный Tag Management destination вместо `ellipsis.circle`-only affordance.
+- [x] Перед merge/delete показывать количество затрагиваемых карточек.
+- [x] Убрать `.lineLimit(1)` из tag chips и проверить AX sizes.
+- [x] Не добавлять sample-card action: он смешивал бы demo и реальные данные без явного согласия.
 
 **Acceptance:** import доступен без захода в Settings; tag lifecycle выполняется явно; длинные названия не теряются; merge/delete не повреждают cards/learned state.
 
