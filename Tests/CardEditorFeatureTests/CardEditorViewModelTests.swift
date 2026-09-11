@@ -22,6 +22,34 @@ import Testing
 }
 
 @MainActor
+@Test func pristineEditorDoesNotExposeValidationErrorsUntilSaveIsAttempted() async {
+    let model = makeNewEditor()
+
+    #expect(!model.validationErrors.isEmpty)
+    #expect(model.displayedValidationErrors.isEmpty)
+    #expect(!model.hasAttemptedSave)
+
+    let outcome = await model.save()
+
+    #expect(outcome == .invalid)
+    #expect(model.hasAttemptedSave)
+    #expect(model.displayedValidationErrors == model.validationErrors)
+}
+
+@MainActor
+@Test func existingAdvancedMetadataStartsExpanded() {
+    let model = CardEditorViewModel.edit(
+        card: .duplicate,
+        cards: CardRepositoryFake(),
+        tags: TagRepositoryFake(),
+        dictionary: DictionaryServiceFake(),
+        speech: SpeechServiceSpy()
+    )
+
+    #expect(model.expandedMetadataVariantIDs == [model.englishVariants[0].id])
+}
+
+@MainActor
 @Test func editingLoadsAllValuesAndTagSelectionsInOrder() {
     let model = CardEditorViewModel.edit(
         card: .duplicate,
@@ -229,6 +257,61 @@ import Testing
 }
 
 @MainActor
+@Test func editorDirtyStateTracksUserContentAndCanBeDiscarded() {
+    let model = makeNewEditor()
+
+    #expect(!model.isDirty)
+    #expect(model.canDismissWithoutConfirmation)
+
+    model.russianMeanings[0].text = "слово"
+
+    #expect(model.isDirty)
+    #expect(!model.canDismissWithoutConfirmation)
+
+    model.discardChanges()
+
+    #expect(!model.isPresented)
+    #expect(model.canDismissWithoutConfirmation)
+}
+
+@MainActor
+@Test func overlappingSaveIsRejectedWhileFirstSaveContinues() async {
+    let cards = CardRepositoryFake()
+    cards.suspendsDuplicateCheck = true
+    let model = makeNewEditor(cards: cards)
+    model.russianMeanings = [.init(text: "слово")]
+    model.englishVariants = [.init(text: "word")]
+
+    let firstSave = Task { await model.save() }
+    #expect(await waitUntil { await cards.hasSuspendedDuplicateCheck })
+    #expect(model.isSaving)
+
+    let overlappingOutcome = await model.save()
+    cards.resumeDuplicateCheck()
+    let firstOutcome = await firstSave.value
+
+    #expect(overlappingOutcome == .failed)
+    #expect(firstOutcome == .saved)
+    #expect(cards.savedCards.count == 1)
+    #expect(!model.isSaving)
+}
+
+@MainActor
+@Test func newCardKeepsStableIdentifierAcrossFailedSaveAndRetry() async throws {
+    let cards = CardRepositoryFake(saveError: .save)
+    let model = makeNewEditor(cards: cards)
+    model.russianMeanings = [.init(text: "слово")]
+    model.englishVariants = [.init(text: "word")]
+
+    #expect(await model.save() == .failed)
+    cards.saveError = nil
+    #expect(await model.save() == .saved)
+
+    #expect(cards.attemptedCards.count == 2)
+    #expect(cards.attemptedCards[0].id == cards.attemptedCards[1].id)
+}
+
+@MainActor
 @Test func duplicateRequiresExplicitConfirmation() async {
     let cards = CardRepositoryFake(duplicateResult: [.duplicate])
     let model = makeNewEditor(cards: cards)
@@ -351,6 +434,80 @@ import Testing
     #expect(model.englishVariants[1].ipa == "wɜːd")
     #expect(model.englishVariants[1].partsOfSpeech == [.noun])
     #expect(model.lookupState[variantID] == .suggested)
+}
+
+@MainActor
+@Test func delayedLookupDoesNotOverwriteUserEditedIPAOrPartsOfSpeech() async {
+    let dictionary = ControlledDictionaryService()
+    let model = makeNewEditor(dictionary: dictionary)
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0].text = "word"
+    let lookup = Task { await model.lookup(variantID: variantID) }
+    #expect(await waitUntil { await dictionary.hasRequest(for: "word") })
+
+    model.englishVariants[0].ipa = "manual"
+    model.markIPAUserEdited(variantID: variantID)
+    model.englishVariants[0].partsOfSpeech = [.verb]
+    model.markPartsOfSpeechUserEdited(variantID: variantID)
+    await dictionary.resolve(
+        "word",
+        with: .init(ipa: "wɜːd", partOfSpeech: .noun)
+    )
+    await lookup.value
+
+    #expect(model.englishVariants[0].ipa == "manual")
+    #expect(model.englishVariants[0].partsOfSpeech == [.verb])
+    #expect(model.lookupState[variantID] == .conflict)
+    #expect(model.pendingDictionarySuggestions[variantID] == .init(
+        ipa: "wɜːd",
+        partOfSpeech: .noun
+    ))
+}
+
+@MainActor
+@Test func suggestionFillsEmptyFieldsAndCanReplaceItsPreviousSuggestion() async {
+    let dictionary = ControlledDictionaryService()
+    let model = makeNewEditor(dictionary: dictionary)
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0].text = "word"
+
+    let firstLookup = Task { await model.lookup(variantID: variantID) }
+    #expect(await waitUntil { await dictionary.hasRequest(for: "word") })
+    await dictionary.resolve("word", with: .init(ipa: "first", partOfSpeech: .noun))
+    await firstLookup.value
+
+    let secondLookup = Task { await model.lookup(variantID: variantID) }
+    #expect(await waitUntil { await dictionary.hasRequest(for: "word") })
+    await dictionary.resolve("word", with: .init(ipa: "second", partOfSpeech: .adj))
+    await secondLookup.value
+
+    #expect(model.englishVariants[0].ipa == "second")
+    #expect(model.englishVariants[0].partsOfSpeech == [.adj])
+    #expect(model.lookupState[variantID] == .suggested)
+    #expect(model.pendingDictionarySuggestions[variantID] == nil)
+}
+
+@MainActor
+@Test func userCanExplicitlyApplyAConflictingSuggestion() async {
+    let dictionary = DictionaryServiceFake(
+        result: .success(.init(ipa: "wɜːd", partOfSpeech: .noun))
+    )
+    let model = makeNewEditor(dictionary: dictionary)
+    let variantID = model.englishVariants[0].id
+    model.englishVariants[0] = .init(
+        id: variantID,
+        text: "word",
+        ipa: "manual",
+        partsOfSpeech: [.verb]
+    )
+
+    await model.lookup(variantID: variantID)
+    model.useDictionarySuggestion(variantID: variantID)
+
+    #expect(model.englishVariants[0].ipa == "wɜːd")
+    #expect(model.englishVariants[0].partsOfSpeech == [.noun])
+    #expect(model.lookupState[variantID] == .suggested)
+    #expect(model.pendingDictionarySuggestions[variantID] == nil)
 }
 
 @MainActor

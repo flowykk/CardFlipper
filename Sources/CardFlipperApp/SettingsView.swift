@@ -1,20 +1,25 @@
+import DesignSystem
 import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Bindable var settings: AppearanceSettings
     @Bindable var iconSettings: AppIconSettings
+    let isPreparingExport: Bool
     let onExportCards: () -> Void
     let onImportCards: () -> Void
 
     init(
         settings: AppearanceSettings,
         iconSettings: AppIconSettings,
+        isPreparingExport: Bool = false,
         onExportCards: @escaping () -> Void = {},
         onImportCards: @escaping () -> Void = {}
     ) {
         _settings = Bindable(wrappedValue: settings)
         _iconSettings = Bindable(wrappedValue: iconSettings)
+        self.isPreparingExport = isPreparingExport
         self.onExportCards = onExportCards
         self.onImportCards = onImportCards
     }
@@ -46,10 +51,11 @@ struct SettingsView: View {
                                     isPending: icon == iconSettings.pendingIcon
                                 )
                             }
-                            .frame(width: 88)
+                            .frame(width: iconTileWidth)
                             .buttonStyle(.plain)
                             .disabled(iconSettings.isChanging || !iconSettings.supportsAlternateIcons)
                             .accessibilityLabel(Text(icon.titleKey))
+                            .accessibilityValue(iconAccessibilityValue(icon))
                             .accessibilityIdentifier(icon.accessibilityIdentifier)
                             .accessibilityAddTraits(icon == iconSettings.selectedIcon ? .isSelected : [])
                         }
@@ -64,15 +70,26 @@ struct SettingsView: View {
             } footer: {
                 if !iconSettings.supportsAlternateIcons {
                     Text("settings.icon.unsupported")
+                } else if iconSettings.errorMessage != nil {
+                    Label("settings.icon.error.message", systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
                 }
             }
 
             Section("settings.cards") {
                 Button(action: onExportCards) {
-                    Label("settings.cards.export", systemImage: "square.and.arrow.up")
+                    if isPreparingExport {
+                        HStack {
+                            ProgressView()
+                            Text("settings.cards.export.preparing")
+                        }
+                    } else {
+                        Label("settings.cards.export", systemImage: AppSymbol.exportCards)
+                    }
                 }
+                .disabled(isPreparingExport)
                 Button(action: onImportCards) {
-                    Label("settings.cards.import", systemImage: "square.and.arrow.down")
+                    Label("settings.cards.import", systemImage: AppSymbol.importCards)
                 }
             }
         }
@@ -89,15 +106,36 @@ struct SettingsView: View {
             Text(iconSettings.errorMessage ?? "")
         }
     }
+
+    private var iconTileWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 240 : 88 }
+
+    private func iconAccessibilityValue(_ icon: AppIconSettings.AppIcon) -> Text {
+        if icon == iconSettings.pendingIcon { return Text("settings.icon.pending") }
+        if icon == iconSettings.selectedIcon { return Text("settings.icon.selected") }
+        return Text("")
+    }
 }
 
 private struct AppIconPreview: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let icon: AppIconSettings.AppIcon
     let isSelected: Bool
     let isPending: Bool
 
     var body: some View {
-        VStack(spacing: 8) {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                HStack(spacing: 12) { previewImage; title }
+            } else {
+                VStack(spacing: 8) { previewImage; title }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+    }
+
+    private var previewImage: some View {
             Image(icon.previewAssetName)
                 .resizable()
                 .scaledToFit()
@@ -121,13 +159,13 @@ private struct AppIconPreview: View {
                             .background(.background, in: Circle())
                     }
                 }
-            Text(icon.titleKey)
-                .font(.caption)
-                .foregroundStyle(isSelected ? Color.accentColor : .primary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .ignore)
+    }
+
+    private var title: some View {
+        Text(icon.titleKey)
+            .font(.caption)
+            .foregroundStyle(.primary)
+            .multilineTextAlignment(dynamicTypeSize.isAccessibilitySize ? .leading : .center)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }

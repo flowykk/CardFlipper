@@ -26,6 +26,20 @@ public struct VocabularyCardRow: View {
                 )
             }
 
+            Label(
+                card.isLearned ? "learningFilter.learned" : "learningFilter.unlearned",
+                systemImage: card.isLearned ? "checkmark.circle.fill" : "circle.dashed"
+            )
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(card.isLearned ? Color.accentColor : .secondary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                card.isLearned ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.10),
+                in: Capsule()
+            )
+            .accessibilityIdentifier("library.card.learningStatus")
+
             if !card.tags.isEmpty {
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 6) {
@@ -41,6 +55,9 @@ public struct VocabularyCardRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
+        .accessibilityValue(
+            Text(card.isLearned ? "learningFilter.learned" : "learningFilter.unlearned")
+        )
     }
 
     @ViewBuilder

@@ -29,7 +29,7 @@ let project = Project(
             infoPlist: .default,
             sources: ["Sources/StatisticsFeature/**"],
             resources: ["Resources/StatisticsFeature/**"],
-            dependencies: [.target(name: "Core")]
+            dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]
         ),
         .target(
             name: "StudyTimerWidgetExtension",
@@ -54,6 +54,7 @@ let project = Project(
         ),
         .tests(name: "CoreTests", host: "Core"),
         .tests(name: "DataTests", host: "Data"),
+        .tests(name: "DesignSystemTests", host: "DesignSystem"),
         .tests(name: "LibraryFeatureTests", host: "LibraryFeature"),
         .tests(name: "CardEditorFeatureTests", host: "CardEditorFeature"),
         .tests(name: "StudyFeatureTests", host: "StudyFeature"),
@@ -61,7 +62,7 @@ let project = Project(
         .tests(
             name: "CardFlipperAppTests",
             host: "CardFlipper",
-            dependencies: ["Core", "Data", "LibraryFeature", "StudyFeature", "StatisticsFeature"]
+            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "StudyFeature", "StatisticsFeature"]
         ),
         .uiTests(name: "CardFlipperUITests", host: "CardFlipper"),
     ],
@@ -73,6 +74,7 @@ let project = Project(
             testAction: .targets([
                 "CoreTests",
                 "DataTests",
+                "DesignSystemTests",
                 "LibraryFeatureTests",
                 "CardEditorFeatureTests",
                 "StudyFeatureTests",

@@ -121,6 +121,73 @@ import Testing
 }
 
 @MainActor
+@Test func renamingTagPreservesIdentityAndCardState() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let repositories = TestRepositories(container: container)
+    let work = try await repositories.tags.create(name: "Work")
+    let card = VocabularyCard.fixture(tag: work, isLearned: true)
+    try await repositories.cards.save(card)
+
+    let renamed = try await repositories.tags.rename(id: work.id, name: "Deep Work")
+    let fetchedCards = try await repositories.cards.fetchCards()
+    let fetchedCard = try #require(fetchedCards.first)
+
+    #expect(renamed == Tag(id: work.id, name: "Deep Work"))
+    #expect(fetchedCard.tags == [renamed])
+    #expect(fetchedCard.isLearned)
+    #expect(fetchedCard.createdAt == card.createdAt)
+    #expect(fetchedCard.updatedAt == card.updatedAt)
+}
+
+@MainActor
+@Test func renamingToAnExistingNormalizedNameReportsConflict() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let repository = SwiftDataTagRepository(container: container)
+    let work = try await repository.create(name: "Work")
+    let exam = try await repository.create(name: "Exam Prep")
+
+    do {
+        _ = try await repository.rename(id: work.id, name: "  exam   prep ")
+        Issue.record("Expected duplicate tag name to be rejected")
+    } catch let error as TagRepositoryError {
+        #expect(error == .duplicateName(existingTagID: exam.id))
+    }
+    let tags = try await repository.fetchTags()
+    #expect(tags == [exam, work])
+}
+
+@MainActor
+@Test func mergingTagsMovesCardsWithoutDuplicatesOrStateLoss() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let repositories = TestRepositories(container: container)
+    let work = try await repositories.tags.create(name: "Work")
+    let exam = try await repositories.tags.create(name: "Exam")
+    let sourceOnly = VocabularyCard.fixture(tag: work, isLearned: true)
+    let both = VocabularyCard.singleValueFixture(
+        id: TestIDs.secondCard,
+        russianMeaningID: TestIDs.secondRussianMeaning,
+        englishVariantID: TestIDs.secondEnglishVariant,
+        russian: "экзамен",
+        english: "exam",
+        updatedAt: TestDates.updated
+    ).updating(tags: [work, exam], isLearned: true)
+    try await repositories.cards.save(sourceOnly)
+    try await repositories.cards.save(both)
+
+    try await repositories.tags.merge(id: work.id, into: exam.id)
+
+    let tags = try await repositories.tags.fetchTags()
+    #expect(tags == [exam])
+    let cards = try await repositories.cards.fetchCards()
+    let allCardsHaveDestinationTag = cards.allSatisfy { $0.tags == [exam] }
+    let allCardsRemainLearned = cards.allSatisfy(\.isLearned)
+    #expect(allCardsHaveDestinationTag)
+    #expect(allCardsRemainLearned)
+    #expect(cards.first(where: { $0.id == sourceOnly.id })?.updatedAt == sourceOnly.updatedAt)
+    #expect(cards.first(where: { $0.id == both.id })?.updatedAt == both.updatedAt)
+}
+
+@MainActor
 @Test func createdTagSurvivesRecreatingADiskBackedContainer() async throws {
     let directory = FileManager.default.temporaryDirectory
         .appendingPathComponent("CardFlipperTagPersistence-\(UUID().uuidString)")

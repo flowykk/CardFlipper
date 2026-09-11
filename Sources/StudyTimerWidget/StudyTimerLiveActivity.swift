@@ -45,7 +45,13 @@ struct StudyTimerLiveActivity: Widget {
     }
 
     private func display(_ state: StudyTimerActivityAttributes.ContentState) -> String {
-        "\(StudyDurationFormatter.string(seconds: state.dailyElapsedSeconds)) / +\(StudyDurationFormatter.string(seconds: state.sessionElapsedSeconds))"
+        StudyTimerCopy.summary(
+            StudyTimerSnapshot(
+                todayElapsedSeconds: state.dailyElapsedSeconds,
+                sessionElapsedSeconds: state.sessionElapsedSeconds,
+                isVisible: true
+            )
+        )
     }
 
     private func statusKey(_ phase: StudyTimerActivityAttributes.Phase) -> LocalizedStringKey {

@@ -30,6 +30,9 @@ public final class LibraryViewModel {
     public var pendingTagDeletion: Tag?
     public private(set) var deletionFailure: LibraryDeletionFailure?
     public private(set) var learningStatusFailure: VocabularyCard?
+    public private(set) var undoAction: LibraryUndoAction?
+    public private(set) var undoFailed = false
+    public private(set) var tagMutationFailed = false
 
     private let cardRepository: any CardRepository
     private let tagRepository: any TagRepository
@@ -63,6 +66,8 @@ public final class LibraryViewModel {
             let loadedTags = try await tagRepository.fetchTags()
             cards = loadedCards
             tags = loadedTags
+            undoAction = nil
+            undoFailed = false
             selectedTagIDs.formIntersection(loadedTags.map(\.id))
             state = .loaded
         } catch {
@@ -79,6 +84,8 @@ public final class LibraryViewModel {
             try await cardRepository.delete(id: card.id)
             cards.removeAll { $0.id == card.id }
             pendingDeletion = nil
+            undoAction = .deletedCard(card)
+            undoFailed = false
             return true
         } catch {
             deletionFailure = .card
@@ -106,6 +113,77 @@ public final class LibraryViewModel {
 
     public func dismissDeletionFailure() {
         deletionFailure = nil
+    }
+
+    public func affectedCardCount(for tagID: UUID) -> Int {
+        cards.count { card in card.tags.contains(where: { $0.id == tagID }) }
+    }
+
+    @discardableResult
+    public func createTag(name: String) async -> Bool {
+        tagMutationFailed = false
+        do {
+            let tag = try await tagRepository.create(name: name)
+            if !tags.contains(where: { $0.id == tag.id }) {
+                tags.append(tag)
+                tags.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            }
+            return true
+        } catch {
+            tagMutationFailed = true
+            return false
+        }
+    }
+
+    @discardableResult
+    public func renameTag(id: UUID, name: String) async -> Bool {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return false }
+        tagMutationFailed = false
+        do {
+            let renamed = try await tagRepository.rename(id: id, name: trimmedName)
+            tags = tags.map { $0.id == id ? renamed : $0 }
+            tags.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            cards = cards.map { card in
+                card.updating(tags: card.tags.map { $0.id == id ? renamed : $0 })
+            }
+            return true
+        } catch {
+            tagMutationFailed = true
+            return false
+        }
+    }
+
+    @discardableResult
+    public func mergeTag(id sourceID: UUID, into destinationID: UUID) async -> Bool {
+        guard sourceID != destinationID,
+              let destination = tags.first(where: { $0.id == destinationID }) else {
+            return false
+        }
+        tagMutationFailed = false
+        do {
+            try await tagRepository.merge(id: sourceID, into: destinationID)
+            tags.removeAll { $0.id == sourceID }
+            selectedTagIDs.remove(sourceID)
+            cards = cards.map { card in
+                var mergedTags: [Tag] = []
+                for tag in card.tags {
+                    let resolved = tag.id == sourceID ? destination : tag
+                    if !mergedTags.contains(where: { $0.id == resolved.id }) {
+                        mergedTags.append(resolved)
+                    }
+                }
+                return card.updating(tags: mergedTags)
+            }
+            return true
+        } catch {
+            tagMutationFailed = true
+            return false
+        }
+    }
+
+    public func dismissTagMutationFailure() {
+        tagMutationFailed = false
     }
 
     public func beginBulkTagSelection() {
@@ -164,6 +242,8 @@ public final class LibraryViewModel {
             try await cardRepository.save(updatedCard)
             guard let index = cards.firstIndex(where: { $0.id == card.id }) else { return false }
             cards[index] = updatedCard
+            undoAction = .learningStatus(cardID: card.id, previousValue: card.isLearned)
+            undoFailed = false
             return true
         } catch {
             learningStatusFailure = card
@@ -174,44 +254,60 @@ public final class LibraryViewModel {
     public func dismissLearningStatusFailure() {
         learningStatusFailure = nil
     }
+
+    @discardableResult
+    public func performUndo() async -> Bool {
+        guard let undoAction else { return false }
+        undoFailed = false
+
+        do {
+            switch undoAction {
+            case let .learningStatus(cardID, previousValue):
+                guard let index = cards.firstIndex(where: { $0.id == cardID }) else {
+                    self.undoAction = nil
+                    return false
+                }
+                let restoredCard = cards[index].updatingLearningStatus(
+                    previousValue,
+                    updatedAt: Date()
+                )
+                try await cardRepository.save(restoredCard)
+                cards[index] = restoredCard
+
+            case let .deletedCard(card):
+                try await cardRepository.save(card)
+                if !cards.contains(where: { $0.id == card.id }) {
+                    cards.append(card)
+                }
+            }
+
+            self.undoAction = nil
+            return true
+        } catch {
+            undoFailed = true
+            return false
+        }
+    }
+
+    public func dismissUndo() {
+        undoAction = nil
+        undoFailed = false
+    }
 }
 
 private extension VocabularyCard {
     func removingTag(id tagID: UUID) -> VocabularyCard {
-        VocabularyCard(
-            id: id,
-            russianMeanings: russianMeanings,
-            englishVariants: englishVariants,
-            tags: tags.filter { $0.id != tagID },
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            isLearned: isLearned
-        )
+        updating(tags: tags.filter { $0.id != tagID })
     }
 
     func updatingLearningStatus(_ isLearned: Bool, updatedAt: Date) -> VocabularyCard {
-        VocabularyCard(
-            id: id,
-            russianMeanings: russianMeanings,
-            englishVariants: englishVariants,
-            tags: tags,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            isLearned: isLearned
-        )
+        updating(isLearned: isLearned, updatedAt: updatedAt)
     }
 
     func addingTags(_ tagsToAdd: [Tag]) -> VocabularyCard {
         let existingIDs = Set(tags.map(\.id))
         let uniqueTagsToAdd = tagsToAdd.filter { !existingIDs.contains($0.id) }
         guard !uniqueTagsToAdd.isEmpty else { return self }
-        return VocabularyCard(
-            id: id,
-            russianMeanings: russianMeanings,
-            englishVariants: englishVariants,
-            tags: tags + uniqueTagsToAdd,
-            createdAt: createdAt,
-            updatedAt: updatedAt
-        )
+        return updating(tags: tags + uniqueTagsToAdd)
     }
 }

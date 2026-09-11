@@ -8,14 +8,17 @@ enum AppTestError: Error {
 @MainActor
 final class AppCardRepositoryFake: CardRepository {
     var fetchedCards: [VocabularyCard]
+    var fetchError: Error?
     private(set) var fetchCount = 0
 
-    init(_ cards: [VocabularyCard] = []) {
+    init(_ cards: [VocabularyCard] = [], fetchError: Error? = nil) {
         fetchedCards = cards
+        self.fetchError = fetchError
     }
 
     func fetchCards() async throws -> [VocabularyCard] {
         fetchCount += 1
+        if let fetchError { throw fetchError }
         return fetchedCards
     }
 
@@ -56,6 +59,29 @@ struct AppDictionaryServiceFake: DictionaryService {
 @MainActor
 final class AppSpeechServiceFake: SpeechService {
     func speak(_ text: String) {}
+}
+
+@MainActor
+final class AppStudySessionStoreFake: StudySessionStore {
+    var snapshot: StudySessionSnapshot?
+    private(set) var saveCount = 0
+    private(set) var clearCount = 0
+
+    init(snapshot: StudySessionSnapshot? = nil) {
+        self.snapshot = snapshot
+    }
+
+    func load() -> StudySessionSnapshot? { snapshot }
+
+    func save(_ snapshot: StudySessionSnapshot) {
+        self.snapshot = snapshot
+        saveCount += 1
+    }
+
+    func clear() {
+        snapshot = nil
+        clearCount += 1
+    }
 }
 
 struct AppIdentityShuffler: CardShuffler {

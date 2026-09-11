@@ -8,10 +8,12 @@ import StatisticsFeature
 struct AppLaunchConfiguration: Equatable {
     let usesInMemoryStore: Bool
     let seedsDeterministicVocabulary: Bool
+    let preservesStudySession: Bool
 
     init(arguments: [String]) {
         seedsDeterministicVocabulary = arguments.contains("-uiTestSeed")
         usesInMemoryStore = arguments.contains("-uiTesting") || seedsDeterministicVocabulary
+        preservesStudySession = arguments.contains("-uiTestPreserveStudySession")
     }
 
     static var seededCardIDs: [UUID] { UITestVocabularySeed.cardIDs }
@@ -28,6 +30,7 @@ final class AppContainer {
     let shuffler: any CardShuffler
     let statistics: any StatisticsRepository
     let dailyProgress: any DailyProgressRepository
+    let studySessionStore: any StudySessionStore
     let studyTimer: StudyTimerController
 
     convenience init() throws {
@@ -49,7 +52,20 @@ final class AppContainer {
         if configuration.seedsDeterministicVocabulary {
             try UITestVocabularySeed.insert(into: container)
         }
-        self.init(modelContainer: container)
+        if configuration.usesInMemoryStore {
+            let suiteName = "CardFlipper.UITests"
+            let defaults = UserDefaults(suiteName: suiteName)!
+            let preservedSnapshot = configuration.preservesStudySession
+                ? UserDefaultsStudySessionStore(defaults: defaults).load()
+                : nil
+            defaults.removePersistentDomain(forName: suiteName)
+            self.init(modelContainer: container, defaults: defaults)
+            if let preservedSnapshot {
+                studySessionStore.save(preservedSnapshot)
+            }
+        } else {
+            self.init(modelContainer: container)
+        }
     }
 #endif
 
@@ -65,6 +81,7 @@ final class AppContainer {
         speech = SystemSpeechService()
         shuffler = SystemCardShuffler()
         statistics = UserDefaultsStatisticsRepository(defaults: defaults)
+        studySessionStore = UserDefaultsStudySessionStore(defaults: defaults)
         let dailyProgress = UserDefaultsDailyProgressRepository(defaults: defaults)
         self.dailyProgress = dailyProgress
         studyTimer = StudyTimerController(

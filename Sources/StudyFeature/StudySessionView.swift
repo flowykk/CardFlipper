@@ -1,9 +1,13 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 public struct StudySessionView: View {
     @State private var model: StudySessionViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.scenePhase) private var scenePhase
 
     private let onRepeat: (StudyConfiguration) -> Void
     private let onFinish: () -> Void
@@ -26,7 +30,11 @@ public struct StudySessionView: View {
             if let result = model.result {
                 StudyResultView(
                     result: result,
-                    onRepeat: { onRepeat(model.repeatConfiguration) },
+                    difficultCards: model.difficultCards,
+                    dailyGoalProgress: model.dailyGoalProgress,
+                    onRepeatDifficult: model.difficultRepeatConfiguration.map { configuration in
+                        { onRepeat(configuration) }
+                    },
                     onFinish: onFinish
                 )
             } else {
@@ -63,6 +71,19 @@ public struct StudySessionView: View {
         .onChange(of: model.result) { _, result in
             if let result {
                 onComplete(result)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                model.persistSnapshot()
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if model.result == nil, model.canAssess {
+                assessmentActions
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .background(.bar)
             }
         }
     }
@@ -103,13 +124,6 @@ public struct StudySessionView: View {
                 }
 
                 if model.canAssess {
-                    assessmentActions
-                        .transition(
-                            reduceMotion
-                                ? .opacity
-                                : .move(edge: .bottom).combined(with: .opacity)
-                        )
-
                     if model.hasUsageExamples {
                         StudyUsageExamplesView(
                             variants: model.session.currentCard?.englishVariants ?? [],
@@ -132,24 +146,34 @@ public struct StudySessionView: View {
     }
 
     private var assessmentActions: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 12) {
-                forgetButton
-                rememberButton
-            }
-
-            VStack(spacing: 12) {
-                rememberButton
-                forgetButton
+        Group {
+            if AdaptiveControlLayout.usesVerticalControls(
+                dynamicTypeSize: dynamicTypeSize,
+                horizontalSizeClass: horizontalSizeClass
+            ) {
+                VStack(spacing: 8) {
+                    rememberButton
+                    forgetButton
+                }
+            } else {
+                HStack(spacing: 12) {
+                    forgetButton
+                    rememberButton
+                }
             }
         }
+        .transition(
+            reduceMotion
+                ? .opacity
+                : .move(edge: .bottom).combined(with: .opacity)
+        )
     }
 
     private var forgetButton: some View {
         Button {
             try? model.forget()
         } label: {
-            Label("study.forget", systemImage: "arrow.uturn.backward.circle.fill")
+            Label("study.forget", systemImage: AppSymbol.repeatedCards)
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.bordered)

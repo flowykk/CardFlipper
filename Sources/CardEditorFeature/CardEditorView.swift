@@ -5,6 +5,7 @@ import SwiftUI
 public struct CardEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var model: CardEditorViewModel
+    @State private var isDiscardConfirmationPresented = false
 
     private let onSaved: @MainActor () async -> Void
     private let onCancel: () -> Void
@@ -26,15 +27,16 @@ public struct CardEditorView: View {
             Form {
                 RussianMeaningsSection(
                     meanings: $model.russianMeanings,
-                    showsValidationError: model.validationErrors.contains(.missingRussianMeaning),
+                    showsValidationError: model.displayedValidationErrors.contains(.missingRussianMeaning),
                     onAdd: model.addRussianMeaning,
                     onRemove: model.removeRussianMeaning
                 )
 
                 EnglishVariantsSection(
                     variants: $model.englishVariants,
+                    expandedMetadataVariantIDs: $model.expandedMetadataVariantIDs,
                     lookupState: model.lookupState,
-                    showsValidationError: model.validationErrors.contains(.missingEnglishVariant),
+                    showsValidationError: model.displayedValidationErrors.contains(.missingEnglishVariant),
                     onAdd: model.addEnglishVariant,
                     onRemove: model.removeEnglishVariant,
                     onTextChanged: model.scheduleLookup,
@@ -42,11 +44,14 @@ public struct CardEditorView: View {
                         Task { await model.lookup(variantID: variantID) }
                     },
                     onSpeak: model.speak,
+                    onIPAChanged: model.markIPAUserEdited,
+                    onToggleMetadata: model.toggleMetadata,
                     onTogglePartOfSpeech: model.togglePartOfSpeech,
                     onAddUsageExample: model.addUsageExample,
                     onRemoveUsageExample: model.removeUsageExample,
                     onSpeakUsageExample: model.speakUsageExample,
-                    onChooseUsageExamplePart: model.chooseUsageExamplePartOfSpeech
+                    onChooseUsageExamplePart: model.chooseUsageExamplePartOfSpeech,
+                    onUseSuggestion: model.useDictionarySuggestion
                 )
 
                 TagPickerSection(
@@ -75,18 +80,34 @@ public struct CardEditorView: View {
                     }
                 }
             }
+            .scrollDismissesKeyboard(.immediately)
             .accessibilityIdentifier("editor.root")
             .navigationTitle("editor.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("common.cancel", action: cancel)
-                        .accessibilityIdentifier("editor.cancel")
+                    Button(action: cancel) {
+                        Label("common.cancel", systemImage: "xmark")
+                            .labelStyle(.iconOnly)
+                            .frame(minWidth: 44, minHeight: 44)
+                    }
+                    .accessibilityLabel("common.cancel")
+                    .accessibilityIdentifier("editor.cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("common.save") {
+                    Button {
                         Task { await save() }
+                    } label: {
+                        if model.isSaving {
+                            ProgressView()
+                        } else {
+                            Label("common.save", systemImage: "checkmark")
+                                .labelStyle(.iconOnly)
+                        }
                     }
+                    .frame(minWidth: 44, minHeight: 44)
+                    .disabled(model.isSaving)
+                    .accessibilityLabel("common.save")
                     .accessibilityIdentifier("editor.save")
                 }
             }
@@ -101,10 +122,22 @@ public struct CardEditorView: View {
             } message: {
                 Text("editor.duplicate.message")
             }
+            .alert(
+                "editor.discard.title",
+                isPresented: $isDiscardConfirmationPresented
+            ) {
+                Button("editor.discard.confirm", role: .destructive) {
+                    discardAndDismiss()
+                }
+                Button("editor.discard.continue", role: .cancel) {}
+            } message: {
+                Text("editor.discard.message")
+            }
             .task {
                 await model.loadTags()
             }
         }
+        .interactiveDismissDisabled(model.isDirty && !model.didSave)
         .onDisappear {
             model.cancelLookupOperations()
         }
@@ -127,7 +160,15 @@ public struct CardEditorView: View {
     }
 
     private func cancel() {
-        model.cancel()
+        guard model.canDismissWithoutConfirmation else {
+            isDiscardConfirmationPresented = true
+            return
+        }
+        discardAndDismiss()
+    }
+
+    private func discardAndDismiss() {
+        model.discardChanges()
         onCancel()
         dismiss()
     }

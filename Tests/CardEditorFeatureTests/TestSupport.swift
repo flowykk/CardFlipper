@@ -16,6 +16,7 @@ final class CardRepositoryFake: CardRepository {
     var saveError: EditorTestError?
     var suspendsDuplicateCheck = false
     private(set) var savedCards: [VocabularyCard] = []
+    private(set) var attemptedCards: [VocabularyCard] = []
     private(set) var duplicateDrafts: [CardDraft] = []
     private(set) var duplicateExclusions: [UUID?] = []
     private var duplicateContinuation: CheckedContinuation<[VocabularyCard], Error>?
@@ -33,6 +34,7 @@ final class CardRepositoryFake: CardRepository {
     func fetchCards() async throws -> [VocabularyCard] { [] }
 
     func save(_ card: VocabularyCard) async throws {
+        attemptedCards.append(card)
         if let saveError { throw saveError }
         savedCards.append(card)
     }

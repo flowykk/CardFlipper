@@ -41,7 +41,7 @@ public struct StudySetupView: View {
 
             Section {
                 if model.tags.isEmpty {
-                    Label("study.allCards", systemImage: "rectangle.stack")
+                    Label("study.allCards", systemImage: AppSymbol.library)
                 } else {
                     ForEach(model.tags) { tag in
                         tagButton(tag)
@@ -69,6 +69,7 @@ public struct StudySetupView: View {
                     onStart(configuration)
                 } label: {
                     Label("study.start", systemImage: "play.fill")
+                        .foregroundStyle(.white)
                 }
                 .buttonStyle(PrimaryActionButtonStyle())
                 .disabled(!model.canStart)

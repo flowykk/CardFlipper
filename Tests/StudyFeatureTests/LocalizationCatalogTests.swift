@@ -18,19 +18,26 @@ import Testing
     }
 }
 
-@Test func resultExtraAttemptsCopyIsAccuratelyPluralizedInEnglishAndRussian() throws {
-    let values = try loadPluralCatalogValues(key: "study.result.extraAttempts")
+@Test func resultRepeatedCardsCopyIsAccuratelyPluralizedInEnglishAndRussian() throws {
+    let values = try loadPluralCatalogValues(key: "study.result.cardsRepeated")
 
     #expect(values["en"] == [
-        "one": "%lld extra attempt",
-        "other": "%lld extra attempts",
+        "one": "%lld card repeated",
+        "other": "%lld cards repeated",
     ])
     #expect(values["ru"] == [
-        "one": "%lld дополнительная попытка",
-        "few": "%lld дополнительные попытки",
-        "many": "%lld дополнительных попыток",
-        "other": "%lld дополнительной попытки",
+        "one": "%lld карточка повторена",
+        "few": "%lld карточки повторены",
+        "many": "%lld карточек повторено",
+        "other": "%lld карточки повторено",
     ])
+}
+
+@Test func libraryTranslationToggleNamesTheContentItReveals() throws {
+    let values = try loadLocalizationCatalog()["library.translations.show"]
+
+    #expect(values?["en"] == "Show Russian meanings")
+    #expect(values?["ru"] == "Показывать русские значения")
 }
 
 @Test func usageExampleCountCopyIsAccuratelyPluralizedInEnglishAndRussian() throws {

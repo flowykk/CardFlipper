@@ -65,30 +65,57 @@ public enum StudyCardAnimationStyle: Equatable, Sendable {
     case crossfade
 }
 
+public enum StudyCardFaceKind: Equatable, Sendable {
+    case front
+    case back
+}
+
 public struct StudyCardPresentation: Equatable, Sendable {
-    public let cardID: UUID
-    public let isShowingAnswer: Bool
+    public let cardID: UUID?
+    public let progress: Double
     public let reduceMotion: Bool
 
     public init(cardID: UUID, isShowingAnswer: Bool, reduceMotion: Bool) {
         self.cardID = cardID
-        self.isShowingAnswer = isShowingAnswer
+        progress = isShowingAnswer ? 1 : 0
         self.reduceMotion = reduceMotion
     }
 
+    public init(progress: Double, reduceMotion: Bool) {
+        cardID = nil
+        self.progress = min(max(progress, 0), 1)
+        self.reduceMotion = reduceMotion
+    }
+
+    public var visibleFace: StudyCardFaceKind {
+        progress < 0.5 ? .front : .back
+    }
+
     public var frontRotationDegrees: Double {
-        reduceMotion ? 0 : (isShowingAnswer ? 180 : 0)
+        reduceMotion ? 0 : 180 * progress
     }
 
     public var backRotationDegrees: Double {
-        reduceMotion ? 0 : (isShowingAnswer ? 0 : -180)
+        reduceMotion ? 0 : -180 + (180 * progress)
     }
 
-    public var frontOpacity: Double { isShowingAnswer ? 0 : 1 }
-    public var backOpacity: Double { isShowingAnswer ? 1 : 0 }
-    public var isFrontAccessibilityHidden: Bool { isShowingAnswer }
-    public var isBackAccessibilityHidden: Bool { !isShowingAnswer }
-    public var viewIdentity: UUID { cardID }
+    public var frontOpacity: Double {
+        if reduceMotion {
+            return progress < 0.5 ? 1 - (progress * 2) : 0
+        }
+        return visibleFace == .front ? 1 : 0
+    }
+
+    public var backOpacity: Double {
+        if reduceMotion {
+            return progress > 0.5 ? (progress - 0.5) * 2 : 0
+        }
+        return visibleFace == .back ? 1 : 0
+    }
+
+    public var isFrontAccessibilityHidden: Bool { visibleFace == .back }
+    public var isBackAccessibilityHidden: Bool { visibleFace == .front }
+    public var viewIdentity: UUID? { cardID }
     public var animationStyle: StudyCardAnimationStyle {
         reduceMotion ? .crossfade : .flip3D
     }
@@ -108,6 +135,7 @@ public struct StudyCardView: View {
     private let onSpeak: (UUID) -> Void
 
     @AccessibilityFocusState private var focusedFace: FocusedFace?
+    @State private var flipProgress: Double
 
     public init(
         card: VocabularyCard,
@@ -123,13 +151,13 @@ public struct StudyCardView: View {
         self.reduceMotion = reduceMotion
         self.onToggle = onToggle
         self.onSpeak = onSpeak
+        _flipProgress = State(initialValue: isShowingAnswer ? 1 : 0)
     }
 
     public var body: some View {
         let content = StudyCardContent(card: card, direction: direction)
         let presentation = StudyCardPresentation(
-            cardID: card.id,
-            isShowingAnswer: isShowingAnswer,
+            progress: flipProgress,
             reduceMotion: reduceMotion
         )
 
@@ -137,9 +165,8 @@ public struct StudyCardView: View {
             face(
                 content.front,
                 isAnswer: false,
-                rotationDegrees: presentation.frontRotationDegrees,
-                opacity: presentation.frontOpacity,
-                animationStyle: presentation.animationStyle
+                kind: .front,
+                progress: flipProgress
             )
             .allowsHitTesting(!isShowingAnswer)
             .accessibilityHidden(presentation.isFrontAccessibilityHidden)
@@ -154,28 +181,36 @@ public struct StudyCardView: View {
             face(
                 content.back,
                 isAnswer: true,
-                rotationDegrees: presentation.backRotationDegrees,
-                opacity: presentation.backOpacity,
-                animationStyle: presentation.animationStyle
+                kind: .back,
+                progress: flipProgress
             )
             .allowsHitTesting(isShowingAnswer)
             .accessibilityHidden(presentation.isBackAccessibilityHidden)
             .accessibilityFocused($focusedFace, equals: .answer)
             .accessibilityAddTraits(.isButton)
-            .accessibilityHint("study.flipHint")
+            .accessibilityHint("study.hideAnswerHint")
             .accessibilityAction(.default) {
                 onToggle()
             }
             .accessibilityIdentifier("study.card.answer")
         }
-        .id(presentation.viewIdentity)
-        .frame(maxWidth: .infinity, minHeight: 320)
+        .id(card.id)
+        .frame(maxWidth: .infinity)
+        .frame(height: 360)
         .contentShape(Rectangle())
         .onTapGesture(perform: onToggle)
         .onChange(of: isShowingAnswer) { _, showingAnswer in
+            withAnimation(animation(for: presentation.animationStyle)) {
+                flipProgress = showingAnswer ? 1 : 0
+            }
             focusedFace = showingAnswer ? .answer : .prompt
         }
         .onChange(of: card.id) {
+            var transaction = Transaction()
+            transaction.animation = nil
+            withTransaction(transaction) {
+                flipProgress = 0
+            }
             focusedFace = .prompt
         }
     }
@@ -183,9 +218,8 @@ public struct StudyCardView: View {
     private func face(
         _ face: StudyCardFace,
         isAnswer: Bool,
-        rotationDegrees: Double,
-        opacity: Double,
-        animationStyle: StudyCardAnimationStyle
+        kind: StudyCardFaceKind,
+        progress: Double
     ) -> some View {
         FlashcardSurface {
             ScrollView {
@@ -199,18 +233,14 @@ public struct StudyCardView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
         }
-        .frame(minHeight: 320)
+        .frame(height: 360)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(isAnswer ? "study.answer" : "study.prompt")
-        .animation(animation(for: animationStyle)) { view in
-            view
-                .opacity(opacity)
-                .rotation3DEffect(
-                    .degrees(rotationDegrees),
-                    axis: (x: 0, y: 1, z: 0),
-                    perspective: 0.7
-                )
-        }
+        .modifier(StableStudyCardFlip(
+            progress: progress,
+            face: kind,
+            reduceMotion: reduceMotion
+        ))
     }
 
     private func animation(for style: StudyCardAnimationStyle) -> Animation {
@@ -282,5 +312,37 @@ public struct StudyCardView: View {
                     .multilineTextAlignment(.center)
             }
         }
+    }
+}
+
+private struct StableStudyCardFlip: @preconcurrency AnimatableModifier {
+    var progress: Double
+    let face: StudyCardFaceKind
+    let reduceMotion: Bool
+
+    var animatableData: Double {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        let presentation = StudyCardPresentation(
+            progress: progress,
+            reduceMotion: reduceMotion
+        )
+        let opacity = face == .front
+            ? presentation.frontOpacity
+            : presentation.backOpacity
+        let rotation = face == .front
+            ? presentation.frontRotationDegrees
+            : presentation.backRotationDegrees
+
+        content
+            .opacity(opacity)
+            .rotation3DEffect(
+                .degrees(rotation),
+                axis: (x: 0, y: 1, z: 0),
+                perspective: 0.7
+            )
     }
 }

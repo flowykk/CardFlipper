@@ -1,3 +1,4 @@
+import DesignSystem
 import Foundation
 import Observation
 import SwiftUI
@@ -7,6 +8,7 @@ import UIKit
 @Observable
 final class AppearanceSettings {
     static let storageKey = "com.danilarahmanov.CardFlipper.appearance.accentColor"
+    static let selectionKey = "com.danilarahmanov.CardFlipper.appearance.accent"
 
     private struct PersistedColor: Codable {
         let red: Double
@@ -22,27 +24,39 @@ final class AppearanceSettings {
 
     var accentColor: Color {
         didSet {
-            persist(accentColor)
+            Self.persist(accentColor, to: defaults)
+            defaults.removeObject(forKey: Self.selectionKey)
         }
     }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        accentColor = Self.restore(from: defaults) ?? Color(uiColor: .systemBlue)
+        if let savedColor = Self.restore(from: defaults) {
+            accentColor = savedColor
+        } else if
+            let id = defaults.string(forKey: Self.selectionKey),
+            let saved = AccessibleAccent.all.first(where: { $0.id == id })
+        {
+            accentColor = saved.lightColor
+            Self.persist(saved.lightColor, to: defaults)
+            defaults.removeObject(forKey: Self.selectionKey)
+        } else {
+            accentColor = Color(uiColor: .systemBlue)
+        }
     }
 
     var sRGBComponents: (red: Double, green: Double, blue: Double)? {
         Self.components(for: accentColor).map { ($0.red, $0.green, $0.blue) }
     }
 
-    private func persist(_ color: Color) {
+    private static func persist(_ color: Color, to defaults: UserDefaults) {
         guard
-            let components = Self.components(for: color),
+            let components = components(for: color),
             let data = try? JSONEncoder().encode(components)
         else {
             return
         }
-        defaults.set(data, forKey: Self.storageKey)
+        defaults.set(data, forKey: storageKey)
     }
 
     private static func restore(from defaults: UserDefaults) -> Color? {
@@ -85,4 +99,5 @@ final class AppearanceSettings {
         )
         return persisted.isValid ? persisted : nil
     }
+
 }

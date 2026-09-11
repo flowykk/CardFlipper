@@ -74,7 +74,10 @@ final class TagRepositoryFake: TagRepository {
     var fetchedTags: [Tag]
     var fetchError: Error?
     var deletionError: Error?
+    var mutationError: Error?
     private(set) var deletedIDs: [UUID] = []
+    private(set) var renameRequests: [(id: UUID, name: String)] = []
+    private(set) var mergeRequests: [(sourceID: UUID, destinationID: UUID)] = []
 
     init(
         _ tags: [Tag] = [],
@@ -102,6 +105,17 @@ final class TagRepositoryFake: TagRepository {
             throw deletionError
         }
         deletedIDs.append(id)
+    }
+
+    func rename(id: UUID, name: String) async throws -> Tag {
+        if let mutationError { throw mutationError }
+        renameRequests.append((id, name))
+        return Tag(id: id, name: name)
+    }
+
+    func merge(id: UUID, into destinationID: UUID) async throws {
+        if let mutationError { throw mutationError }
+        mergeRequests.append((id, destinationID))
     }
 }
 

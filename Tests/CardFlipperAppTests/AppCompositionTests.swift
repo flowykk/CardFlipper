@@ -1,5 +1,6 @@
 import Core
 import Data
+import DesignSystem
 import Foundation
 import StudyFeature
 import SwiftUI
@@ -28,7 +29,7 @@ import StatisticsFeature
 }
 
 @MainActor
-@Test func appearanceSettingsDefaultToSystemBlue() throws {
+@Test func appearanceSettingsDefaultToSystemAccent() throws {
     let suiteName = "AppearanceSettingsTests.default"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defaults.removePersistentDomain(forName: suiteName)
@@ -36,7 +37,7 @@ import StatisticsFeature
 
     let settings = AppearanceSettings(defaults: defaults)
     let components = try #require(settings.sRGBComponents)
-    let expected = try #require(lightSystemBlueSRGBComponents())
+    let expected = try #require(lightSRGBComponents(of: Color(uiColor: .systemBlue)))
 
     #expect(abs(components.red - expected.red) < 0.001)
     #expect(abs(components.green - expected.green) < 0.001)
@@ -52,7 +53,7 @@ import StatisticsFeature
 }
 
 @MainActor
-@Test func appearanceSettingsPersistAndRestoreOpaqueSRGBColor() throws {
+@Test func appearanceSettingsPersistAndRestoreCustomAccent() throws {
     let suiteName = "AppearanceSettingsTests.persistence"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defaults.removePersistentDomain(forName: suiteName)
@@ -69,6 +70,26 @@ import StatisticsFeature
 }
 
 @MainActor
+@Test func appearanceSettingsMigratesSelectedPresetToCustomColor() throws {
+    let suiteName = "AppearanceSettingsTests.migration"
+    let defaults = try #require(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+    defaults.set("berry", forKey: AppearanceSettings.selectionKey)
+
+    let settings = AppearanceSettings(defaults: defaults)
+    let components = try #require(settings.sRGBComponents)
+    let berry = try #require(AccessibleAccent.all.first { $0.id == "berry" })
+    let expected = try #require(lightSRGBComponents(of: berry.lightColor))
+
+    #expect(abs(components.red - expected.red) < 0.001)
+    #expect(abs(components.green - expected.green) < 0.001)
+    #expect(abs(components.blue - expected.blue) < 0.001)
+    #expect(defaults.data(forKey: AppearanceSettings.storageKey) != nil)
+    #expect(defaults.string(forKey: AppearanceSettings.selectionKey) == nil)
+}
+
+@MainActor
 @Test func appearanceSettingsRejectInvalidPersistedColor() throws {
     let suiteName = "AppearanceSettingsTests.invalid"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
@@ -78,7 +99,7 @@ import StatisticsFeature
 
     let settings = AppearanceSettings(defaults: defaults)
     let components = try #require(settings.sRGBComponents)
-    let expected = try #require(lightSystemBlueSRGBComponents())
+    let expected = try #require(lightSRGBComponents(of: Color(uiColor: .systemBlue)))
 
     #expect(abs(components.red - expected.red) < 0.001)
     #expect(abs(components.green - expected.green) < 0.001)
@@ -86,10 +107,10 @@ import StatisticsFeature
 }
 
 @MainActor
-private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blue: Double)? {
+private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double, blue: Double)? {
     guard
         let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
-        let components = UIColor.systemBlue.resolvedColor(
+        let components = UIColor(color).resolvedColor(
             with: UITraitCollection(userInterfaceStyle: .light)
         ).cgColor.converted(
             to: colorSpace,
@@ -128,6 +149,7 @@ private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blu
 
     #expect(configuration.usesInMemoryStore)
     #expect(configuration.seedsDeterministicVocabulary)
+    #expect(!configuration.preservesStudySession)
 }
 
 @Test func uiTestSeedCannotSelectThePersistentStore() {
@@ -236,6 +258,36 @@ private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blu
 }
 
 @MainActor
+@Test func exportPreparationPropagatesRepositoryFailureWithoutCreatingDocument() async {
+    let cards = AppCardRepositoryFake(fetchError: AppTestError.startup)
+    let model = makeRootModel(cards: cards)
+    var didFail = false
+
+    do {
+        _ = try await model.prepareExport()
+    } catch {
+        didFail = true
+    }
+
+    #expect(didFail)
+    #expect(cards.fetchCount == 1)
+}
+
+@MainActor
+@Test func exportPreparationReportsExactCardCount() async throws {
+    let sourceCards = [
+        VocabularyCard.appFixture(id: 1, russian: "слово", english: "word"),
+        VocabularyCard.appFixture(id: 2, russian: "книга", english: "book"),
+    ]
+    let model = makeRootModel(cards: AppCardRepositoryFake(sourceCards))
+
+    let prepared = try await model.prepareExport()
+
+    #expect(prepared.cardCount == 2)
+    #expect(prepared.document.transfer.decodedCards() == sourceCards)
+}
+
+@MainActor
 @Test func activeStudyRepeatKeepsCoverPresentedWithFreshSessionIdentity() {
     let configuration = StudyConfiguration(
         direction: .englishToRussian,
@@ -247,7 +299,7 @@ private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blu
 
     navigation.startStudy(configuration)
     let first = navigation.activeStudy
-    navigation.repeatStudy()
+    navigation.repeatStudy(configuration)
     let repeated = navigation.activeStudy
     navigation.studyPresentationDidDismiss()
 
@@ -278,6 +330,92 @@ private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blu
 }
 
 @MainActor
+@Test func loadingLibraryOffersAnInterruptedSessionWithMissingCardsRemoved() async throws {
+    let first = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let second = VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")
+    let store = AppStudySessionStoreFake(snapshot: StudySessionSnapshot(
+        direction: .englishToRussian,
+        selectedTagIDs: [],
+        originalCardIDs: [first.id, second.id],
+        queueCardIDs: [first.id, second.id],
+        isShowingAnswer: true,
+        isRevealed: true,
+        forgottenCount: 1,
+        repeatedCardIDs: [first.id],
+        totalAssessmentCount: 2,
+        accumulatedDurationSeconds: 15
+    ))
+    let model = makeRootModel(
+        cards: AppCardRepositoryFake([second]),
+        studySessionStore: store
+    )
+
+    await model.loadLibrary()
+    let resumable = try #require(model.resumableStudy)
+
+    #expect(resumable.configuration.cards == [second])
+    #expect(resumable.snapshot?.queueCardIDs == [first.id, second.id])
+
+    model.resumeInterruptedStudy()
+    #expect(model.navigation.activeStudy == resumable)
+    #expect(model.resumableStudy == nil)
+}
+
+@MainActor
+@Test func emptyInterruptedSessionIsDiscardedAndExplicitActionsClearStorage() async {
+    let missingID = UUID.appFixture(999)
+    let invalidStore = AppStudySessionStoreFake(snapshot: StudySessionSnapshot(
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        originalCardIDs: [missingID],
+        queueCardIDs: [missingID],
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 0,
+        repeatedCardIDs: [],
+        totalAssessmentCount: 0,
+        accumulatedDurationSeconds: 0
+    ))
+    let invalidModel = makeRootModel(
+        cards: AppCardRepositoryFake(),
+        studySessionStore: invalidStore
+    )
+
+    await invalidModel.loadLibrary()
+    #expect(invalidModel.resumableStudy == nil)
+    #expect(invalidStore.clearCount == 1)
+
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let validStore = AppStudySessionStoreFake(snapshot: StudySessionSnapshot(
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        originalCardIDs: [card.id],
+        queueCardIDs: [card.id],
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 0,
+        repeatedCardIDs: [],
+        totalAssessmentCount: 0,
+        accumulatedDurationSeconds: 0
+    ))
+    let validModel = makeRootModel(
+        cards: AppCardRepositoryFake([card]),
+        studySessionStore: validStore
+    )
+    await validModel.loadLibrary()
+    validModel.discardInterruptedStudy()
+    #expect(validStore.clearCount == 1)
+
+    validModel.navigation.startStudy(StudyConfiguration(
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        cards: [card]
+    ))
+    validModel.finishStudy(sessionID: validModel.navigation.activeStudy!.sessionID)
+    #expect(validStore.clearCount == 2)
+}
+
+@MainActor
 @Test func rootModelCoordinatesStudyTimerLifecycleIdempotently() {
     let defaults = UserDefaults(suiteName: "AppTimerLifecycle.\(UUID().uuidString)")!
     let progress = UserDefaultsDailyProgressRepository(defaults: defaults)
@@ -303,13 +441,17 @@ private func lightSystemBlueSRGBComponents() -> (red: Double, green: Double, blu
 }
 
 @MainActor
-private func makeRootModel(cards: AppCardRepositoryFake) -> RootViewModel {
+private func makeRootModel(
+    cards: AppCardRepositoryFake,
+    studySessionStore: any StudySessionStore = AppStudySessionStoreFake()
+) -> RootViewModel {
     RootViewModel(
         cards: cards,
         tags: AppTagRepositoryFake(),
         dictionary: AppDictionaryServiceFake(),
         speech: AppSpeechServiceFake(),
-        shuffler: AppIdentityShuffler()
+        shuffler: AppIdentityShuffler(),
+        studySessionStore: studySessionStore
     )
 }
 

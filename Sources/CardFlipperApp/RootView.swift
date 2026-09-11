@@ -1,5 +1,7 @@
 import CardEditorFeature
 import Core
+import Data
+import DesignSystem
 import LibraryFeature
 import Observation
 import StudyFeature
@@ -10,6 +12,7 @@ enum AppRoute: Hashable {
     case studySetup
     case statistics
     case settings
+    case tags
 }
 
 enum AppEditorPresentation: Equatable, Identifiable {
@@ -40,18 +43,21 @@ struct ActiveStudy: Equatable, Identifiable {
     let id: UUID
     let sessionID: UUID
     let configuration: StudyConfiguration
+    let snapshot: StudySessionSnapshot?
 
     init(
         id: UUID = UUID(),
         sessionID: UUID = UUID(),
-        configuration: StudyConfiguration
+        configuration: StudyConfiguration,
+        snapshot: StudySessionSnapshot? = nil
     ) {
         self.id = id
         self.sessionID = sessionID
         self.configuration = configuration
+        self.snapshot = snapshot
     }
 
-    func repeated() -> ActiveStudy {
+    func repeated(with configuration: StudyConfiguration) -> ActiveStudy {
         ActiveStudy(id: id, configuration: configuration)
     }
 }
@@ -87,12 +93,19 @@ final class AppNavigationState {
         }
     }
 
-    func startStudy(_ configuration: StudyConfiguration) {
-        activeStudy = ActiveStudy(configuration: configuration)
+    func startStudy(
+        _ configuration: StudyConfiguration,
+        snapshot: StudySessionSnapshot? = nil
+    ) {
+        activeStudy = ActiveStudy(configuration: configuration, snapshot: snapshot)
     }
 
-    func repeatStudy() {
-        activeStudy = activeStudy?.repeated()
+    func repeatStudy(_ configuration: StudyConfiguration) {
+        activeStudy = activeStudy?.repeated(with: configuration)
+    }
+
+    func resumeStudy(_ study: ActiveStudy) {
+        activeStudy = study
     }
 
     func finishStudy() {
@@ -112,6 +125,7 @@ final class RootViewModel {
     let library: LibraryViewModel
     let navigation: AppNavigationState
     let studyTimer: StudyTimerController
+    private(set) var resumableStudy: ActiveStudy?
 
     private let cards: any CardRepository
     private let tags: any TagRepository
@@ -119,6 +133,7 @@ final class RootViewModel {
     private let speech: any SpeechService
     private let shuffler: any CardShuffler
     private let statistics: any StatisticsRepository
+    private let studySessionStore: any StudySessionStore
     let dailyProgress: any DailyProgressRepository
 
     init(
@@ -129,6 +144,7 @@ final class RootViewModel {
         shuffler: any CardShuffler,
         statistics: any StatisticsRepository = UserDefaultsStatisticsRepository(),
         dailyProgress: any DailyProgressRepository = UserDefaultsDailyProgressRepository(),
+        studySessionStore: any StudySessionStore = UserDefaultsStudySessionStore(),
         studyTimer: StudyTimerController? = nil,
         navigation: AppNavigationState = AppNavigationState()
     ) {
@@ -139,6 +155,7 @@ final class RootViewModel {
         self.shuffler = shuffler
         self.statistics = statistics
         self.dailyProgress = dailyProgress
+        self.studySessionStore = studySessionStore
         self.studyTimer = studyTimer ?? StudyTimerController(progress: dailyProgress)
         self.navigation = navigation
         library = LibraryViewModel(cards: cards, tags: tags)
@@ -153,6 +170,7 @@ final class RootViewModel {
             shuffler: container.shuffler,
             statistics: container.statistics,
             dailyProgress: container.dailyProgress,
+            studySessionStore: container.studySessionStore,
             studyTimer: container.studyTimer
         )
     }
@@ -164,6 +182,17 @@ final class RootViewModel {
 
     func loadLibrary() async {
         await library.load()
+        prepareInterruptedStudyIfNeeded()
+    }
+
+    func loadInitialLibrary() async {
+        if library.state == .idle {
+            await library.load()
+        }
+        while library.state == .loading {
+            await Task.yield()
+        }
+        prepareInterruptedStudyIfNeeded()
     }
 
     func editorSaved() async {
@@ -175,12 +204,8 @@ final class RootViewModel {
         await loadLibrary()
     }
 
-    func prepareExport(_ completion: @escaping (CardTransferFileDocument) -> Void) async {
-        do {
-            completion(CardTransferFileDocument(transfer: CardTransferDocument(cards: try await cards.fetchCards())))
-        } catch {
-            completion(CardTransferFileDocument(transfer: CardTransferDocument(cards: [])))
-        }
+    func prepareExport() async throws -> PreparedCardExport {
+        try await CardTransferCoordinator(cards: cards).prepareExport()
     }
 
     func importCards(_ imported: [VocabularyCard]) async throws -> CardMergeResult {
@@ -231,12 +256,30 @@ final class RootViewModel {
         StudySetupViewModel(cards: library.cards, tags: library.tags)
     }
 
-    func makeStudySessionModel(configuration: StudyConfiguration) -> StudySessionViewModel {
-        StudySessionViewModel(
-            configuration: configuration,
+    func makeStudySessionModel(for activeStudy: ActiveStudy) -> StudySessionViewModel {
+        let today = dailyProgress.progress(for: Date(), calendar: .current)
+        return StudySessionViewModel(
+            configuration: activeStudy.configuration,
+            snapshot: activeStudy.snapshot,
             shuffler: shuffler,
-            speech: speech
+            speech: speech,
+            initialDailyGoalProgress: StudyDailyGoalProgress(
+                elapsedSeconds: today.elapsedSeconds,
+                goalSeconds: today.goalSeconds
+            ),
+            store: studySessionStore
         )
+    }
+
+    func resumeInterruptedStudy() {
+        guard let resumableStudy else { return }
+        navigation.resumeStudy(resumableStudy)
+        self.resumableStudy = nil
+    }
+
+    func discardInterruptedStudy() {
+        studySessionStore.clear()
+        resumableStudy = nil
     }
 
     var studyStatistics: StudyStatistics {
@@ -262,6 +305,7 @@ final class RootViewModel {
 
     func finishStudy(sessionID: UUID) {
         studyTimer.endSession(id: sessionID)
+        studySessionStore.clear()
         navigation.finishStudy()
     }
 
@@ -271,6 +315,33 @@ final class RootViewModel {
 
     func cleanupOrphanedActivity() {
         studyTimer.cleanupOrphanedActivity()
+    }
+
+    private func prepareInterruptedStudyIfNeeded() {
+        guard library.state == .loaded,
+              navigation.activeStudy == nil,
+              resumableStudy == nil,
+              let snapshot = studySessionStore.load() else {
+            return
+        }
+
+        let cardsByID = Dictionary(uniqueKeysWithValues: library.cards.map { ($0.id, $0) })
+        let availableCards = snapshot.originalCardIDs.compactMap { cardsByID[$0] }
+        let hasAvailableQueuedCard = snapshot.queueCardIDs.contains { cardsByID[$0] != nil }
+        guard !availableCards.isEmpty,
+              snapshot.completedResult != nil || hasAvailableQueuedCard else {
+            studySessionStore.clear()
+            return
+        }
+
+        resumableStudy = ActiveStudy(
+            configuration: StudyConfiguration(
+                direction: snapshot.direction,
+                selectedTagIDs: snapshot.selectedTagIDs,
+                cards: availableCards
+            ),
+            snapshot: snapshot
+        )
     }
 }
 
@@ -284,7 +355,9 @@ struct RootView: View {
     )
     @State private var isShowingExporter = false
     @State private var isShowingImporter = false
-    @State private var importMessage: String?
+    @State private var isPreparingExport = false
+    @State private var preparedExportCardCount = 0
+    @State private var transferMessage: String?
 
     init(
         container: AppContainer,
@@ -305,12 +378,19 @@ struct RootView: View {
                 onAddCard: navigation.openNewEditor,
                 onEditCard: { navigation.openEditor(cardID: $0.id) },
                 onStartStudy: navigation.openStudySetup,
+                onImportCards: { isShowingImporter = true },
+                onManageTags: { navigation.path.append(.tags) },
                 onDataChanged: model.libraryChanged
             )
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button(action: navigation.openNewEditor) {
+                        Label("library.add", systemImage: "plus")
+                    }
+                    .accessibilityIdentifier("library.add")
+
                     Button(action: navigation.openSettings) {
-                        Label("settings.open", systemImage: "gearshape.fill")
+                        Label("settings.open", systemImage: AppSymbol.settings)
                     }
                     .accessibilityIdentifier("library.settings")
 
@@ -320,7 +400,7 @@ struct RootView: View {
                         Label {
                             Text("statistics.open", bundle: StatisticsFeatureResources.bundle)
                         } icon: {
-                            Image(systemName: "chart.bar.xaxis")
+                            Image(systemName: AppSymbol.statistics)
                         }
                     }
                     .accessibilityIdentifier("library.statistics")
@@ -336,21 +416,35 @@ struct RootView: View {
                     StatisticsView(
                         statistics: model.studyStatistics,
                         progress: model.dailyProgress,
-                        libraryCardCount: model.libraryCardCount
+                        libraryCardCount: model.libraryCardCount,
+                        onStartStudy: navigation.openStudySetup
                     )
                 case .settings:
                     SettingsView(
                         settings: appearanceSettings,
                         iconSettings: iconSettings,
+                        isPreparingExport: isPreparingExport,
                         onExportCards: {
+                            guard !isPreparingExport else { return }
+                            isPreparingExport = true
                             Task {
-                                await model.prepareExport {
-                                    exportDocument = $0
+                                defer { isPreparingExport = false }
+                                do {
+                                    let prepared = try await model.prepareExport()
+                                    exportDocument = prepared.document
+                                    preparedExportCardCount = prepared.cardCount
                                     isShowingExporter = true
+                                } catch {
+                                    transferMessage = String(localized: "settings.cards.export.failed")
                                 }
                             }
                         },
                         onImportCards: { isShowingImporter = true }
+                    )
+                case .tags:
+                    TagManagementView(
+                        model: model.library,
+                        onDataChanged: model.libraryChanged
                     )
                 }
             }
@@ -364,10 +458,8 @@ struct RootView: View {
         ) { presentation in
             NavigationStack {
                 StudySessionView(
-                    model: model.makeStudySessionModel(
-                        configuration: presentation.configuration
-                    ),
-                    onRepeat: { _ in navigation.repeatStudy() },
+                    model: model.makeStudySessionModel(for: presentation),
+                    onRepeat: navigation.repeatStudy,
                     onFinish: { model.finishStudy(sessionID: presentation.sessionID) },
                     onComplete: {
                         model.recordCompletedStudy(
@@ -376,10 +468,10 @@ struct RootView: View {
                         )
                     }
                 )
-                .safeAreaInset(edge: .bottom) {
+                .safeAreaInset(edge: .top) {
                     if model.studyTimer.snapshot.isVisible {
                         StudyTimerPill(snapshot: model.studyTimer.snapshot)
-                            .padding(.bottom, 4)
+                            .padding(.top, 4)
                     }
                 }
             }
@@ -401,13 +493,42 @@ struct RootView: View {
         }
         .task {
             model.cleanupOrphanedActivity()
+            await model.loadInitialLibrary()
+        }
+        .alert(
+            "study.resume.title",
+            isPresented: Binding(
+                get: { model.resumableStudy != nil },
+                set: { _ in }
+            )
+        ) {
+            Button("study.resume.action", action: model.resumeInterruptedStudy)
+            Button(
+                "study.resume.discard",
+                role: .destructive,
+                action: model.discardInterruptedStudy
+            )
+        } message: {
+            Text("study.resume.message")
         }
         .fileExporter(
             isPresented: $isShowingExporter,
             document: exportDocument,
             contentTypes: [.json],
             defaultFilename: "CardFlipper-cards.json"
-        ) { _ in }
+        ) { result in
+            switch result {
+            case .success:
+                let format = String(localized: "settings.cards.export.success")
+                transferMessage = String.localizedStringWithFormat(
+                    format,
+                    preparedExportCardCount
+                )
+            case let .failure(error):
+                guard (error as NSError).code != NSUserCancelledError else { return }
+                transferMessage = String(localized: "settings.cards.export.failed")
+            }
+        }
         .fileImporter(
             isPresented: $isShowingImporter,
             allowedContentTypes: [.json],
@@ -426,23 +547,25 @@ struct RootView: View {
                     let data = try Data(contentsOf: url)
                     let document = try JSONDecoder().decode(CardTransferDocument.self, from: data)
                     let summary = try await model.importCards(document.decodedCards())
-                    importMessage = String(localized: "settings.cards.import.success", defaultValue: "Added \(summary.addedCount), merged \(summary.mergedCount)")
+                    let format = String(localized: "settings.cards.import.success")
+                    transferMessage = String.localizedStringWithFormat(
+                        format,
+                        summary.addedCount,
+                        summary.mergedCount
+                    )
                     await model.libraryChanged()
                 } catch {
-                    importMessage = String(
-                        localized: "settings.cards.import.failed",
-                        defaultValue: "Couldn’t import cards. \(error.localizedDescription)"
-                    )
+                    transferMessage = String(localized: "settings.cards.import.failed")
                 }
             }
         }
         .alert("settings.cards.import.result", isPresented: Binding(
-            get: { importMessage != nil },
-            set: { if !$0 { importMessage = nil } }
+            get: { transferMessage != nil },
+            set: { if !$0 { transferMessage = nil } }
         )) {
-            Button("common.close", role: .cancel) { importMessage = nil }
+            Button("common.close", role: .cancel) { transferMessage = nil }
         } message: {
-            Text(importMessage ?? "")
+            Text(transferMessage ?? "")
         }
         .tint(appearanceSettings.accentColor)
     }
