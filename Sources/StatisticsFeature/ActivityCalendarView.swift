@@ -75,7 +75,6 @@ struct ActivityCalendarView: View {
         legendItem(state: .noActivity, key: "progress.legend.noActivity")
         legendItem(state: .activeBelowGoal, key: "progress.legend.active")
         legendItem(state: .goalAchieved, key: "progress.legend.achieved")
-        legendItem(state: .future, key: "progress.legend.future")
     }
 
     private func legendItem(state: ActivityCalendarState, key: LocalizedStringKey) -> some View {

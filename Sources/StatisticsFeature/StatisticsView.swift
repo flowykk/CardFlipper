@@ -98,7 +98,11 @@ public struct StatisticsView: View {
             Text(verbatim: value).font(.system(.title, design: .rounded, weight: .bold))
             Text(title, bundle: .module).font(.subheadline).foregroundStyle(.secondary)
             if let detail {
-                (Text(verbatim: detail) + Text(" statistics.vsPrevious", bundle: .module))
+                (
+                    Text(verbatim: detail)
+                    + Text(verbatim: " ")
+                    + Text("statistics.vsPrevious", bundle: .module)
+                )
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(detail.hasPrefix("+") ? Color.green : .secondary)
             }

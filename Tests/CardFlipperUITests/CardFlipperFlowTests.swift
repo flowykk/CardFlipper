@@ -162,7 +162,9 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(basics.label.contains("3 cards"))
         basics.tap()
 
-        XCTAssertTrue(app.buttons["Rename Tag"].waitForExistence(timeout: 3))
+        assertExists("tag.rename.name")
+        XCTAssertFalse(app.buttons["Rename Tag"].exists)
+        assertExists("tag.rename.save")
         XCTAssertTrue(app.buttons["Merge Tag"].exists)
         XCTAssertTrue(app.buttons["Delete Tag"].exists)
         snap("tag-management-detail")

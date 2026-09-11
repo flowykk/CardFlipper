@@ -167,8 +167,11 @@ private struct TagManagementDetailView: View {
         Form {
             Section("tag.rename.title") {
                 TextField("tag.create.placeholder", text: $name)
-                Button("tag.rename.action") { performRename() }
-                    .disabled(isWorking || normalizedName == normalizedOriginalName || normalizedName.isEmpty)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        if canRename { performRename() }
+                    }
+                    .accessibilityIdentifier("tag.rename.name")
             }
 
             if !mergeDestinations.isEmpty {
@@ -203,6 +206,11 @@ private struct TagManagementDetailView: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button("common.close") { dismiss() }
             }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("common.save") { performRename() }
+                    .disabled(!canRename)
+                    .accessibilityIdentifier("tag.rename.save")
+            }
         }
         .confirmationDialog(
             "tag.merge.confirm.title",
@@ -229,6 +237,9 @@ private struct TagManagementDetailView: View {
     private var mergeDestinations: [Tag] { allTags.filter { $0.id != tag.id } }
     private var normalizedName: String { TextNormalizer.searchKey(name) }
     private var normalizedOriginalName: String { TextNormalizer.searchKey(tag.name) }
+    private var canRename: Bool {
+        !isWorking && !normalizedName.isEmpty && normalizedName != normalizedOriginalName
+    }
     private var affectedText: String {
         String.localizedStringWithFormat(
             String(localized: "tag.affected", bundle: .main),
