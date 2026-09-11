@@ -66,23 +66,12 @@ struct BulkTagPickerView: View {
     }
 
     private func selectionIndicator(isSelected: Bool) -> some View {
-        ZStack {
-            Circle()
-                .stroke(isSelected ? Color.accentColor : Color.secondary, lineWidth: 2)
-
-            Circle()
-                .fill(Color.accentColor)
-                .scaleEffect(isSelected || reduceMotion ? 1 : 0.35)
-                .opacity(isSelected ? 1 : 0)
-
-            Image(systemName: "checkmark")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(.white)
-                .scaleEffect(isSelected || reduceMotion ? 1 : 0.6)
-                .opacity(isSelected ? 1 : 0)
-        }
-        .frame(width: 24, height: 24)
-        .accessibilityHidden(true)
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+            .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+            .contentTransition(
+                reduceMotion ? .opacity : .symbolEffect(.replace)
+            )
+            .accessibilityHidden(true)
     }
 
     private func toggle(_ id: UUID) {
