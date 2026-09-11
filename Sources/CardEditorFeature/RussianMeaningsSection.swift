@@ -73,7 +73,7 @@ public struct RussianMeaningsSection: View {
             onRemove(id)
         } label: {
             Image(systemName: "minus.circle")
-                .frame(minWidth: 44, minHeight: 44)
+                .frame(minWidth: 32, minHeight: 32)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: accessibilityLabels.removeRussianMeaning(

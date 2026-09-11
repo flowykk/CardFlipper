@@ -199,7 +199,7 @@ public struct EnglishVariantsSection: View {
                 onSpeak(id)
             } label: {
                 Image(systemName: "speaker.wave.2")
-                    .frame(minWidth: 44, minHeight: 44)
+                    .frame(minWidth: 32, minHeight: 32)
             }
             .buttonStyle(.plain)
             .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -211,7 +211,7 @@ public struct EnglishVariantsSection: View {
                 onRemove(id)
             } label: {
                 Image(systemName: "minus.circle")
-                    .frame(minWidth: 44, minHeight: 44)
+                    .frame(minWidth: 32, minHeight: 32)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text(verbatim: accessibilityLabels.removeEnglishVariant(
