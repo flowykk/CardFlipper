@@ -83,7 +83,7 @@ final class AccessibilityLayoutTests: XCTestCase {
 
         let russian = app.textFields["editor.russian.0"]
         let english = app.textFields["editor.english.0"]
-        let details = app.descendants(matching: .any)["editor.english.0.details"]
+        let details = app.buttons["editor.english.0.details"]
         XCTAssertTrue(russian.waitForExistence(timeout: 3))
         scrollToHittable(english)
         XCTAssertTrue(english.isHittable)

@@ -67,30 +67,28 @@ public struct EnglishVariantsSection: View {
     public var body: some View {
         Section {
             ForEach($variants) { $variant in
+                let isExpanded = expandedMetadataVariantIDs.contains(variant.id)
+
                 VStack(alignment: .leading, spacing: 12) {
                     adaptiveInputRow(variant: $variant)
 
-                    Button {
-                        toggleMetadata(for: variant.id)
+                    DisclosureGroup(isExpanded: metadataExpansionBinding(for: variant.id)) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            metadataEditor(variant: $variant)
+                        }
+                        .padding(.top, 4)
                     } label: {
-                        Label(
-                            expandedMetadataVariantIDs.contains(variant.id)
-                                ? "editor.details.less"
-                                : "editor.details.more",
-                            systemImage: expandedMetadataVariantIDs.contains(variant.id)
-                                ? "chevron.up.circle"
-                                : "slider.horizontal.3"
-                        )
+                        HStack {
+                            Text(isExpanded ? "editor.details.less" : "editor.details.more")
+                                .transaction { transaction in
+                                    transaction.animation = nil
+                                }
+                                .accessibilityIdentifier(
+                                    "editor.english.\(position(of: variant.id) - 1).details"
+                                )
+                            Spacer(minLength: 0)
+                        }
                         .frame(minHeight: 44)
-                        .contentTransition(
-                            reduceMotion ? .opacity : .symbolEffect(.replace)
-                        )
-                    }
-                    .accessibilityIdentifier("editor.english.\(position(of: variant.id) - 1).details")
-
-                    if expandedMetadataVariantIDs.contains(variant.id) {
-                        metadataEditor(variant: $variant)
-                            .transition(metadataTransition)
                     }
                 }
                 .padding(.vertical, 4)
@@ -137,23 +135,27 @@ public struct EnglishVariantsSection: View {
         }
     }
 
-    private var metadataTransition: AnyTransition {
-        reduceMotion
-            ? .opacity
-            : .scale(scale: 0.98, anchor: .top).combined(with: .opacity)
-    }
-
     private func toggleMetadata(for variantID: UUID) {
         let isExpanding = !expandedMetadataVariantIDs.contains(variantID)
         let animation: Animation = reduceMotion
             ? .easeOut(duration: 0.15)
             : isExpanding
-                ? .smooth(duration: 0.26)
-                : .easeOut(duration: 0.18)
+                ? .smooth(duration: 0.34)
+                : .easeOut(duration: 0.24)
 
         withAnimation(animation) {
             onToggleMetadata(variantID)
         }
+    }
+
+    private func metadataExpansionBinding(for variantID: UUID) -> Binding<Bool> {
+        Binding(
+            get: { expandedMetadataVariantIDs.contains(variantID) },
+            set: { shouldExpand in
+                guard shouldExpand != expandedMetadataVariantIDs.contains(variantID) else { return }
+                toggleMetadata(for: variantID)
+            }
+        )
     }
 
     @ViewBuilder

@@ -107,7 +107,7 @@ final class CardFlipperFlowTests: XCTestCase {
         tap("library.add")
         assertExists("editor.root")
 
-        let details = app.descendants(matching: .any)["editor.english.0.details"]
+        let details = app.buttons["editor.english.0.details"]
         XCTAssertTrue(details.waitForExistence(timeout: 3))
         details.tap()
 
