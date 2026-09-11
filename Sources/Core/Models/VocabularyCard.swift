@@ -32,6 +32,22 @@ public struct VocabularyCard: Equatable, Identifiable, Sendable {
             + englishVariants.map(\.text)
             + englishVariants.flatMap { $0.usageExamples.map(\.text) }
     }
+
+    public func updating(
+        tags: [Tag]? = nil,
+        isLearned: Bool? = nil,
+        updatedAt: Date? = nil
+    ) -> VocabularyCard {
+        VocabularyCard(
+            id: id,
+            russianMeanings: russianMeanings,
+            englishVariants: englishVariants,
+            tags: tags ?? self.tags,
+            createdAt: createdAt,
+            updatedAt: updatedAt ?? self.updatedAt,
+            isLearned: isLearned ?? self.isLearned
+        )
+    }
 }
 
 public struct RussianMeaning: Equatable, Identifiable, Sendable {

@@ -314,6 +314,31 @@ func searchMatchesEitherLanguage(query: String, expectedID: UUID) async {
 }
 
 @MainActor
+@Test func bulkTagAssignmentPreservesLearnedStateAndDates() async {
+    let learnedCard = VocabularyCard.fixture(
+        id: .fixture(104),
+        russian: "изучено",
+        english: "learned",
+        tags: [.work],
+        isLearned: true
+    )
+    let repository = CardRepositoryFake([learnedCard])
+    let model = LibraryViewModel(cards: repository, tags: TagRepositoryFake(Tag.fixtures))
+    await model.load()
+
+    model.beginBulkTagSelection()
+    model.toggleBulkCardSelection(id: learnedCard.id)
+    let changed = await model.addTagsToSelectedCards(ids: [Tag.exam.id])
+
+    let updatedCard = model.cards.first
+    #expect(changed)
+    #expect(updatedCard?.isLearned == true)
+    #expect(updatedCard?.createdAt == learnedCard.createdAt)
+    #expect(updatedCard?.updatedAt == learnedCard.updatedAt)
+    #expect(updatedCard?.tags == [.work, .exam])
+}
+
+@MainActor
 @Test func failedBulkTagAssignmentKeepsCardsAndSelectedIDsUnchanged() async {
     let repository = CardRepositoryFake(
         VocabularyCard.taggedFixtures,

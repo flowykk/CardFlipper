@@ -178,40 +178,17 @@ public final class LibraryViewModel {
 
 private extension VocabularyCard {
     func removingTag(id tagID: UUID) -> VocabularyCard {
-        VocabularyCard(
-            id: id,
-            russianMeanings: russianMeanings,
-            englishVariants: englishVariants,
-            tags: tags.filter { $0.id != tagID },
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            isLearned: isLearned
-        )
+        updating(tags: tags.filter { $0.id != tagID })
     }
 
     func updatingLearningStatus(_ isLearned: Bool, updatedAt: Date) -> VocabularyCard {
-        VocabularyCard(
-            id: id,
-            russianMeanings: russianMeanings,
-            englishVariants: englishVariants,
-            tags: tags,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            isLearned: isLearned
-        )
+        updating(isLearned: isLearned, updatedAt: updatedAt)
     }
 
     func addingTags(_ tagsToAdd: [Tag]) -> VocabularyCard {
         let existingIDs = Set(tags.map(\.id))
         let uniqueTagsToAdd = tagsToAdd.filter { !existingIDs.contains($0.id) }
         guard !uniqueTagsToAdd.isEmpty else { return self }
-        return VocabularyCard(
-            id: id,
-            russianMeanings: russianMeanings,
-            englishVariants: englishVariants,
-            tags: tags + uniqueTagsToAdd,
-            createdAt: createdAt,
-            updatedAt: updatedAt
-        )
+        return updating(tags: tags + uniqueTagsToAdd)
     }
 }
