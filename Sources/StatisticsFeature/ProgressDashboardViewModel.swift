@@ -1,12 +1,45 @@
 import Foundation
 import Observation
 
+public enum ActivityCalendarState: Equatable, Sendable {
+    case future
+    case noActivity
+    case activeBelowGoal
+    case goalAchieved
+}
+
+public struct StudyTrendSummary: Equatable, Sendable {
+    public let currentSevenDaySeconds: Int
+    public let previousSevenDaySeconds: Int
+    public let streakDays: Int
+
+    public init(
+        currentSevenDaySeconds: Int,
+        previousSevenDaySeconds: Int,
+        streakDays: Int
+    ) {
+        self.currentSevenDaySeconds = max(0, currentSevenDaySeconds)
+        self.previousSevenDaySeconds = max(0, previousSevenDaySeconds)
+        self.streakDays = max(0, streakDays)
+    }
+
+    public static let zero = StudyTrendSummary(
+        currentSevenDaySeconds: 0,
+        previousSevenDaySeconds: 0,
+        streakDays: 0
+    )
+
+    public var deltaSeconds: Int { currentSevenDaySeconds - previousSevenDaySeconds }
+}
+
 public struct ActivityCalendarDay: Identifiable, Equatable, Sendable {
     public let id: Int
     public let date: Date?
     public let dayNumber: Int?
     public let isToday: Bool
-    public let isAchieved: Bool
+    public let state: ActivityCalendarState
+
+    public var isAchieved: Bool { state == .goalAchieved }
 }
 
 @MainActor
@@ -49,6 +82,7 @@ public final class ProgressDashboardViewModel {
     public var monthTitle: String {
         selectedMonth.formatted(.dateTime.month(.wide).year().locale(calendar.locale ?? .current))
     }
+    public var trend: StudyTrendSummary { makeTrend() }
 
     public func refresh() {
         todayProgress = progress.progress(for: now(), calendar: calendar)
@@ -82,24 +116,72 @@ public final class ProgressDashboardViewModel {
             days = []
             return
         }
-        let achieved = Set(progress.records(in: selectedMonth, calendar: calendar)
-            .filter(\.goalAchieved)
-            .map(\.day))
+        let records = Dictionary(uniqueKeysWithValues: progress
+            .records(in: selectedMonth, calendar: calendar)
+            .map { ($0.day, $0) })
         let weekday = calendar.component(.weekday, from: first)
         let leading = (weekday - calendar.firstWeekday + 7) % 7
         var cells = (0..<leading).map {
-            ActivityCalendarDay(id: $0, date: nil, dayNumber: nil, isToday: false, isAchieved: false)
+            ActivityCalendarDay(
+                id: $0,
+                date: nil,
+                dayNumber: nil,
+                isToday: false,
+                state: .noActivity
+            )
         }
         for day in range {
             let date = calendar.date(byAdding: .day, value: day - 1, to: first)!
+            let record = records[LocalDay(date: date, calendar: calendar)]
+            let state: ActivityCalendarState
+            if calendar.startOfDay(for: date) > calendar.startOfDay(for: now()) {
+                state = .future
+            } else if record?.goalAchieved == true {
+                state = .goalAchieved
+            } else if (record?.elapsedSeconds ?? 0) > 0 {
+                state = .activeBelowGoal
+            } else {
+                state = .noActivity
+            }
             cells.append(ActivityCalendarDay(
                 id: cells.count,
                 date: date,
                 dayNumber: day,
                 isToday: calendar.isDate(date, inSameDayAs: now()),
-                isAchieved: achieved.contains(LocalDay(date: date, calendar: calendar))
+                state: state
             ))
         }
         days = cells
+    }
+
+    private func makeTrend() -> StudyTrendSummary {
+        let today = calendar.startOfDay(for: now())
+        let current = totalSeconds(fromDayOffset: -6, through: 0, relativeTo: today)
+        let previous = totalSeconds(fromDayOffset: -13, through: -7, relativeTo: today)
+
+        var streak = 0
+        var offset = progress.progress(for: today, calendar: calendar).elapsedSeconds > 0 ? 0 : -1
+        while let date = calendar.date(byAdding: .day, value: offset, to: today),
+              progress.progress(for: date, calendar: calendar).elapsedSeconds > 0 {
+            streak += 1
+            offset -= 1
+        }
+
+        return StudyTrendSummary(
+            currentSevenDaySeconds: current,
+            previousSevenDaySeconds: previous,
+            streakDays: streak
+        )
+    }
+
+    private func totalSeconds(
+        fromDayOffset start: Int,
+        through end: Int,
+        relativeTo today: Date
+    ) -> Int {
+        (start...end).reduce(into: 0) { total, offset in
+            guard let date = calendar.date(byAdding: .day, value: offset, to: today) else { return }
+            total += progress.progress(for: date, calendar: calendar).elapsedSeconds
+        }
     }
 }

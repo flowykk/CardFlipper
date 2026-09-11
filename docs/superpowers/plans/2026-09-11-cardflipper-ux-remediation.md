@@ -515,12 +515,12 @@ public protocol StudySessionStore: Sendable {
 
 **Metrics:** previous-7-day delta, streak, sessions, reviewed cards, repeat/recall rate, daily-goal progress.
 
-- [ ] Добавить aggregation tests для empty, one day, crossing month и previous-window comparison.
-- [ ] Разделить calendar states: future, no activity, activity below goal, goal achieved, today.
-- [ ] Добавить legend с shape + text, не только цветом.
-- [ ] Сделать zero state с объяснением, что появится после первой session, и CTA `Start studying`.
-- [ ] Обеспечить 44×44 month navigation targets и осмысленные day AX labels.
-- [ ] Проверить adaptive metric grid на AX sizes.
+- [x] Добавить aggregation tests для empty, one day, crossing month и previous-window comparison.
+- [x] Разделить calendar states: future, no activity, activity below goal, goal achieved, today.
+- [x] Добавить legend с shape + text, не только цветом.
+- [x] Сделать zero state с объяснением, что появится после первой session, и CTA `Start studying`.
+- [x] Обеспечить 44×44 month navigation targets и осмысленные day AX labels.
+- [x] Проверить adaptive metric grid на AX sizes.
 
 **Acceptance:** все цифры вычисляются из сохранённых данных; future day не выглядит как failure; пользователь видит trend и следующий шаг; zero state не является сеткой нулей.
 

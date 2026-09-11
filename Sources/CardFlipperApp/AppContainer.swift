@@ -52,9 +52,19 @@ final class AppContainer {
         if configuration.seedsDeterministicVocabulary {
             try UITestVocabularySeed.insert(into: container)
         }
-        self.init(modelContainer: container)
-        if configuration.usesInMemoryStore, !configuration.preservesStudySession {
-            studySessionStore.clear()
+        if configuration.usesInMemoryStore {
+            let suiteName = "CardFlipper.UITests"
+            let defaults = UserDefaults(suiteName: suiteName)!
+            let preservedSnapshot = configuration.preservesStudySession
+                ? UserDefaultsStudySessionStore(defaults: defaults).load()
+                : nil
+            defaults.removePersistentDomain(forName: suiteName)
+            self.init(modelContainer: container, defaults: defaults)
+            if let preservedSnapshot {
+                studySessionStore.save(preservedSnapshot)
+            }
+        } else {
+            self.init(modelContainer: container)
         }
     }
 #endif

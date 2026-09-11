@@ -152,6 +152,24 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("tag-management-detail")
     }
 
+    func testStatisticsZeroStateExplainsWhatWillAppearAndStartsStudy() {
+        launch(seed: true)
+
+        tap("library.statistics")
+        assertExists("statistics.zeroState")
+        XCTAssertTrue(app.staticTexts["No Study History Yet"].exists)
+        XCTAssertTrue(app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS %@", "streak")
+        ).firstMatch.exists)
+
+        let start = app.buttons["Start Studying"]
+        XCTAssertTrue(start.waitForExistence(timeout: 3))
+        XCTAssertTrue(start.isHittable)
+        start.tap()
+        assertExists("study.setup")
+        snap("statistics-zero-state")
+    }
+
     func testLearningStatusIsVisibleAndCanBeUndone() {
         launch(seed: true)
 

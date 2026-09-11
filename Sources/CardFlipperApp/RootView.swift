@@ -410,7 +410,8 @@ struct RootView: View {
                     StatisticsView(
                         statistics: model.studyStatistics,
                         progress: model.dailyProgress,
-                        libraryCardCount: model.libraryCardCount
+                        libraryCardCount: model.libraryCardCount,
+                        onStartStudy: navigation.openStudySetup
                     )
                 case .settings:
                     SettingsView(

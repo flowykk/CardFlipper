@@ -18,6 +18,60 @@
         }
       }
     },
+    "progress.activeBelowGoal" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Activity below goal" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Активность ниже цели" } }
+      }
+    },
+    "progress.future" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Future day" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Будущий день" } }
+      }
+    },
+    "progress.legend.achieved" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Goal reached" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Цель достигнута" } }
+      }
+    },
+    "progress.legend.active" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Studied" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Занимались" } }
+      }
+    },
+    "progress.legend.future" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Future" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Будущее" } }
+      }
+    },
+    "progress.legend.noActivity" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No activity" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Нет активности" } }
+      }
+    },
+    "progress.nextMonth" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Next month" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Следующий месяц" } }
+      }
+    },
+    "progress.noActivity" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No activity" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Нет активности" } }
+      }
+    },
+    "progress.previousMonth" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Previous month" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Предыдущий месяц" } }
+      }
+    },
     "progress.dailyGoal" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -220,6 +274,54 @@
             "value" : "Карточек в библиотеке"
           }
         }
+      }
+    },
+    "statistics.recallRate" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "First-try recall" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вспомнили с первого раза" } }
+      }
+    },
+    "statistics.repeated" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards repeated" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточек повторено" } }
+      }
+    },
+    "statistics.sevenDayTime" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Last 7 days" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Последние 7 дней" } }
+      }
+    },
+    "statistics.streak" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Day streak" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Дней подряд" } }
+      }
+    },
+    "statistics.vsPrevious" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "vs previous 7 days" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "к предыдущим 7 дням" } }
+      }
+    },
+    "statistics.zero.action" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Studying" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начать занятие" } }
+      }
+    },
+    "statistics.zero.message" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your streak, recall rate, and weekly trend will appear after the first completed session." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Серия дней, процент запоминания и недельный тренд появятся после первого завершённого занятия." } }
+      }
+    },
+    "statistics.zero.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Study History Yet" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Истории занятий пока нет" } }
       }
     },
     "statistics.open" : {
