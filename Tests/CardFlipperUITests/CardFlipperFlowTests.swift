@@ -105,6 +105,26 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Your Library Is Empty"].waitForExistence(timeout: 5))
     }
 
+    func testEditorDetailsExpandAndCollapse() {
+        launch(seed: false)
+        tap("library.add")
+        assertExists("editor.root")
+
+        let details = app.descendants(matching: .any)["editor.english.0.details"]
+        XCTAssertTrue(details.waitForExistence(timeout: 3))
+        details.tap()
+
+        let ipa = app.textFields["editor.ipa.0"]
+        XCTAssertTrue(ipa.waitForExistence(timeout: 3))
+        details.tap()
+
+        let detailsCollapsed = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"),
+            object: ipa
+        )
+        wait(for: [detailsCollapsed], timeout: 3)
+    }
+
     func testLibraryExposesLabeledPrimaryActionsAndHidesEmptySearch() {
         launch(seed: false)
 

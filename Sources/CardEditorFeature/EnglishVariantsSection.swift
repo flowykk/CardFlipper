@@ -2,6 +2,7 @@ import Core
 import SwiftUI
 
 public struct EnglishVariantsSection: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding private var variants: [EnglishVariantInput]
     @Binding private var expandedMetadataVariantIDs: Set<UUID>
     @FocusState private var focusedVariantID: UUID?
@@ -70,7 +71,7 @@ public struct EnglishVariantsSection: View {
                     adaptiveInputRow(variant: $variant)
 
                     Button {
-                        onToggleMetadata(variant.id)
+                        toggleMetadata(for: variant.id)
                     } label: {
                         Label(
                             expandedMetadataVariantIDs.contains(variant.id)
@@ -81,11 +82,15 @@ public struct EnglishVariantsSection: View {
                                 : "slider.horizontal.3"
                         )
                         .frame(minHeight: 44)
+                        .contentTransition(
+                            reduceMotion ? .opacity : .symbolEffect(.replace)
+                        )
                     }
                     .accessibilityIdentifier("editor.english.\(position(of: variant.id) - 1).details")
 
                     if expandedMetadataVariantIDs.contains(variant.id) {
                         metadataEditor(variant: $variant)
+                            .transition(metadataTransition)
                     }
                 }
                 .padding(.vertical, 4)
@@ -129,6 +134,25 @@ public struct EnglishVariantsSection: View {
                     }
                 }
             }
+        }
+    }
+
+    private var metadataTransition: AnyTransition {
+        reduceMotion
+            ? .opacity
+            : .scale(scale: 0.98, anchor: .top).combined(with: .opacity)
+    }
+
+    private func toggleMetadata(for variantID: UUID) {
+        let isExpanding = !expandedMetadataVariantIDs.contains(variantID)
+        let animation: Animation = reduceMotion
+            ? .easeOut(duration: 0.15)
+            : isExpanding
+                ? .smooth(duration: 0.26)
+                : .easeOut(duration: 0.18)
+
+        withAnimation(animation) {
+            onToggleMetadata(variantID)
         }
     }
 
