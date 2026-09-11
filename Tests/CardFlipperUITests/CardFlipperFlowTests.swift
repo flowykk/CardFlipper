@@ -388,7 +388,12 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(confirm.waitForExistence(timeout: 3))
         XCTAssertTrue(confirm.isHittable)
         confirm.tap()
-        XCTAssertFalse(app.descendants(matching: .any)["library.bulk.bar"].waitForExistence(timeout: 3))
+        let selectionBar = app.descendants(matching: .any)["library.bulk.bar"]
+        let selectionBarDismissed = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"),
+            object: selectionBar
+        )
+        wait(for: [selectionBarDismissed], timeout: 3)
         XCTAssertTrue(cards.element(boundBy: 0).label.contains("Повторение"))
         XCTAssertTrue(cards.element(boundBy: 1).label.contains("Повторение"))
     }

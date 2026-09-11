@@ -4,6 +4,7 @@ import SwiftUI
 
 public struct LibraryView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var model: LibraryViewModel
     @State private var showingCardDeletion = false
     @State private var showingTagDeletion = false
@@ -50,11 +51,17 @@ public struct LibraryView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if model.isBulkTagSelectionActive {
-                        Button("library.bulk.cancel") { model.cancelBulkTagSelection() }
+                        Button("library.bulk.cancel") {
+                            withAnimation(selectionModeExitAnimation) {
+                                model.cancelBulkTagSelection()
+                            }
+                        }
                             .accessibilityIdentifier("library.bulk.cancel")
                     } else if !model.cards.isEmpty {
                         Button {
-                            model.beginBulkTagSelection()
+                            withAnimation(selectionModeEntranceAnimation) {
+                                model.beginBulkTagSelection()
+                            }
                         } label: {
                             Label("library.bulk.select", systemImage: "checklist")
                         }
@@ -157,6 +164,7 @@ public struct LibraryView: View {
             .safeAreaInset(edge: .bottom) {
                 if model.isBulkTagSelectionActive {
                     bulkSelectionBar
+                        .transition(selectionBarTransition)
                 } else if model.undoAction != nil {
                     undoBanner
                 }
@@ -266,10 +274,12 @@ public struct LibraryView: View {
 
     private var cardList: some View {
         List {
-            ForEach(model.visibleCards) { card in
+            ForEach(Array(model.visibleCards.enumerated()), id: \.element.id) { index, card in
                 Button {
                     if model.isBulkTagSelectionActive {
-                        model.toggleBulkCardSelection(id: card.id)
+                        withAnimation(selectionFeedbackAnimation) {
+                            model.toggleBulkCardSelection(id: card.id)
+                        }
                     } else {
                         onEditCard(card)
                     }
@@ -284,6 +294,10 @@ public struct LibraryView: View {
                             .foregroundStyle(
                                 model.selectedBulkCardIDs.contains(card.id) ? Color.accentColor : .secondary
                             )
+                            .contentTransition(
+                                reduceMotion ? .opacity : .symbolEffect(.replace)
+                            )
+                            .transition(selectionIndicatorTransition)
                             .accessibilityHidden(true)
                         }
 
@@ -292,6 +306,10 @@ public struct LibraryView: View {
                             showRussianMeanings: showsRussianMeanings
                         )
                     }
+                    .animation(
+                        selectorAnimation(for: index),
+                        value: model.isBulkTagSelectionActive
+                    )
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("library.card")
@@ -464,6 +482,7 @@ public struct LibraryView: View {
                 )
             )
                 .font(.subheadline.weight(.medium))
+                .contentTransition(.numericText())
             Spacer()
             Button("library.bulk.tags") {
                 selectedBulkTagIDs = []
@@ -476,8 +495,41 @@ public struct LibraryView: View {
         .padding(.horizontal)
         .padding(.vertical, 12)
         .background(.bar)
+        .animation(selectionFeedbackAnimation, value: model.selectedBulkCardIDs.count)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("library.bulk.bar")
+    }
+
+    private var selectionModeEntranceAnimation: Animation {
+        reduceMotion ? .easeOut(duration: 0.16) : .smooth(duration: 0.24)
+    }
+
+    private var selectionModeExitAnimation: Animation {
+        reduceMotion ? .easeOut(duration: 0.12) : .easeOut(duration: 0.18)
+    }
+
+    private var selectionFeedbackAnimation: Animation {
+        .easeOut(duration: reduceMotion ? 0.12 : 0.16)
+    }
+
+    private var selectionIndicatorTransition: AnyTransition {
+        reduceMotion
+            ? .opacity
+            : .move(edge: .leading).combined(with: .opacity)
+    }
+
+    private var selectionBarTransition: AnyTransition {
+        reduceMotion
+            ? .opacity
+            : .move(edge: .bottom).combined(with: .opacity)
+    }
+
+    private func selectorAnimation(for index: Int) -> Animation {
+        guard !reduceMotion else { return selectionModeEntranceAnimation }
+        let cappedDelay = min(Double(index) * 0.025, 0.12)
+        return model.isBulkTagSelectionActive
+            ? selectionModeEntranceAnimation.delay(cappedDelay)
+            : selectionModeExitAnimation
     }
 
     private func addSelectedTags() {
