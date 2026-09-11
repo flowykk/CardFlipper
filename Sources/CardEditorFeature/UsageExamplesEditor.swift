@@ -11,6 +11,10 @@ struct UsageExamplesEditor: View {
 
     private let accessibilityLabels = EditorAccessibilityLabels()
 
+    private var canAddExample: Bool {
+        !variant.partsOfSpeech.isEmpty
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label("editor.examples.title", systemImage: "text.quote")
@@ -56,7 +60,10 @@ struct UsageExamplesEditor: View {
             Button(action: onAdd) {
                 Label("editor.example.add", systemImage: "plus.circle")
             }
-            .disabled(variant.partsOfSpeech.isEmpty)
+            .foregroundStyle(canAddExample ? Color.accentColor : Color.secondary)
+            .opacity(canAddExample ? 1 : 0.55)
+            .disabled(!canAddExample)
+            .animation(.easeOut(duration: 0.18), value: canAddExample)
             .accessibilityIdentifier("editor.english.\(variantPosition - 1).example.add")
 
             if variant.partsOfSpeech.isEmpty {

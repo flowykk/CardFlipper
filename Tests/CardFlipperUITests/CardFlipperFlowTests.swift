@@ -122,6 +122,30 @@ final class CardFlipperFlowTests: XCTestCase {
         wait(for: [detailsCollapsed], timeout: 3)
     }
 
+    func testEditorUsesCompactToolbarActionsAndDisablesExampleUntilPartIsSelected() {
+        launch(seed: false)
+        tap("library.add")
+        assertExists("editor.root")
+
+        let cancel = app.buttons["editor.cancel"]
+        let save = app.buttons["editor.save"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 3))
+        XCTAssertTrue(save.waitForExistence(timeout: 3))
+        XCTAssertEqual(cancel.label, "Cancel")
+        XCTAssertEqual(save.label, "Save")
+        XCTAssertLessThan(abs(cancel.frame.width - cancel.frame.height), 8)
+        XCTAssertLessThan(abs(save.frame.width - save.frame.height), 8)
+
+        let details = app.buttons["editor.english.0.details"]
+        XCTAssertTrue(details.waitForExistence(timeout: 3))
+        details.tap()
+
+        let addExample = app.buttons["editor.english.0.example.add"]
+        scrollToHittable(addExample)
+        XCTAssertFalse(addExample.isEnabled)
+        snap("editor-disabled-add-example")
+    }
+
     func testLibraryExposesLabeledPrimaryActionsAndHidesEmptySearch() {
         launch(seed: false)
 

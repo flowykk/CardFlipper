@@ -86,8 +86,13 @@ public struct CardEditorView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("common.cancel", action: cancel)
-                        .accessibilityIdentifier("editor.cancel")
+                    Button(action: cancel) {
+                        Label("common.cancel", systemImage: "xmark")
+                            .labelStyle(.iconOnly)
+                            .frame(minWidth: 44, minHeight: 44)
+                    }
+                    .accessibilityLabel("common.cancel")
+                    .accessibilityIdentifier("editor.cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
@@ -96,10 +101,13 @@ public struct CardEditorView: View {
                         if model.isSaving {
                             ProgressView()
                         } else {
-                            Text("common.save")
+                            Label("common.save", systemImage: "checkmark")
+                                .labelStyle(.iconOnly)
                         }
                     }
+                    .frame(minWidth: 44, minHeight: 44)
                     .disabled(model.isSaving)
+                    .accessibilityLabel("common.save")
                     .accessibilityIdentifier("editor.save")
                 }
             }
