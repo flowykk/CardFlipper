@@ -8,6 +8,7 @@ public struct LibraryView: View {
     @State private var showingCardDeletion = false
     @State private var showingTagDeletion = false
     @State private var showsRussianMeanings = false
+    @State private var showingFilters = false
     @State private var showingBulkTagPicker = false
     @State private var selectedBulkTagIDs: Set<UUID> = []
 
@@ -65,6 +66,10 @@ public struct LibraryView: View {
                     if #available(iOS 26.0, *) {
                         DefaultToolbarItem(kind: .search, placement: .bottomBar)
                         ToolbarSpacer(.fixed, placement: .bottomBar)
+                    }
+
+                    ToolbarItem(placement: .bottomBar) {
+                        filterToolbarButton
                     }
 
                     ToolbarItem(placement: .bottomBar) {
@@ -134,6 +139,20 @@ public struct LibraryView: View {
                     selectedCardCount: model.selectedBulkCardIDs.count,
                     onConfirm: addSelectedTags
                 )
+            }
+            .sheet(isPresented: $showingFilters) {
+                LibraryFiltersSheet(
+                    tags: model.tags,
+                    selectedTagIDs: $model.selectedTagIDs,
+                    learningFilter: $model.learningFilter,
+                    showsRussianMeanings: $showsRussianMeanings,
+                    onManageTags: {
+                        showingFilters = false
+                        onManageTags()
+                    }
+                )
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
             .safeAreaInset(edge: .bottom) {
                 if model.isBulkTagSelectionActive {
@@ -247,38 +266,6 @@ public struct LibraryView: View {
 
     private var cardList: some View {
         List {
-            Section {
-                Toggle(
-                    "library.translations.show",
-                    isOn: $showsRussianMeanings
-                )
-                .accessibilityIdentifier("library.translations.toggle")
-            }
-
-            if !model.tags.isEmpty {
-                Section {
-                    TagFilterView(
-                        tags: model.tags,
-                        selectedTagIDs: Binding(
-                            get: { model.selectedTagIDs },
-                            set: { model.selectedTagIDs = $0 }
-                        ),
-                        onManageTags: onManageTags
-                    )
-                    .listRowInsets(EdgeInsets())
-                }
-            }
-
-            Section {
-                Picker("library.learningFilter", selection: $model.learningFilter) {
-                    Text("learningFilter.all").tag(CardLearningFilter.all)
-                    Text("learningFilter.learned").tag(CardLearningFilter.learned)
-                    Text("learningFilter.unlearned").tag(CardLearningFilter.unlearned)
-                }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier("library.learningFilter")
-            }
-
             ForEach(model.visibleCards) { card in
                 Button {
                     if model.isBulkTagSelectionActive {
@@ -334,6 +321,30 @@ public struct LibraryView: View {
             }
         }
         .listStyle(.plain)
+    }
+
+    private var filterToolbarButton: some View {
+        Button {
+            showingFilters = true
+        } label: {
+            Image(systemName: activeFilterCount == 0
+                ? "line.3.horizontal.decrease"
+                : "line.3.horizontal.decrease.circle.fill")
+        }
+        .accessibilityLabel("library.filters.title")
+        .accessibilityValue(Text(verbatim: activeFilterAccessibilityValue))
+        .accessibilityIdentifier("library.filters")
+    }
+
+    private var activeFilterCount: Int {
+        model.selectedTagIDs.count + (model.learningFilter == .all ? 0 : 1)
+    }
+
+    private var activeFilterAccessibilityValue: String {
+        String.localizedStringWithFormat(
+            String(localized: "library.filters.active", bundle: .main),
+            activeFilterCount
+        )
     }
 
     private var studyToolbarButton: some View {

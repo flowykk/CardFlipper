@@ -2,44 +2,83 @@ import Core
 import DesignSystem
 import SwiftUI
 
-public struct TagFilterView: View {
+public struct LibraryFiltersSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
     private let tags: [Tag]
     @Binding private var selectedTagIDs: Set<UUID>
+    @Binding private var learningFilter: CardLearningFilter
+    @Binding private var showsRussianMeanings: Bool
     private let onManageTags: () -> Void
 
     public init(
         tags: [Tag],
         selectedTagIDs: Binding<Set<UUID>>,
+        learningFilter: Binding<CardLearningFilter>,
+        showsRussianMeanings: Binding<Bool>,
         onManageTags: @escaping () -> Void
     ) {
         self.tags = tags
         _selectedTagIDs = selectedTagIDs
+        _learningFilter = learningFilter
+        _showsRussianMeanings = showsRussianMeanings
         self.onManageTags = onManageTags
     }
 
     public var body: some View {
-        HStack(spacing: 8) {
-            ScrollView(.horizontal) {
-                HStack(spacing: 8) {
-                    ForEach(tags) { tag in
-                        filterButton(for: tag)
+        NavigationStack {
+            Form {
+                Section("library.learningFilter") {
+                    Picker("library.learningFilter", selection: $learningFilter) {
+                        Text("learningFilter.all").tag(CardLearningFilter.all)
+                        Text("learningFilter.learned").tag(CardLearningFilter.learned)
+                        Text("learningFilter.unlearned").tag(CardLearningFilter.unlearned)
                     }
+                    .pickerStyle(.segmented)
+                    .accessibilityIdentifier("library.learningFilter")
                 }
-                .padding(.vertical, 2)
-            }
-            .scrollIndicators(.hidden)
-            .contentMargins(.leading, 20, for: .scrollContent)
 
-            Button(action: onManageTags) {
-                Label("tag.manage", systemImage: AppSymbol.tags)
-                    .frame(minHeight: 44)
+                Section("library.filters.tags") {
+                    ForEach(tags) { tag in
+                        tagButton(tag)
+                    }
+
+                    Button {
+                        dismiss()
+                        onManageTags()
+                    } label: {
+                        Label("tag.manage", systemImage: AppSymbol.tags)
+                    }
+                    .accessibilityIdentifier("library.tags.manage")
+                }
+
+                Section("library.filters.display") {
+                    Toggle(
+                        "library.translations.show",
+                        isOn: $showsRussianMeanings
+                    )
+                    .accessibilityIdentifier("library.translations.toggle")
+                }
             }
-            .buttonStyle(.bordered)
-            .accessibilityIdentifier("library.tags.manage")
+            .navigationTitle("library.filters.title")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("library.filters.reset", action: reset)
+                        .disabled(!canReset)
+                        .accessibilityIdentifier("library.filters.reset")
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("common.done") { dismiss() }
+                        .accessibilityIdentifier("library.filters.done")
+                }
+            }
+            .accessibilityIdentifier("library.filters.sheet")
         }
     }
 
-    private func filterButton(for tag: Tag) -> some View {
+    private func tagButton(_ tag: Tag) -> some View {
         let isSelected = selectedTagIDs.contains(tag.id)
 
         return Button {
@@ -50,21 +89,30 @@ public struct TagFilterView: View {
             }
             FeedbackGenerator.shared.selection()
         } label: {
-            HStack(spacing: 6) {
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .accessibilityHidden(true)
+            HStack {
                 Text(verbatim: tag.name)
+                    .foregroundStyle(.primary)
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(Color.accentColor)
+                        .accessibilityHidden(true)
+                }
             }
-            .font(.subheadline)
-            .padding(.horizontal, 12)
-            .frame(minHeight: 44)
-            .foregroundStyle(isSelected ? Color.accentColor : .primary)
-            .background(
-                isSelected ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.08),
-                in: Capsule()
-            )
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var canReset: Bool {
+        !selectedTagIDs.isEmpty || learningFilter != .all || showsRussianMeanings
+    }
+
+    private func reset() {
+        selectedTagIDs = []
+        learningFilter = .all
+        showsRussianMeanings = false
+        FeedbackGenerator.shared.selection()
     }
 }

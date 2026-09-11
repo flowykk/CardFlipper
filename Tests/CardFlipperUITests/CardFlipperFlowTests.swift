@@ -125,7 +125,10 @@ final class CardFlipperFlowTests: XCTestCase {
 
         let search = app.searchFields["Search cards"]
         XCTAssertTrue(search.waitForExistence(timeout: 3))
-        XCTAssertGreaterThan(study.frame.minX, search.frame.maxX)
+        let filters = app.buttons["library.filters"].firstMatch
+        XCTAssertTrue(filters.isHittable)
+        XCTAssertGreaterThan(filters.frame.minX, search.frame.maxX)
+        XCTAssertGreaterThan(study.frame.minX, filters.frame.maxX)
         XCTAssertLessThan(study.frame.minY, search.frame.maxY)
         XCTAssertGreaterThan(study.frame.maxY, search.frame.minY)
         snap("library-primary-actions")
@@ -147,6 +150,7 @@ final class CardFlipperFlowTests: XCTestCase {
     func testTagManagementShowsLifecycleActionsAndAffectedCardCount() {
         launch(seed: true)
 
+        tap("library.filters")
         tap("library.tags.manage")
         XCTAssertTrue(app.navigationBars["Manage Tags"].waitForExistence(timeout: 3))
         assertExists("tag.create.name")
@@ -250,11 +254,13 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(firstCard.staticTexts["book"].exists)
         XCTAssertFalse(firstCard.staticTexts["книга"].exists)
 
+        tap("library.filters")
         let translationsToggle = app.switches["library.translations.toggle"]
         XCTAssertTrue(translationsToggle.waitForExistence(timeout: 3))
         translationsToggle.coordinate(
             withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)
         ).tap()
+        tap("library.filters.done")
 
         XCTAssertTrue(firstCard.staticTexts["book"].waitForExistence(timeout: 3))
         XCTAssertTrue(firstCard.staticTexts["книга"].waitForExistence(timeout: 3))
@@ -263,21 +269,30 @@ final class CardFlipperFlowTests: XCTestCase {
     func testLearningFiltersAreAvailableInLibraryAndStudySetup() throws {
         launch(seed: true)
 
+        XCTAssertFalse(app.descendants(matching: .any)["library.learningFilter"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["library.tags.manage"].exists)
+        tap("library.filters")
+        assertExists("library.filters.sheet")
         assertExists("library.learningFilter")
+        assertExists("library.translations.toggle")
+        assertExists("library.tags.manage")
+        snap("library-filters-sheet")
+        tap("library.filters.done")
 
         tap("library.study")
         assertExists("study.setup")
         assertExists("study.learningFilter")
     }
 
-    func testLibraryLearningFilterAppearsBelowTags() throws {
+    func testLibraryFilterSheetShowsTagsBelowLearningStatus() throws {
         launch(seed: true)
 
+        tap("library.filters")
         let tag = app.buttons["Основы"]
         let filter = app.segmentedControls["library.learningFilter"]
         XCTAssertTrue(tag.waitForExistence(timeout: 5))
         XCTAssertTrue(filter.waitForExistence(timeout: 5))
-        XCTAssertGreaterThan(filter.frame.minY, tag.frame.maxY)
+        XCTAssertGreaterThan(tag.frame.minY, filter.frame.maxY)
     }
 
     func testF2StudyForgetRememberRepeatAndFinish() throws {
@@ -543,9 +558,7 @@ final class CardFlipperFlowTests: XCTestCase {
     }
 
     private func tap(_ identifier: String) {
-        let element = identifier == "library.add"
-            ? app.buttons["Add Card"].firstMatch
-            : app.descendants(matching: .any)[identifier]
+        let element = app.buttons[identifier].firstMatch
         scrollToHittable(element)
         element.tap()
     }
