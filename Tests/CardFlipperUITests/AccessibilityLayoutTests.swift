@@ -123,15 +123,19 @@ final class AccessibilityLayoutTests: XCTestCase {
         app.launch()
 
         tap("library.settings")
-        assertExists("settings.accentPicker")
-        let systemAccent = app.buttons["settings.accent.system"]
-        scrollToHittable(systemAccent)
-        XCTAssertTrue(systemAccent.label.contains("System"))
+        let colorPicker = app.descendants(matching: .any)["settings.colorPicker"]
+        scrollToHittable(colorPicker)
+        XCTAssertTrue(colorPicker.isHittable)
 
-        let iconPicker = app.descendants(matching: .any)["settings.iconPicker"]
+        let iconPicker = app.scrollViews["settings.iconPicker"]
         scrollToHittable(iconPicker)
         let midnight = app.buttons["settings.icon.IconMidnight3D"]
-        scrollToHittable(midnight)
+        for _ in 0..<10 {
+            if midnight.exists, midnight.isHittable { break }
+            let start = iconPicker.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5))
+            let end = iconPicker.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5))
+            start.press(forDuration: 0.05, thenDragTo: end)
+        }
         XCTAssertTrue(midnight.label.contains("Night"))
         XCTAssertTrue(midnight.isHittable)
 

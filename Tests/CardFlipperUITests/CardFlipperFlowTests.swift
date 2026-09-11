@@ -55,19 +55,16 @@ final class CardFlipperFlowTests: XCTestCase {
         }
     }
 
-    func testSettingsExposeCuratedAccessibleAccentPalette() throws {
+    func testSettingsExposeCustomAccentColorPicker() throws {
         launch(seed: false)
 
         tap("library.settings")
 
-        assertExists("settings.accentPicker")
-        for id in ["system", "indigo", "berry", "forest", "amber"] {
-            let accent = app.buttons["settings.accent.\(id)"]
-            scrollToHittable(accent)
-            XCTAssertTrue(accent.isHittable)
-        }
+        let colorPicker = app.descendants(matching: .any)["settings.colorPicker"]
+        XCTAssertTrue(colorPicker.waitForExistence(timeout: 3))
+        XCTAssertTrue(colorPicker.isHittable)
         XCTAssertTrue(app.navigationBars["Settings"].exists)
-        snap("settings-accessible-accent-palette")
+        snap("settings-custom-accent-picker")
     }
 
     func testF1FirstLaunchReachesEditorAndReturnsToEmptyLibrary() throws {
@@ -598,7 +595,20 @@ final class CardFlipperFlowTests: XCTestCase {
     }
 
     private func scrollIconToHittable(_ element: XCUIElement) {
-        scrollToHittable(element)
+        let picker = app.scrollViews["settings.iconPicker"]
+        scrollToHittable(picker)
+        for _ in 0..<10 {
+            if element.exists, element.isHittable { return }
+            dragIconPickerLeft(picker)
+        }
+        XCTAssertTrue(element.exists, "Expected \(element)")
+        XCTAssertTrue(element.isHittable, "Expected horizontally reachable \(element)")
+    }
+
+    private func dragIconPickerLeft(_ picker: XCUIElement) {
+        let start = picker.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5))
+        let end = picker.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5))
+        start.press(forDuration: 0.05, thenDragTo: end)
     }
 
     private func scrollToHittable(_ element: XCUIElement) {

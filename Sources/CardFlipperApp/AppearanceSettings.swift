@@ -22,36 +22,41 @@ final class AppearanceSettings {
 
     private let defaults: UserDefaults
 
-    private(set) var selectedAccent: AccessibleAccent {
+    var accentColor: Color {
         didSet {
-            defaults.set(selectedAccent.id, forKey: Self.selectionKey)
+            Self.persist(accentColor, to: defaults)
+            defaults.removeObject(forKey: Self.selectionKey)
         }
     }
-
-    var accentColor: Color { selectedAccent.adaptiveColor }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        if
+        if let savedColor = Self.restore(from: defaults) {
+            accentColor = savedColor
+        } else if
             let id = defaults.string(forKey: Self.selectionKey),
             let saved = AccessibleAccent.all.first(where: { $0.id == id })
         {
-            selectedAccent = saved
-        } else if let legacy = Self.restore(from: defaults) {
-            selectedAccent = Self.nearestAccent(to: legacy)
-            defaults.set(selectedAccent.id, forKey: Self.selectionKey)
+            accentColor = saved.lightColor
+            Self.persist(saved.lightColor, to: defaults)
+            defaults.removeObject(forKey: Self.selectionKey)
         } else {
-            selectedAccent = AccessibleAccent.all[0]
+            accentColor = Color(uiColor: .systemBlue)
         }
     }
 
-    func selectAccent(id: String) {
-        guard let accent = AccessibleAccent.all.first(where: { $0.id == id }) else { return }
-        selectedAccent = accent
+    var sRGBComponents: (red: Double, green: Double, blue: Double)? {
+        Self.components(for: accentColor).map { ($0.red, $0.green, $0.blue) }
     }
 
-    var sRGBComponents: (red: Double, green: Double, blue: Double)? {
-        Self.components(for: selectedAccent.lightColor).map { ($0.red, $0.green, $0.blue) }
+    private static func persist(_ color: Color, to defaults: UserDefaults) {
+        guard
+            let components = components(for: color),
+            let data = try? JSONEncoder().encode(components)
+        else {
+            return
+        }
+        defaults.set(data, forKey: storageKey)
     }
 
     private static func restore(from defaults: UserDefaults) -> Color? {
@@ -95,17 +100,4 @@ final class AppearanceSettings {
         return persisted.isValid ? persisted : nil
     }
 
-    private static func nearestAccent(to legacy: Color) -> AccessibleAccent {
-        guard let legacy = components(for: legacy) else { return AccessibleAccent.all[0] }
-        return AccessibleAccent.all.min { lhs, rhs in
-            distance(from: legacy, to: lhs.lightColor) < distance(from: legacy, to: rhs.lightColor)
-        } ?? AccessibleAccent.all[0]
-    }
-
-    private static func distance(from legacy: PersistedColor, to color: Color) -> Double {
-        guard let candidate = components(for: color) else { return .infinity }
-        return pow(legacy.red - candidate.red, 2)
-            + pow(legacy.green - candidate.green, 2)
-            + pow(legacy.blue - candidate.blue, 2)
-    }
 }

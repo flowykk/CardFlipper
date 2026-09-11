@@ -27,42 +27,44 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section("settings.appearance") {
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: dynamicTypeSize.isAccessibilitySize ? 180 : 112))],
-                    spacing: 12
-                ) {
-                    ForEach(AccessibleAccent.all) { accent in
-                        accentButton(accent)
-                    }
-                }
-                .accessibilityIdentifier("settings.accentPicker")
+                ColorPicker(
+                    "settings.interfaceColor",
+                    selection: $settings.accentColor,
+                    supportsOpacity: false
+                )
+                .accessibilityIdentifier("settings.colorPicker")
+
+                Label("settings.preview", systemImage: "paintpalette.fill")
+                    .foregroundStyle(Color.accentColor)
             }
 
             Section {
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: dynamicTypeSize.isAccessibilitySize ? 240 : 100))],
-                    spacing: 16
-                ) {
-                    ForEach(AppIconSettings.AppIcon.allCases) { icon in
-                        Button {
-                            Task { await iconSettings.select(icon) }
-                        } label: {
-                            AppIconPreview(
-                                icon: icon,
-                                isSelected: icon == iconSettings.selectedIcon,
-                                isPending: icon == iconSettings.pendingIcon
-                            )
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 16) {
+                        ForEach(AppIconSettings.AppIcon.allCases) { icon in
+                            Button {
+                                Task { await iconSettings.select(icon) }
+                            } label: {
+                                AppIconPreview(
+                                    icon: icon,
+                                    isSelected: icon == iconSettings.selectedIcon,
+                                    isPending: icon == iconSettings.pendingIcon
+                                )
+                            }
+                            .frame(width: iconTileWidth)
+                            .buttonStyle(.plain)
+                            .disabled(iconSettings.isChanging || !iconSettings.supportsAlternateIcons)
+                            .accessibilityLabel(Text(icon.titleKey))
+                            .accessibilityValue(iconAccessibilityValue(icon))
+                            .accessibilityIdentifier(icon.accessibilityIdentifier)
+                            .accessibilityAddTraits(icon == iconSettings.selectedIcon ? .isSelected : [])
                         }
-                        .buttonStyle(.plain)
-                        .disabled(iconSettings.isChanging || !iconSettings.supportsAlternateIcons)
-                        .accessibilityLabel(Text(icon.titleKey))
-                        .accessibilityValue(iconAccessibilityValue(icon))
-                        .accessibilityIdentifier(icon.accessibilityIdentifier)
-                        .accessibilityAddTraits(icon == iconSettings.selectedIcon ? .isSelected : [])
                     }
                 }
+                .contentMargins(.horizontal, 16, for: .scrollContent)
                 .accessibilityIdentifier("settings.iconPicker")
                 .padding(.vertical, 8)
+                .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
             } header: {
                 Text("settings.appIcon")
             } footer: {
@@ -105,45 +107,7 @@ struct SettingsView: View {
         }
     }
 
-    private func accentButton(_ accent: AccessibleAccent) -> some View {
-        let isSelected = settings.selectedAccent == accent
-        return Button {
-            settings.selectAccent(id: accent.id)
-        } label: {
-            HStack(spacing: 10) {
-                Circle()
-                    .fill(accent.adaptiveColor)
-                    .frame(width: 28, height: 28)
-                    .overlay {
-                        Circle().stroke(.primary.opacity(0.18), lineWidth: 1)
-                    }
-                accentTitle(accent)
-                    .multilineTextAlignment(.leading)
-                Spacer(minLength: 4)
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color.accentColor)
-                        .accessibilityHidden(true)
-                }
-            }
-            .frame(maxWidth: .infinity, minHeight: 44)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(accentTitle(accent))
-        .accessibilityIdentifier("settings.accent.\(accent.id)")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-
-    private func accentTitle(_ accent: AccessibleAccent) -> Text {
-        switch accent.id {
-        case "indigo": Text("settings.accent.indigo")
-        case "berry": Text("settings.accent.berry")
-        case "forest": Text("settings.accent.forest")
-        case "amber": Text("settings.accent.amber")
-        default: Text("settings.accent.system")
-        }
-    }
+    private var iconTileWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 240 : 88 }
 
     private func iconAccessibilityValue(_ icon: AppIconSettings.AppIcon) -> Text {
         if icon == iconSettings.pendingIcon { return Text("settings.icon.pending") }
