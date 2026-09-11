@@ -243,12 +243,12 @@ Today 00:12 · Session 00:12
 - Settings/Statistics/Bulk — secondary menu либо отдельные подписанные destinations.
 - Search отсутствует при `cards.isEmpty`.
 
-- [ ] Добавить UI-test, находящий Add и Study по label без icon identifiers.
-- [ ] Реализовать primary actions над list/empty state, в reachable зоне.
-- [ ] Заменить Study symbol на `graduationcap.fill` или `play.rectangle.fill`.
-- [ ] Убрать пять равновесных glyphs из top bar.
-- [ ] Скрывать search при нулевой библиотеке.
-- [ ] Проверить enabled/disabled Study и объясняющий disabled reason.
+- [x] Добавить UI-test, находящий Add и Study по label без icon identifiers.
+- [x] Реализовать primary actions над list/empty state, в reachable зоне.
+- [x] Заменить Study symbol на `graduationcap.fill` или `play.rectangle.fill`.
+- [x] Убрать пять равновесных glyphs из top bar.
+- [x] Скрывать search при нулевой библиотеке.
+- [x] Проверить enabled/disabled Study и объясняющий disabled reason.
 
 **Acceptance:** first-timer видит два главных действия; disabled Study объясняет необходимость карточек; Settings/Statistics доступны максимум за один tap; AX layout не обрезает labels.
 

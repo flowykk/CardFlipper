@@ -98,6 +98,27 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Your Library Is Empty"].waitForExistence(timeout: 5))
     }
 
+    func testLibraryExposesLabeledPrimaryActionsAndHidesEmptySearch() {
+        launch(seed: false)
+
+        XCTAssertFalse(app.searchFields["Search Cards"].exists)
+        XCTAssertTrue(app.buttons["Add Card"].waitForExistence(timeout: 5))
+        let unavailableStudy = app.buttons["Study Today (0 cards)"]
+        XCTAssertTrue(unavailableStudy.waitForExistence(timeout: 3))
+        XCTAssertFalse(unavailableStudy.isEnabled)
+
+        app.terminate()
+        launch(seed: true)
+
+        let study = app.descendants(matching: .any)["library.study"]
+        XCTAssertTrue(study.waitForExistence(timeout: 3))
+        XCTAssertTrue(study.label.contains("Study Today"))
+        XCTAssertTrue(study.label.contains("3"))
+        XCTAssertTrue(study.isHittable)
+        XCTAssertTrue(app.descendants(matching: .any)["library.add"].isHittable)
+        snap("library-primary-actions")
+    }
+
     func testF1SeededLibraryReopensPrefilledEditor() throws {
         launch(seed: true)
         assertExists("library.card")

@@ -35,19 +35,16 @@ public struct LibraryView: View {
         content
             .accessibilityIdentifier("library.root")
             .navigationTitle("library.title")
-            .searchable(text: $model.searchText, prompt: "library.search")
+            .modifier(LibrarySearchModifier(
+                isEnabled: !model.cards.isEmpty,
+                searchText: $model.searchText
+            ))
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if model.isBulkTagSelectionActive {
                         Button("library.bulk.cancel") { model.cancelBulkTagSelection() }
                             .accessibilityIdentifier("library.bulk.cancel")
                     } else {
-                        Button(action: onStartStudy) {
-                            Label("library.startStudy", systemImage: "rectangle.stack.fill")
-                        }
-                        .disabled(model.cards.isEmpty)
-                        .accessibilityIdentifier("library.study")
-
                         Button {
                             model.beginBulkTagSelection()
                         } label: {
@@ -55,11 +52,6 @@ public struct LibraryView: View {
                         }
                         .disabled(model.cards.isEmpty)
                         .accessibilityIdentifier("library.bulk.select")
-
-                        Button(action: onAddCard) {
-                            Label("library.add", systemImage: "plus")
-                        }
-                        .accessibilityIdentifier("library.add")
                     }
                 }
             }
@@ -177,8 +169,12 @@ public struct LibraryView: View {
             } description: {
                 Text("library.empty.message")
             } actions: {
-                Button("library.add", action: onAddCard)
-                    .buttonStyle(.borderedProminent)
+                LibraryPrimaryActionsView(
+                    cardCount: 0,
+                    isStudyEnabled: false,
+                    onStartStudy: onStartStudy,
+                    onAddCard: onAddCard
+                )
             }
         } else if model.visibleCards.isEmpty {
             ContentUnavailableView {
@@ -200,6 +196,14 @@ public struct LibraryView: View {
 
     private var cardList: some View {
         List {
+            Section {
+                LibraryPrimaryActionsView(
+                    cardCount: model.cards.count,
+                    onStartStudy: onStartStudy,
+                    onAddCard: onAddCard
+                )
+            }
+
             Section {
                 Toggle(
                     "library.translations.show",
@@ -411,6 +415,20 @@ public struct LibraryView: View {
         guard let card = model.learningStatusFailure else { return }
         Task {
             await model.toggleLearningStatus(for: card)
+        }
+    }
+}
+
+private struct LibrarySearchModifier: ViewModifier {
+    let isEnabled: Bool
+    @Binding var searchText: String
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if isEnabled {
+            content.searchable(text: $searchText, prompt: "library.search")
+        } else {
+            content
         }
     }
 }

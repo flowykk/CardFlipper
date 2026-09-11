@@ -1564,6 +1564,40 @@
         }
       }
     },
+    "library.studyUnavailableReason" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a card before starting a study session."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте карточку, чтобы начать занятие."
+          }
+        }
+      }
+    },
+    "library.studyToday" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Study Today (%lld cards)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Учиться сегодня (%lld карточек)"
+          }
+        }
+      }
+    },
     "library.title" : {
       "extractionState" : "stale",
       "localizations" : {
