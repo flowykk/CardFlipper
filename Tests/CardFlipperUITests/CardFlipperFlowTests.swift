@@ -338,6 +338,20 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertGreaterThan(tag.frame.minY, filter.frame.maxY)
     }
 
+    func testLibraryFilterToolbarUsesCompactDoneAndKeepsTextReset() {
+        launch(seed: true)
+        tap("library.filters")
+
+        let reset = app.buttons["library.filters.reset"]
+        let done = app.buttons["library.filters.done"]
+        XCTAssertTrue(reset.waitForExistence(timeout: 3))
+        XCTAssertTrue(done.waitForExistence(timeout: 3))
+        XCTAssertEqual(reset.label, "Reset")
+        XCTAssertEqual(done.label, "Done")
+        XCTAssertGreaterThan(reset.frame.width, reset.frame.height)
+        XCTAssertLessThan(abs(done.frame.width - done.frame.height), 8)
+    }
+
     func testF2StudyForgetRememberRepeatAndFinish() throws {
         launch(seed: true)
 

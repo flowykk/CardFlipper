@@ -70,8 +70,15 @@ public struct LibraryFiltersSheet: View {
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("common.done") { dismiss() }
-                        .accessibilityIdentifier("library.filters.done")
+                    Button {
+                        dismiss()
+                    } label: {
+                        Label("common.done", systemImage: "checkmark")
+                            .labelStyle(.iconOnly)
+                            .frame(minWidth: 44, minHeight: 44)
+                    }
+                    .accessibilityLabel("common.done")
+                    .accessibilityIdentifier("library.filters.done")
                 }
             }
             .accessibilityIdentifier("library.filters.sheet")
