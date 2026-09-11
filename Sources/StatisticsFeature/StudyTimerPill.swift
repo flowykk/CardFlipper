@@ -1,6 +1,7 @@
 import SwiftUI
 
 public struct StudyTimerPill: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private let snapshot: StudyTimerSnapshot
 
     public init(snapshot: StudyTimerSnapshot) {
@@ -8,19 +9,30 @@ public struct StudyTimerPill: View {
     }
 
     public var body: some View {
-        Label {
-            Text("\(StudyDurationFormatter.string(seconds: snapshot.todayElapsedSeconds)) / +\(StudyDurationFormatter.string(seconds: snapshot.sessionElapsedSeconds))")
-                .font(.system(.headline, design: .monospaced, weight: .semibold))
-                .monospacedDigit()
-        } icon: {
-            Image(systemName: "timer")
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                Label {
+                    Text(verbatim: StudyDurationFormatter.string(seconds: snapshot.sessionElapsedSeconds))
+                        .monospacedDigit()
+                } icon: {
+                    Image(systemName: "timer")
+                }
+                .font(.subheadline.weight(.semibold))
+            } else {
+                Label {
+                    Text(verbatim: StudyTimerCopy.summary(snapshot))
+                        .monospacedDigit()
+                } icon: {
+                    Image(systemName: "timer")
+                }
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(.regularMaterial, in: Capsule())
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Today \(StudyDurationFormatter.string(seconds: snapshot.todayElapsedSeconds)). Current session \(StudyDurationFormatter.string(seconds: snapshot.sessionElapsedSeconds)).")
+        .accessibilityLabel(Text(verbatim: StudyTimerCopy.summary(snapshot)))
         .accessibilityIdentifier("study.timer")
     }
 }

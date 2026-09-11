@@ -382,10 +382,10 @@ struct RootView: View {
                         )
                     }
                 )
-                .safeAreaInset(edge: .bottom) {
+                .safeAreaInset(edge: .top) {
                     if model.studyTimer.snapshot.isVisible {
                         StudyTimerPill(snapshot: model.studyTimer.snapshot)
-                            .padding(.bottom, 4)
+                            .padding(.top, 4)
                     }
                 }
             }

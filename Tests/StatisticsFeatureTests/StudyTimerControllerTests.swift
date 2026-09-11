@@ -17,6 +17,23 @@ import Testing
     #expect(try JSONDecoder().decode(StudyTimerActivityAttributes.ContentState.self, from: data) == state)
 }
 
+@Test func timerSummaryIsExplicitAndLocalized() {
+    let snapshot = StudyTimerSnapshot(
+        todayElapsedSeconds: 12,
+        sessionElapsedSeconds: 3,
+        isVisible: true
+    )
+
+    #expect(
+        StudyTimerCopy.summary(snapshot, locale: Locale(identifier: "en"))
+            == "Today 00:12 · Session 00:03"
+    )
+    #expect(
+        StudyTimerCopy.summary(snapshot, locale: Locale(identifier: "ru"))
+            == "Сегодня 00:12 · Сессия 00:03"
+    )
+}
+
 @MainActor
 @Test func timerCountsOnlyWhileSceneIsActiveAndResumesAutomatically() {
     let fixture = TimerFixture()

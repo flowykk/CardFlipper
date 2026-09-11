@@ -168,7 +168,7 @@ public func discardChanges()
 - Create: `Sources/DesignSystem/AdaptiveControlLayout.swift`
 - Create: `Tests/CardFlipperUITests/AccessibilityLayoutTests.swift`
 - Modify: `Tests/CardFlipperUITests/CardFlipperFlowTests.swift` — вынести общие launch/seed helpers
-- Modify: `docs/ui-ux.md`
+- Modify: `docs/planning/ui-ux.md`
 
 **Interface:**
 
@@ -181,11 +181,11 @@ public enum AdaptiveControlLayout {
 }
 ```
 
-- [ ] Написать unit tests для standard, AX1, AX3/AX5 размеров.
+- [x] Написать unit tests для standard и accessibility Dynamic Type размеров.
 - [ ] Добавить UI launch helpers для locale, content size и appearance.
 - [ ] Добавить screenshot/accessibility assertions для Empty, Editor, Setup, Prompt, Answer, Result, Statistics, Settings.
 - [ ] Проверять существование и hittability primary action на каждом экране.
-- [ ] Документировать правило: segmented/horizontal controls обязаны иметь vertical alternative при accessibility sizes.
+- [x] Документировать правило: segmented/horizontal controls обязаны иметь vertical alternative при accessibility sizes.
 
 **Acceptance:** один test matrix запускается на iPhone 16e и 17 Pro; primary actions остаются в AX tree и viewport; screenshots сохраняются с устойчивыми именами.
 
@@ -213,11 +213,11 @@ Today 00:12 · Session 00:12
 Сегодня 00:12 · Сессия 00:12
 ```
 
-- [ ] Добавить formatter tests для EN/RU и accessibility value.
-- [ ] Убрать hardcoded English accessibility label.
-- [ ] При AX sizes перейти с capsule/inline format на компактный двухстрочный block.
-- [ ] Расположить timer и assessment в разных safe-area regions без overlap.
-- [ ] Проверить prompt, answer, requeued card и длинный card content.
+- [x] Добавить formatter tests для EN/RU и accessibility value.
+- [x] Убрать hardcoded English accessibility label.
+- [x] При AX sizes перейти на компактный session-time block с полным AX summary.
+- [x] Расположить timer и assessment в разных safe-area regions без overlap.
+- [x] Проверить prompt, answer и assessment accessibility UI regression test.
 
 **Acceptance:** timer readable и не закрывает контент; assessment actions существуют/hittable после reveal и requeue; visible и accessibility copy локализованы одинаково.
 
@@ -576,7 +576,7 @@ public struct AccessibleAccent: Identifiable, Equatable, Sendable {
 - Modify: все затронутые localization catalogs
 - Modify: `Tests/StudyFeatureTests/LocalizationCatalogTests.swift`
 - Modify: `Tests/CardFlipperUITests/AccessibilityLayoutTests.swift`
-- Modify: `docs/ui-ux.md`
+- Modify: `docs/planning/ui-ux.md`
 
 **Icon contract:** единый Library symbol; Study — отдельный узнаваемый symbol; Tags — `tag`; destructive actions сохраняют system semantics.
 

@@ -1,9 +1,12 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 public struct StudySessionView: View {
     @State private var model: StudySessionViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private let onRepeat: (StudyConfiguration) -> Void
     private let onFinish: () -> Void
@@ -65,6 +68,14 @@ public struct StudySessionView: View {
                 onComplete(result)
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            if model.result == nil, model.canAssess {
+                assessmentActions
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .background(.bar)
+            }
+        }
     }
 
     private var activeSession: some View {
@@ -103,13 +114,6 @@ public struct StudySessionView: View {
                 }
 
                 if model.canAssess {
-                    assessmentActions
-                        .transition(
-                            reduceMotion
-                                ? .opacity
-                                : .move(edge: .bottom).combined(with: .opacity)
-                        )
-
                     if model.hasUsageExamples {
                         StudyUsageExamplesView(
                             variants: model.session.currentCard?.englishVariants ?? [],
@@ -132,17 +136,27 @@ public struct StudySessionView: View {
     }
 
     private var assessmentActions: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 12) {
-                forgetButton
-                rememberButton
-            }
-
-            VStack(spacing: 12) {
-                rememberButton
-                forgetButton
+        Group {
+            if AdaptiveControlLayout.usesVerticalControls(
+                dynamicTypeSize: dynamicTypeSize,
+                horizontalSizeClass: horizontalSizeClass
+            ) {
+                VStack(spacing: 8) {
+                    rememberButton
+                    forgetButton
+                }
+            } else {
+                HStack(spacing: 12) {
+                    forgetButton
+                    rememberButton
+                }
             }
         }
+        .transition(
+            reduceMotion
+                ? .opacity
+                : .move(edge: .bottom).combined(with: .opacity)
+        )
     }
 
     private var forgetButton: some View {
