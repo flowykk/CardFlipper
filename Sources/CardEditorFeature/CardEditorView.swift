@@ -5,6 +5,7 @@ import SwiftUI
 public struct CardEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var model: CardEditorViewModel
+    @State private var isDiscardConfirmationPresented = false
 
     private let onSaved: @MainActor () async -> Void
     private let onCancel: () -> Void
@@ -84,9 +85,16 @@ public struct CardEditorView: View {
                         .accessibilityIdentifier("editor.cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("common.save") {
+                    Button {
                         Task { await save() }
+                    } label: {
+                        if model.isSaving {
+                            ProgressView()
+                        } else {
+                            Text("common.save")
+                        }
                     }
+                    .disabled(model.isSaving)
                     .accessibilityIdentifier("editor.save")
                 }
             }
@@ -101,10 +109,22 @@ public struct CardEditorView: View {
             } message: {
                 Text("editor.duplicate.message")
             }
+            .alert(
+                "editor.discard.title",
+                isPresented: $isDiscardConfirmationPresented
+            ) {
+                Button("editor.discard.confirm", role: .destructive) {
+                    discardAndDismiss()
+                }
+                Button("editor.discard.continue", role: .cancel) {}
+            } message: {
+                Text("editor.discard.message")
+            }
             .task {
                 await model.loadTags()
             }
         }
+        .interactiveDismissDisabled(model.isDirty && !model.didSave)
         .onDisappear {
             model.cancelLookupOperations()
         }
@@ -127,7 +147,15 @@ public struct CardEditorView: View {
     }
 
     private func cancel() {
-        model.cancel()
+        guard model.canDismissWithoutConfirmation else {
+            isDiscardConfirmationPresented = true
+            return
+        }
+        discardAndDismiss()
+    }
+
+    private func discardAndDismiss() {
+        model.discardChanges()
         onCancel()
         dismiss()
     }

@@ -229,6 +229,61 @@ import Testing
 }
 
 @MainActor
+@Test func editorDirtyStateTracksUserContentAndCanBeDiscarded() {
+    let model = makeNewEditor()
+
+    #expect(!model.isDirty)
+    #expect(model.canDismissWithoutConfirmation)
+
+    model.russianMeanings[0].text = "слово"
+
+    #expect(model.isDirty)
+    #expect(!model.canDismissWithoutConfirmation)
+
+    model.discardChanges()
+
+    #expect(!model.isPresented)
+    #expect(model.canDismissWithoutConfirmation)
+}
+
+@MainActor
+@Test func overlappingSaveIsRejectedWhileFirstSaveContinues() async {
+    let cards = CardRepositoryFake()
+    cards.suspendsDuplicateCheck = true
+    let model = makeNewEditor(cards: cards)
+    model.russianMeanings = [.init(text: "слово")]
+    model.englishVariants = [.init(text: "word")]
+
+    let firstSave = Task { await model.save() }
+    #expect(await waitUntil { await cards.hasSuspendedDuplicateCheck })
+    #expect(model.isSaving)
+
+    let overlappingOutcome = await model.save()
+    cards.resumeDuplicateCheck()
+    let firstOutcome = await firstSave.value
+
+    #expect(overlappingOutcome == .failed)
+    #expect(firstOutcome == .saved)
+    #expect(cards.savedCards.count == 1)
+    #expect(!model.isSaving)
+}
+
+@MainActor
+@Test func newCardKeepsStableIdentifierAcrossFailedSaveAndRetry() async throws {
+    let cards = CardRepositoryFake(saveError: .save)
+    let model = makeNewEditor(cards: cards)
+    model.russianMeanings = [.init(text: "слово")]
+    model.englishVariants = [.init(text: "word")]
+
+    #expect(await model.save() == .failed)
+    cards.saveError = nil
+    #expect(await model.save() == .saved)
+
+    #expect(cards.attemptedCards.count == 2)
+    #expect(cards.attemptedCards[0].id == cards.attemptedCards[1].id)
+}
+
+@MainActor
 @Test func duplicateRequiresExplicitConfirmation() async {
     let cards = CardRepositoryFake(duplicateResult: [.duplicate])
     let model = makeNewEditor(cards: cards)

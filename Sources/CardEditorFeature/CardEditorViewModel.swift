@@ -89,8 +89,12 @@ public final class CardEditorViewModel {
     public private(set) var tagCreationError = false
     public var isDuplicateConfirmationPresented = false
     public private(set) var isPresented = true
+    public private(set) var isSaving = false
+    public private(set) var didSave = false
 
     private let existingCard: VocabularyCard?
+    private let draftCardID: UUID
+    private let initialContent: EditorContentSnapshot
     private let cardRepository: any CardRepository
     private let tagRepository: any TagRepository
     private let dictionaryService: any DictionaryService
@@ -123,11 +127,16 @@ public final class CardEditorViewModel {
         self.lookupDebounce = lookupDebounce
         self.lookupSleep = lookupSleep
 
+        let initialRussianMeanings: [RussianMeaningInput]
+        let initialEnglishVariants: [EnglishVariantInput]
+        let initialSelectedTagIDs: Set<UUID>
+        let initialAvailableTags: [Tag]
+
         if let card {
-            russianMeanings = card.russianMeanings.map {
+            initialRussianMeanings = card.russianMeanings.map {
                 RussianMeaningInput(id: $0.id, text: $0.text)
             }
-            englishVariants = card.englishVariants.map {
+            initialEnglishVariants = card.englishVariants.map {
                 EnglishVariantInput(
                     id: $0.id,
                     text: $0.text,
@@ -142,14 +151,26 @@ public final class CardEditorViewModel {
                     }
                 )
             }
-            selectedTagIDs = Set(card.tags.map(\.id))
-            availableTags = card.tags
+            initialSelectedTagIDs = Set(card.tags.map(\.id))
+            initialAvailableTags = card.tags
         } else {
-            russianMeanings = [RussianMeaningInput()]
-            englishVariants = [EnglishVariantInput()]
-            selectedTagIDs = []
-            availableTags = []
+            initialRussianMeanings = [RussianMeaningInput()]
+            initialEnglishVariants = [EnglishVariantInput()]
+            initialSelectedTagIDs = []
+            initialAvailableTags = []
         }
+
+        russianMeanings = initialRussianMeanings
+        englishVariants = initialEnglishVariants
+        selectedTagIDs = initialSelectedTagIDs
+        availableTags = initialAvailableTags
+        draftCardID = card?.id ?? UUID()
+        initialContent = EditorContentSnapshot(
+            russianMeanings: initialRussianMeanings,
+            englishVariants: initialEnglishVariants,
+            selectedTagIDs: initialSelectedTagIDs,
+            newTagName: ""
+        )
     }
 
     public static func newCard(
@@ -189,6 +210,14 @@ public final class CardEditorViewModel {
 
     public var validationErrors: [CardDraft.ValidationError] {
         draft.validationErrors
+    }
+
+    public var isDirty: Bool {
+        currentContent != initialContent
+    }
+
+    public var canDismissWithoutConfirmation: Bool {
+        !isDirty || didSave || !isPresented
     }
 
     public func addRussianMeaning() {
@@ -323,6 +352,9 @@ public final class CardEditorViewModel {
 
     @discardableResult
     public func save() async -> SaveOutcome {
+        guard !isSaving else { return .failed }
+        isSaving = true
+        defer { isSaving = false }
         saveError = nil
         isDuplicateConfirmationPresented = false
         pendingDuplicateSaveSnapshot = nil
@@ -352,6 +384,9 @@ public final class CardEditorViewModel {
 
     @discardableResult
     public func confirmDuplicateAndSave() async -> SaveOutcome {
+        guard !isSaving else { return .failed }
+        isSaving = true
+        defer { isSaving = false }
         isDuplicateConfirmationPresented = false
         saveError = nil
         let snapshot = pendingDuplicateSaveSnapshot
@@ -406,6 +441,10 @@ public final class CardEditorViewModel {
     }
 
     public func cancel() {
+        discardChanges()
+    }
+
+    public func discardChanges() {
         cancelLookupOperations()
         isPresented = false
     }
@@ -451,7 +490,7 @@ public final class CardEditorViewModel {
                 variant.usageExamples.map(\.id)
             },
             resolvedTags: availableTags.filter { selectedTagIDs.contains($0.id) },
-            cardID: existingCard?.id ?? UUID(),
+            cardID: draftCardID,
             createdAt: existingCard?.createdAt,
             timestamp: now()
         )
@@ -477,6 +516,7 @@ public final class CardEditorViewModel {
             )
             try await cardRepository.save(card)
             guard !Task.isCancelled else { return .failed }
+            didSave = true
             isPresented = false
             return .saved
         } catch is CancellationError {
@@ -496,6 +536,22 @@ public final class CardEditorViewModel {
         let cardID: UUID
         let createdAt: Date?
         let timestamp: Date
+    }
+
+    private struct EditorContentSnapshot: Equatable {
+        let russianMeanings: [RussianMeaningInput]
+        let englishVariants: [EnglishVariantInput]
+        let selectedTagIDs: Set<UUID>
+        let newTagName: String
+    }
+
+    private var currentContent: EditorContentSnapshot {
+        EditorContentSnapshot(
+            russianMeanings: russianMeanings,
+            englishVariants: englishVariants,
+            selectedTagIDs: selectedTagIDs,
+            newTagName: newTagName
+        )
     }
 
     private struct LookupOperation {

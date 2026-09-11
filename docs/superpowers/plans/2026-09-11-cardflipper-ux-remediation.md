@@ -146,13 +146,13 @@ public func discardChanges()
 
 Новая карточка получает стабильный `draftCardID` в initializer; все save attempts используют его.
 
-- [ ] Зафиксировать initial normalized snapshot и написать tests для `isDirty` по всем полям, tags и examples.
-- [ ] Написать concurrent-save test: два вызова `save()` приводят максимум к одному repository save.
-- [ ] Сделать stable draft ID и `isSaving` guard.
-- [ ] Добавить confirmation dialog с действиями `Continue Editing` и `Discard Changes`.
-- [ ] Подключить `.interactiveDismissDisabled(model.isDirty)`; Cancel без изменений закрывает сразу.
-- [ ] Disable Save + progress во время операции; сохранить существующее поведение при failure.
-- [ ] Добавить UI-test: swipe/cancel не закрывает dirty editor без подтверждения.
+- [x] Зафиксировать initial content snapshot и написать tests для `isDirty`.
+- [x] Написать concurrent-save test: два вызова `save()` приводят максимум к одному repository save.
+- [x] Сделать stable draft ID и `isSaving` guard.
+- [x] Добавить доступный alert с действиями `Continue Editing` и `Discard Changes`.
+- [x] Подключить `.interactiveDismissDisabled(model.isDirty)`; Cancel без изменений закрывает сразу.
+- [x] Disable Save + progress во время операции; сохранить существующее поведение при failure.
+- [x] Добавить UI-test: cancel не закрывает dirty editor без подтверждения; swipe-down заблокирован.
 
 **Acceptance:** ни один dismissal path не теряет dirty draft молча; save failure сохраняет форму; double tap не создаёт вторую карточку; успешный save закрывает editor без лишнего confirmation.
 

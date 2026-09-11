@@ -78,6 +78,26 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("F1-03-returned-empty-library")
     }
 
+    func testDirtyEditorRequiresExplicitDiscard() throws {
+        launch(seed: false)
+        tap("library.add")
+        assertExists("editor.root")
+
+        let russianField = app.textFields["editor.russian.0"]
+        XCTAssertTrue(russianField.waitForExistence(timeout: 3))
+        russianField.tap()
+        russianField.typeText("слово")
+        app.navigationBars.buttons["Cancel"].tap()
+
+        XCTAssertTrue(app.staticTexts["Discard Changes?"].waitForExistence(timeout: 3))
+        app.buttons["Continue Editing"].tap()
+        assertExists("editor.root")
+
+        app.navigationBars.buttons["Cancel"].tap()
+        app.buttons["Discard Changes"].tap()
+        XCTAssertTrue(app.staticTexts["Your Library Is Empty"].waitForExistence(timeout: 5))
+    }
+
     func testF1SeededLibraryReopensPrefilledEditor() throws {
         launch(seed: true)
         assertExists("library.card")
