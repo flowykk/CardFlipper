@@ -24,6 +24,23 @@ public struct StudyDailyGoalProgress: Equatable, Sendable {
     }
 }
 
+public struct StudySessionProgressPresentation: Equatable, Sendable {
+    public let positionText: String
+    public let fractionCompleted: Double
+
+    public init(rememberedCount: Int, totalCount: Int) {
+        let total = max(0, totalCount)
+        let position = total == 0
+            ? 0
+            : min(max(rememberedCount + 1, 1), total)
+
+        positionText = "\(position)/\(total)"
+        fractionCompleted = total == 0
+            ? 0
+            : Double(position) / Double(total)
+    }
+}
+
 @MainActor
 public protocol StudyFeedback: AnyObject {
     func perform(_ event: StudyFeedbackEvent)
@@ -116,6 +133,13 @@ public final class StudySessionViewModel {
 
     public var rememberedCount: Int {
         session.initialCardCount - session.remainingCount
+    }
+
+    public var progressPresentation: StudySessionProgressPresentation {
+        StudySessionProgressPresentation(
+            rememberedCount: rememberedCount,
+            totalCount: session.initialCardCount
+        )
     }
 
     public var hasUsageExamples: Bool {

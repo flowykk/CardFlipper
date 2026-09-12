@@ -53,6 +53,11 @@ public struct StudySessionView: View {
                 }
             }
         }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if model.result == nil {
+                progressHeader
+            }
+        }
         .confirmationDialog(
             "study.exit.title",
             isPresented: exitConfirmation,
@@ -79,34 +84,24 @@ public struct StudySessionView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            if model.result == nil, model.canAssess {
-                assessmentActions
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .background(.bar)
+            Group {
+                if model.result == nil, model.canAssess {
+                    assessmentActions
+                        .padding(.horizontal)
+                        .padding(.vertical, 6)
+                        .background(.bar)
+                }
             }
+            .animation(
+                reduceMotion ? .easeInOut(duration: 0.18) : .snappy,
+                value: model.canAssess
+            )
         }
     }
 
     private var activeSession: some View {
         ScrollView {
             VStack(spacing: 20) {
-                VStack(spacing: 8) {
-                    Text(directionKey)
-                        .font(.headline)
-
-                    Text(verbatim: remainingText)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .contentTransition(.numericText())
-
-                    ProgressView(
-                        value: Double(model.rememberedCount),
-                        total: Double(max(model.session.initialCardCount, 1))
-                    )
-                    .accessibilityLabel(Text(verbatim: remainingText))
-                }
-
                 if let card = model.session.currentCard {
                     StudyCardView(
                         card: card,
@@ -145,6 +140,27 @@ public struct StudySessionView: View {
         .animation(reduceMotion ? .easeInOut(duration: 0.18) : .snappy, value: model.canAssess)
     }
 
+    private var progressHeader: some View {
+        HStack(spacing: 12) {
+            Text(verbatim: model.progressPresentation.positionText)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+
+            ProgressView(
+                value: model.progressPresentation.fractionCompleted
+            )
+            .accessibilityHidden(true)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(.bar)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: model.progressPresentation.positionText))
+        .accessibilityIdentifier("study.progress")
+    }
+
     private var assessmentActions: some View {
         Group {
             if AdaptiveControlLayout.usesVerticalControls(
@@ -174,9 +190,12 @@ public struct StudySessionView: View {
             try? model.forget()
         } label: {
             Label("study.forget", systemImage: AppSymbol.repeatedCards)
-                .frame(maxWidth: .infinity, minHeight: 44)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity)
         }
         .buttonStyle(.bordered)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
         .tint(.orange)
         .accessibilityIdentifier("study.forget")
         .accessibilityHint("study.forget.hint")
@@ -187,25 +206,14 @@ public struct StudySessionView: View {
             try? model.remember()
         } label: {
             Label("study.remember", systemImage: "checkmark.circle.fill")
-                .frame(maxWidth: .infinity, minHeight: 44)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
         .accessibilityIdentifier("study.remember")
         .accessibilityHint("study.remember.hint")
-    }
-
-    private var directionKey: LocalizedStringKey {
-        switch model.session.direction {
-        case .russianToEnglish: "study.russianToEnglish"
-        case .englishToRussian: "study.englishToRussian"
-        }
-    }
-
-    private var remainingText: String {
-        String.localizedStringWithFormat(
-            String(localized: "study.remaining"),
-            model.session.remainingCount
-        )
     }
 
     private var exitConfirmation: Binding<Bool> {

@@ -3,6 +3,32 @@ import Foundation
 import Testing
 @testable import StudyFeature
 
+@Test func studyProgressStartsAtFirstCardAndAdvancesWithRememberedCards() {
+    let initial = StudySessionProgressPresentation(
+        rememberedCount: 0,
+        totalCount: 3
+    )
+    let advanced = StudySessionProgressPresentation(
+        rememberedCount: 1,
+        totalCount: 3
+    )
+
+    #expect(initial.positionText == "1/3")
+    #expect(initial.fractionCompleted == 1.0 / 3.0)
+    #expect(advanced.positionText == "2/3")
+    #expect(advanced.fractionCompleted == 2.0 / 3.0)
+}
+
+@MainActor
+@Test func studyProgressKeepsForgottenCardAtCurrentPosition() throws {
+    let model = makeSession()
+    model.toggleCardSide()
+    try model.forget()
+
+    #expect(model.progressPresentation.positionText == "1/2")
+    #expect(model.progressPresentation.fractionCompleted == 0.5)
+}
+
 @MainActor
 @Test func sessionShufflesAllMatchingCardsExactlyOnce() {
     let shuffler = CountingShuffler()

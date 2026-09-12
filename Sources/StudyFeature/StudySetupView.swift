@@ -112,10 +112,13 @@ public struct StudySetupView: View {
                 Text(verbatim: tag.name)
                 Spacer()
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .foregroundStyle(
+                        isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary)
+                    )
+                    .contentTransition(.symbolEffect(.replace))
+                    .animation(.snappy(duration: 0.2), value: isSelected)
                     .accessibilityHidden(true)
             }
-            .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

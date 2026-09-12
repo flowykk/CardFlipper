@@ -100,15 +100,17 @@ public struct LibraryFiltersSheet: View {
                 Text(verbatim: tag.name)
                     .foregroundStyle(.primary)
                 Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(Color.accentColor)
-                        .accessibilityHidden(true)
-                }
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(
+                        isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary)
+                    )
+                    .contentTransition(.symbolEffect(.replace))
+                    .animation(.snappy(duration: 0.2), value: isSelected)
+                    .accessibilityHidden(true)
             }
             .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 

@@ -36,9 +36,12 @@ public struct StudyUsageExamplesView: View {
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
                 }
-                .frame(maxWidth: .infinity, minHeight: 44)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
             .accessibilityIdentifier("study.examples.toggle")
             .accessibilityValue(
                 isExpanded ? "study.examples.accessibility.expanded" : "study.examples.accessibility.collapsed"
@@ -65,9 +68,11 @@ public struct StudyUsageExamplesView: View {
                                         onSpeak(variant.id, example.id)
                                     } label: {
                                         Label("card.speak", systemImage: "speaker.wave.2.fill")
-                                            .frame(minHeight: 44)
+                                            .padding(.vertical, 4)
                                     }
                                     .buttonStyle(.bordered)
+                                    .frame(minHeight: 44)
+                                    .contentShape(Rectangle())
                                     .accessibilityIdentifier("study.usageExample.speak")
                                     .accessibilityHint(Text(verbatim: example.text))
                                 }

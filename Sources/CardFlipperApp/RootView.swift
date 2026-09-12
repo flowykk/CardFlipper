@@ -468,10 +468,20 @@ struct RootView: View {
                         )
                     }
                 )
-                .safeAreaInset(edge: .top) {
+                .toolbar {
                     if model.studyTimer.snapshot.isVisible {
-                        StudyTimerPill(snapshot: model.studyTimer.snapshot)
-                            .padding(.top, 4)
+                        ToolbarItem(placement: .topBarLeading) {
+                            Text(verbatim: StudyTimerCopy.summary(
+                                model.studyTimer.snapshot
+                            ))
+                            .font(.caption.weight(.semibold))
+                            .monospacedDigit()
+                            .fixedSize(horizontal: true, vertical: false)
+                            .accessibilityLabel(Text(verbatim: StudyTimerCopy.summary(
+                                model.studyTimer.snapshot
+                            )))
+                            .accessibilityIdentifier("study.timer")
+                        }
                     }
                 }
             }

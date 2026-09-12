@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 public struct VocabularyCardRow: View {
@@ -11,44 +12,40 @@ public struct VocabularyCardRow: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            languageValues(
-                label: "card.english",
-                values: card.englishVariants.map(\.text),
-                font: .headline
-            )
-
-            if showRussianMeanings {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 languageValues(
-                    label: "card.russian",
-                    values: card.russianMeanings.map(\.text),
-                    font: .body
+                    label: "card.english",
+                    values: card.englishVariants.map(\.text),
+                    font: .headline
                 )
-            }
 
-            Label(
-                card.isLearned ? "learningFilter.learned" : "learningFilter.unlearned",
-                systemImage: card.isLearned ? "checkmark.circle.fill" : "circle.dashed"
-            )
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(card.isLearned ? Color.accentColor : .secondary)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                card.isLearned ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.10),
-                in: Capsule()
-            )
-            .accessibilityIdentifier("library.card.learningStatus")
+                if showRussianMeanings {
+                    languageValues(
+                        label: "card.russian",
+                        values: card.russianMeanings.map(\.text),
+                        font: .body
+                    )
+                }
 
-            if !card.tags.isEmpty {
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 6) {
-                        tagLabels
-                    }
-                    VStack(alignment: .leading, spacing: 4) {
-                        tagLabels
+                if !card.tags.isEmpty {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 6) {
+                            tagLabels
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            tagLabels
+                        }
                     }
                 }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if card.isLearned {
+                Image(systemName: AppSymbol.study)
+                    .foregroundStyle(.tint)
+                    .accessibilityLabel(Text("learningFilter.learned"))
+                    .accessibilityIdentifier("library.card.learningStatus")
             }
         }
         .padding(.vertical, 4)

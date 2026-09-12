@@ -161,7 +161,7 @@ public struct StudyCardView: View {
             reduceMotion: reduceMotion
         )
 
-        ZStack {
+        EqualSizeZStack {
             face(
                 content.front,
                 isAnswer: false,
@@ -196,7 +196,6 @@ public struct StudyCardView: View {
         }
         .id(card.id)
         .frame(maxWidth: .infinity)
-        .frame(height: 360)
         .contentShape(Rectangle())
         .onTapGesture(perform: onToggle)
         .onChange(of: isShowingAnswer) { _, showingAnswer in
@@ -222,18 +221,17 @@ public struct StudyCardView: View {
         progress: Double
     ) -> some View {
         FlashcardSurface {
-            ScrollView {
-                VStack(spacing: 20) {
-                    languageLabel(face.language)
-
-                    faceValues(face)
-                }
-                .frame(maxWidth: .infinity, minHeight: 260)
-                .padding(.vertical)
+            VStack {
+                faceValues(face)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
         }
-        .frame(height: 360)
+        .overlay(alignment: .bottom) {
+            languageLabel(face.language)
+                .padding(.bottom, 8)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(isAnswer ? "study.answer" : "study.prompt")
         .modifier(StableStudyCardFlip(
@@ -257,11 +255,11 @@ public struct StudyCardView: View {
         switch language {
         case .russian:
             Text("card.russian")
-                .font(.headline)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
         case .english:
             Text("card.english")
-                .font(.headline)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
         }
     }
@@ -299,9 +297,11 @@ public struct StudyCardView: View {
                         onSpeak(variant.id)
                     } label: {
                         Label("card.speak", systemImage: "speaker.wave.2.fill")
-                            .frame(minHeight: 44)
+                            .padding(.vertical, 4)
                     }
                     .buttonStyle(.bordered)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                     .accessibilityHint(Text(verbatim: variant.text))
                 }
             }
@@ -311,6 +311,36 @@ public struct StudyCardView: View {
                     .font(.largeTitle.weight(.semibold))
                     .multilineTextAlignment(.center)
             }
+        }
+    }
+}
+
+private struct EqualSizeZStack: Layout {
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGSize {
+        subviews.reduce(into: .zero) { size, subview in
+            let subviewSize = subview.sizeThatFits(proposal)
+            size.width = max(size.width, subviewSize.width)
+            size.height = max(size.height, subviewSize.height)
+        }
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        let childProposal = ProposedViewSize(bounds.size)
+        for subview in subviews {
+            subview.place(
+                at: CGPoint(x: bounds.midX, y: bounds.midY),
+                anchor: .center,
+                proposal: childProposal
+            )
         }
     }
 }

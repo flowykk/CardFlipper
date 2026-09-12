@@ -339,13 +339,22 @@ public struct LibraryView: View {
         .listStyle(.plain)
     }
 
+    @ViewBuilder
     private var filterToolbarButton: some View {
+        if activeFilterCount > 0 {
+            filterButton
+                .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.circle)
+        } else {
+            filterButton
+        }
+    }
+
+    private var filterButton: some View {
         Button {
             showingFilters = true
         } label: {
-            Image(systemName: activeFilterCount == 0
-                ? "line.3.horizontal.decrease"
-                : "line.3.horizontal.decrease.circle.fill")
+            Image(systemName: "line.3.horizontal.decrease")
         }
         .accessibilityLabel("library.filters.title")
         .accessibilityValue(Text(verbatim: activeFilterAccessibilityValue))

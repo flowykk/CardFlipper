@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 
 @MainActor
 final class CardFlipperFlowTests: XCTestCase {
@@ -122,6 +123,28 @@ final class CardFlipperFlowTests: XCTestCase {
         wait(for: [detailsCollapsed], timeout: 3)
     }
 
+    func testPartOfSpeechPickerStaysOpenAfterSelection() {
+        launch(seed: false)
+        tap("library.add")
+        assertExists("editor.root")
+
+        let details = app.buttons["editor.english.0.details"]
+        XCTAssertTrue(details.waitForExistence(timeout: 3))
+        details.tap()
+
+        let picker = app.buttons["editor.english.0.partOfSpeechPicker"]
+        scrollToHittable(picker)
+        picker.tap()
+
+        let noun = app.buttons["editor.english.0.partOfSpeech.noun"]
+        XCTAssertTrue(noun.waitForExistence(timeout: 3))
+        noun.tap()
+
+        XCTAssertTrue(app.searchFields["Search parts of speech"].waitForExistence(timeout: 3))
+        XCTAssertTrue(noun.exists)
+        XCTAssertTrue(noun.isSelected)
+    }
+
     func testEditorUsesCompactToolbarActionsAndDisablesExampleUntilPartIsSelected() {
         launch(seed: false)
         tap("library.add")
@@ -229,22 +252,26 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("statistics-zero-state")
     }
 
-    func testLearningStatusIsVisibleAndCanBeUndone() {
+    func testLearnedIconAppearsOnlyForLearnedCardsAndCanBeUndone() {
         launch(seed: true)
 
         let firstCard = app.buttons.matching(identifier: "library.card").firstMatch
+        let learnedIcon = app.descendants(matching: .any)["library.card.learningStatus"]
         XCTAssertTrue(firstCard.waitForExistence(timeout: 5))
-        XCTAssertTrue(firstCard.label.contains("Unlearned"))
+        XCTAssertEqual(firstCard.value as? String, "Unlearned")
+        XCTAssertFalse(learnedIcon.exists)
 
         firstCard.swipeRight()
         tap("library.markLearned")
 
         XCTAssertTrue(app.descendants(matching: .any)["library.undoBanner"].waitForExistence(timeout: 3))
-        XCTAssertTrue(firstCard.label.contains("Learned"))
+        XCTAssertEqual(firstCard.value as? String, "Learned")
+        XCTAssertTrue(learnedIcon.waitForExistence(timeout: 3))
         tap("library.undo")
 
         XCTAssertTrue(firstCard.waitForExistence(timeout: 3))
-        XCTAssertTrue(firstCard.label.contains("Unlearned"))
+        XCTAssertEqual(firstCard.value as? String, "Unlearned")
+        XCTAssertFalse(learnedIcon.exists)
         XCTAssertFalse(app.descendants(matching: .any)["library.undoBanner"].exists)
         snap("library-visible-learning-status")
     }
@@ -338,6 +365,48 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertGreaterThan(tag.frame.minY, filter.frame.maxY)
     }
 
+    func testStudySetupUsesCompactTagRows() {
+        launch(seed: true)
+
+        tap("library.study")
+        let tag = app.buttons["Основы"]
+        XCTAssertTrue(tag.waitForExistence(timeout: 3))
+        XCTAssertLessThan(tag.frame.height, 60)
+    }
+
+    func testStudyProgressIsPinnedOutsideScrollableContent() {
+        launch(seed: true)
+
+        tap("library.study")
+        tap("study.start")
+
+        let progress = app.descendants(matching: .any)["study.progress"]
+        XCTAssertTrue(progress.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.scrollViews.descendants(matching: .any)["study.progress"].exists)
+    }
+
+    func testStudyLanguageLabelStaysAtCardBottomOnBothFaces() {
+        launch(seed: true)
+
+        tap("library.study")
+        tap("study.direction.englishToRussian")
+        tap("study.start")
+
+        let prompt = app.descendants(matching: .any)["study.card.prompt"]
+        let englishLabel = app.staticTexts["English"]
+        XCTAssertTrue(prompt.waitForExistence(timeout: 3))
+        XCTAssertTrue(englishLabel.waitForExistence(timeout: 3))
+        XCTAssertLessThan(prompt.frame.maxY - englishLabel.frame.maxY, 12)
+
+        tapEmptyCardSpace("study.card.prompt")
+
+        let answer = app.descendants(matching: .any)["study.card.answer"]
+        let russianLabel = app.staticTexts["Russian"]
+        XCTAssertTrue(answer.waitForExistence(timeout: 3))
+        XCTAssertTrue(russianLabel.waitForExistence(timeout: 3))
+        XCTAssertLessThan(answer.frame.maxY - russianLabel.frame.maxY, 12)
+    }
+
     func testLibraryFilterToolbarUsesCompactDoneAndKeepsTextReset() {
         launch(seed: true)
         tap("library.filters")
@@ -352,6 +421,44 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertLessThan(abs(done.frame.width - done.frame.height), 8)
     }
 
+    func testSelectedFilterTagUsesConfiguredAccentColor() {
+        launch(seed: true, accent: "berry")
+        tap("library.filters")
+
+        let tag = app.buttons["Основы"]
+        XCTAssertTrue(tag.waitForExistence(timeout: 3))
+        tag.tap()
+
+        let screenshot = app.screenshot().image
+        let accentCoverage = colorCoverage(
+            in: tag.frame,
+            screenshot: screenshot,
+            matching: (red: 0xAD / 255, green: 0, blue: 0x4A / 255)
+        )
+        let blueCoverage = blueDominantCoverage(
+            in: tag.frame,
+            screenshot: screenshot
+        )
+        XCTAssertGreaterThan(accentCoverage, 0.005)
+        XCTAssertLessThan(blueCoverage, 0.001)
+    }
+
+    func testActiveLibraryFilterButtonMatchesStudyButtonFilledStyle() {
+        launch(seed: true, accent: "berry")
+        tap("library.filters")
+        tap("Основы")
+        tap("library.filters.done")
+
+        let filters = app.buttons["library.filters"].firstMatch
+        XCTAssertTrue(filters.waitForExistence(timeout: 3))
+        let accentCoverage = colorCoverage(
+            in: filters.frame,
+            screenshot: app.screenshot().image,
+            matching: (red: 0xAD / 255, green: 0, blue: 0x4A / 255)
+        )
+        XCTAssertGreaterThan(accentCoverage, 0.8)
+    }
+
     func testF2StudyForgetRememberRepeatAndFinish() throws {
         launch(seed: true)
 
@@ -364,6 +471,7 @@ final class CardFlipperFlowTests: XCTestCase {
         tap("study.direction.russianToEnglish")
         tap("study.start")
         assertExists("study.card.prompt")
+        XCTAssertFalse(app.scrollViews["study.card.prompt"].exists)
         snap("F2-03-first-prompt")
 
         tapEmptyCardSpace("study.card.prompt")
@@ -524,7 +632,7 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(cards.element(boundBy: 1).staticTexts["Reusable"].exists)
     }
 
-    private func launch(seed: Bool) {
+    private func launch(seed: Bool, accent: String? = nil) {
         continueAfterFailure = false
         app.launchArguments = [
             "-uiTesting",
@@ -534,8 +642,81 @@ final class CardFlipperFlowTests: XCTestCase {
         if seed {
             app.launchArguments.append("-uiTestSeed")
         }
+        if let accent {
+            app.launchArguments += [
+                "-com.danilarahmanov.CardFlipper.appearance.accentColor", "invalid",
+                "-com.danilarahmanov.CardFlipper.appearance.accent", accent,
+            ]
+        }
         app.launch()
         assertExists("library.root")
+    }
+
+    private func colorCoverage(
+        in frame: CGRect,
+        screenshot: UIImage,
+        matching expected: (red: CGFloat, green: CGFloat, blue: CGFloat)
+    ) -> Double {
+        pixelCoverage(in: frame, screenshot: screenshot) { red, green, blue in
+            let distance = abs(red - expected.red) + abs(green - expected.green)
+                + abs(blue - expected.blue)
+            return distance < 0.24
+        }
+    }
+
+    private func blueDominantCoverage(in frame: CGRect, screenshot: UIImage) -> Double {
+        pixelCoverage(in: frame, screenshot: screenshot) { red, green, blue in
+            blue > 0.5 && blue > red * 1.3 && blue > green * 1.1
+        }
+    }
+
+    private func pixelCoverage(
+        in frame: CGRect,
+        screenshot: UIImage,
+        matching predicate: (CGFloat, CGFloat, CGFloat) -> Bool
+    ) -> Double {
+        guard let image = screenshot.cgImage else { return 0 }
+        let scaleX = CGFloat(image.width) / screenshot.size.width
+        let scaleY = CGFloat(image.height) / screenshot.size.height
+        let pixelRect = CGRect(
+            x: frame.minX * scaleX,
+            y: frame.minY * scaleY,
+            width: frame.width * scaleX,
+            height: frame.height * scaleY
+        ).integral.intersection(CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        guard !pixelRect.isEmpty,
+              let cropped = image.cropping(to: pixelRect)
+        else { return 0 }
+
+        let pixelCount = cropped.width * cropped.height
+        let bytesPerPixel = 4
+        let bytesPerRow = cropped.width * bytesPerPixel
+        var bytes = [UInt8](repeating: 0, count: pixelCount * bytesPerPixel)
+        guard let context = CGContext(
+            data: &bytes,
+            width: cropped.width,
+            height: cropped.height,
+            bitsPerComponent: 8,
+            bytesPerRow: bytesPerRow,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return 0 }
+        context.draw(cropped, in: CGRect(x: 0, y: 0, width: cropped.width, height: cropped.height))
+
+        var matchingPixels = 0
+        for y in 0 ..< cropped.height {
+            for x in 0 ..< cropped.width {
+                let offset = y * bytesPerRow + x * bytesPerPixel
+                if predicate(
+                    CGFloat(bytes[offset]) / 255,
+                    CGFloat(bytes[offset + 1]) / 255,
+                    CGFloat(bytes[offset + 2]) / 255
+                ) {
+                    matchingPixels += 1
+                }
+            }
+        }
+        return Double(matchingPixels) / Double(pixelCount)
     }
 
     private func rememberCurrentCard() {

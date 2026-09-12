@@ -6,6 +6,7 @@ public struct CardEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var model: CardEditorViewModel
     @State private var isDiscardConfirmationPresented = false
+    @State private var partOfSpeechPicker: PartOfSpeechPickerPresentation?
 
     private let onSaved: @MainActor () async -> Void
     private let onCancel: () -> Void
@@ -46,6 +47,9 @@ public struct CardEditorView: View {
                     onSpeak: model.speak,
                     onIPAChanged: model.markIPAUserEdited,
                     onToggleMetadata: model.toggleMetadata,
+                    onChoosePartOfSpeechVariant: {
+                        partOfSpeechPicker = PartOfSpeechPickerPresentation(id: $0)
+                    },
                     onTogglePartOfSpeech: model.togglePartOfSpeech,
                     onAddUsageExample: model.addUsageExample,
                     onRemoveUsageExample: model.removeUsageExample,
@@ -137,6 +141,26 @@ public struct CardEditorView: View {
                 await model.loadTags()
             }
         }
+        .sheet(item: $partOfSpeechPicker) { presentation in
+            if let variant = model.englishVariants.first(where: { $0.id == presentation.id }) {
+                NavigationStack {
+                    PartOfSpeechPicker(
+                        selected: variant.partsOfSpeech,
+                        onToggle: {
+                            model.togglePartOfSpeech($0, variantID: presentation.id)
+                        },
+                        identifierPrefix: partOfSpeechIdentifierPrefix(for: presentation.id)
+                    )
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("common.done") {
+                                partOfSpeechPicker = nil
+                            }
+                        }
+                    }
+                }
+            }
+        }
         .interactiveDismissDisabled(model.isDirty && !model.didSave)
         .onDisappear {
             model.cancelLookupOperations()
@@ -172,4 +196,13 @@ public struct CardEditorView: View {
         onCancel()
         dismiss()
     }
+
+    private func partOfSpeechIdentifierPrefix(for variantID: UUID) -> String {
+        let index = model.englishVariants.firstIndex { $0.id == variantID } ?? 0
+        return "editor.english.\(index).partOfSpeech"
+    }
+}
+
+private struct PartOfSpeechPickerPresentation: Identifiable {
+    let id: UUID
 }

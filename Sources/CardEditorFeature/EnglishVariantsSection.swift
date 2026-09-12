@@ -7,7 +7,6 @@ public struct EnglishVariantsSection: View {
     @Binding private var expandedMetadataVariantIDs: Set<UUID>
     @FocusState private var focusedVariantID: UUID?
     @State private var blurredVariantIDs: Set<UUID> = []
-    @State private var partOfSpeechPickerVariantID: UUID?
 
     private let lookupState: [UUID: LookupState]
     private let showsValidationError: Bool
@@ -18,6 +17,7 @@ public struct EnglishVariantsSection: View {
     private let onSpeak: (UUID) -> Void
     private let onIPAChanged: (UUID) -> Void
     private let onToggleMetadata: (UUID) -> Void
+    private let onChoosePartOfSpeechVariant: (UUID) -> Void
     private let onTogglePartOfSpeech: (PartOfSpeech, UUID) -> Void
     private let onAddUsageExample: (UUID) -> Void
     private let onRemoveUsageExample: (UUID, UUID) -> Void
@@ -38,6 +38,7 @@ public struct EnglishVariantsSection: View {
         onSpeak: @escaping (UUID) -> Void,
         onIPAChanged: @escaping (UUID) -> Void,
         onToggleMetadata: @escaping (UUID) -> Void,
+        onChoosePartOfSpeechVariant: @escaping (UUID) -> Void,
         onTogglePartOfSpeech: @escaping (PartOfSpeech, UUID) -> Void,
         onAddUsageExample: @escaping (UUID) -> Void,
         onRemoveUsageExample: @escaping (UUID, UUID) -> Void,
@@ -56,6 +57,7 @@ public struct EnglishVariantsSection: View {
         self.onSpeak = onSpeak
         self.onIPAChanged = onIPAChanged
         self.onToggleMetadata = onToggleMetadata
+        self.onChoosePartOfSpeechVariant = onChoosePartOfSpeechVariant
         self.onTogglePartOfSpeech = onTogglePartOfSpeech
         self.onAddUsageExample = onAddUsageExample
         self.onRemoveUsageExample = onRemoveUsageExample
@@ -121,25 +123,6 @@ public struct EnglishVariantsSection: View {
         .onChange(of: focusedVariantID) { oldValue, _ in
             if let oldValue {
                 blurredVariantIDs.insert(oldValue)
-            }
-        }
-        .sheet(isPresented: partOfSpeechPickerPresented) {
-            if let variantID = partOfSpeechPickerVariantID,
-               let variant = variants.first(where: { $0.id == variantID }) {
-                NavigationStack {
-                    PartOfSpeechPicker(
-                        selected: variant.partsOfSpeech,
-                        onToggle: { onTogglePartOfSpeech($0, variantID) },
-                        identifierPrefix: "editor.english.\(position(of: variantID) - 1).partOfSpeech"
-                    )
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("common.done") {
-                                partOfSpeechPickerVariantID = nil
-                            }
-                        }
-                    }
-                }
             }
         }
     }
@@ -251,7 +234,7 @@ public struct EnglishVariantsSection: View {
         }
 
         Button {
-            partOfSpeechPickerVariantID = id
+            onChoosePartOfSpeechVariant(id)
         } label: {
             Label("editor.partOfSpeech.choose", systemImage: "textformat")
         }
@@ -329,17 +312,6 @@ public struct EnglishVariantsSection: View {
         showsValidationError || (
             !blurredVariantIDs.isEmpty
                 && variants.allSatisfy { $0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        )
-    }
-
-    private var partOfSpeechPickerPresented: Binding<Bool> {
-        Binding(
-            get: { partOfSpeechPickerVariantID != nil },
-            set: { isPresented in
-                if !isPresented {
-                    partOfSpeechPickerVariantID = nil
-                }
-            }
         )
     }
 
