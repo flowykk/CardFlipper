@@ -1,73 +1,12 @@
 import Core
-import DesignSystem
 import Foundation
 import Observation
 
-public enum StudyFeedbackEvent: Equatable, Sendable {
-    case reveal
-    case remember
-    case forget
-    case completion
-}
-
-public struct StudyDailyGoalProgress: Equatable, Sendable {
-    public let elapsedSeconds: Int
-    public let goalSeconds: Int
-
-    public init(elapsedSeconds: Int, goalSeconds: Int) {
-        self.elapsedSeconds = max(0, elapsedSeconds)
-        self.goalSeconds = max(1, goalSeconds)
-    }
-
-    public var fractionCompleted: Double {
-        min(1, Double(elapsedSeconds) / Double(goalSeconds))
-    }
-}
-
-public struct StudySessionProgressPresentation: Equatable, Sendable {
-    public let positionText: String
-    public let fractionCompleted: Double
-
-    public init(rememberedCount: Int, totalCount: Int) {
-        let total = max(0, totalCount)
-        let position = total == 0
-            ? 0
-            : min(max(rememberedCount + 1, 1), total)
-
-        positionText = "\(position)/\(total)"
-        fractionCompleted = total == 0
-            ? 0
-            : Double(position) / Double(total)
-    }
-}
-
-@MainActor
-public protocol StudyFeedback: AnyObject {
-    func perform(_ event: StudyFeedbackEvent)
-}
-
-@MainActor
-public final class SystemStudyFeedback: StudyFeedback {
-    public init() {}
-
-    public func perform(_ event: StudyFeedbackEvent) {
-        switch event {
-        case .reveal:
-            FeedbackGenerator.shared.flip()
-        case .remember, .completion:
-            FeedbackGenerator.shared.remember()
-        case .forget:
-            FeedbackGenerator.shared.forget()
-        }
-    }
-}
-
 @MainActor
 @Observable
-public final class StudySessionViewModel {
-    public private(set) var session: StudySession
+public final class WritingSessionViewModel {
+    public private(set) var session: WritingSession
     public private(set) var result: StudyResult?
-    public private(set) var isShowingAnswer = false
     public private(set) var isShowingUsageExamples = false
     public var isExitConfirmationPresented = false
 
@@ -97,24 +36,22 @@ public final class StudySessionViewModel {
         if let snapshot {
             let cardsByID = Dictionary(uniqueKeysWithValues: configuration.cards.map { ($0.id, $0) })
             let queue = snapshot.queueCardIDs.compactMap { cardsByID[$0] }
-            session = StudySession(
+            session = WritingSession(
                 cards: queue,
-                direction: snapshot.direction,
                 initialCardCount: configuration.cards.count,
+                response: snapshot.writingResponse,
+                evaluation: snapshot.writingEvaluation,
+                isShowingAnswer: snapshot.isShowingAnswer,
+                hasRevealedAnswer: snapshot.isRevealed,
                 forgottenCount: snapshot.forgottenCount,
                 repeatedCardIDs: snapshot.repeatedCardIDs.filter { cardsByID[$0] != nil },
-                totalAssessmentCount: snapshot.totalAssessmentCount,
-                isRevealed: snapshot.isRevealed
+                totalAssessmentCount: snapshot.totalAssessmentCount
             )
-            isShowingAnswer = snapshot.isShowingAnswer && !queue.isEmpty
             result = snapshot.completedResult
             accumulatedDurationAtStart = snapshot.accumulatedDurationSeconds
             sessionStartedAt = snapshot.startedAt
         } else {
-            session = StudySession(
-                cards: shuffler.shuffle(configuration.cards),
-                direction: configuration.direction
-            )
+            session = WritingSession(cards: shuffler.shuffle(configuration.cards))
             accumulatedDurationAtStart = 0
             sessionStartedAt = initializationDate
         }
@@ -127,41 +64,37 @@ public final class StudySessionViewModel {
         persistSnapshot()
     }
 
-    public var canAssess: Bool {
-        session.isRevealed && !session.isComplete
+    public var response: String { session.response }
+    public var evaluation: WritingAnswerEvaluation { session.evaluation }
+    public var isShowingAnswer: Bool { session.isShowingAnswer }
+    public var canCheck: Bool {
+        !TextNormalizer.searchKey(response).isEmpty
+            && evaluation != .correct
+            && !session.isComplete
     }
-
-    public var rememberedCount: Int {
-        session.initialCardCount - session.remainingCount
-    }
-
+    public var canAssess: Bool { evaluation == .correct && !session.isComplete }
     public var progressPresentation: StudySessionProgressPresentation {
         StudySessionProgressPresentation(
-            rememberedCount: rememberedCount,
+            rememberedCount: session.initialCardCount - session.remainingCount,
             totalCount: session.initialCardCount
         )
     }
-
     public var hasUsageExamples: Bool {
         session.currentCard?.englishVariants.contains { !$0.usageExamples.isEmpty } == true
     }
-
     public var difficultCards: [VocabularyCard] {
-        guard let result else { return [] }
-        let repeatedIDs = Set(result.repeatedCardIDs)
+        let repeatedIDs = Set(session.repeatedCardIDs)
         return repeatConfiguration.cards.filter { repeatedIDs.contains($0.id) }
     }
-
     public var difficultRepeatConfiguration: StudyConfiguration? {
         guard !difficultCards.isEmpty else { return nil }
         return StudyConfiguration(
-            mode: repeatConfiguration.mode,
-            direction: repeatConfiguration.direction,
+            mode: .writing,
+            direction: .russianToEnglish,
             selectedTagIDs: repeatConfiguration.selectedTagIDs,
             cards: difficultCards
         )
     }
-
     public var dailyGoalProgress: StudyDailyGoalProgress? {
         guard let initialDailyGoalProgress else { return nil }
         return StudyDailyGoalProgress(
@@ -170,28 +103,36 @@ public final class StudySessionViewModel {
         )
     }
 
-    public func toggleCardSide() {
+    public func setResponse(_ response: String) {
+        session.setResponse(response)
+        persistSnapshot()
+    }
+
+    public func checkResponse() {
+        guard canCheck else { return }
+        let evaluation = session.checkResponse()
+        feedback.perform(evaluation == .correct ? .remember : .forget)
+        persistSnapshot()
+    }
+
+    public func toggleAnswer() {
         guard !session.isComplete else { return }
-
-        if !session.isRevealed {
-            session.reveal()
+        session.toggleAnswer()
+        if !session.isShowingAnswer {
+            isShowingUsageExamples = false
         }
-
-        isShowingAnswer.toggle()
         feedback.perform(.reveal)
         persistSnapshot()
     }
 
     public func toggleUsageExamples() {
-        guard canAssess, hasUsageExamples else { return }
+        guard isShowingAnswer, hasUsageExamples else { return }
         isShowingUsageExamples.toggle()
     }
 
     public func remember() throws {
         try session.remember()
-        isShowingAnswer = false
         isShowingUsageExamples = false
-
         if session.isComplete {
             result = StudyResult(
                 reviewedCardCount: session.initialCardCount,
@@ -200,40 +141,30 @@ public final class StudySessionViewModel {
                 elapsedSeconds: elapsedSeconds
             )
             feedback.perform(.completion)
-        } else {
-            feedback.perform(.remember)
         }
         persistSnapshot()
     }
 
     public func forget() throws {
         try session.forget()
-        isShowingAnswer = false
         isShowingUsageExamples = false
         feedback.perform(.forget)
         persistSnapshot()
     }
 
     public func speakEnglish(variantID: UUID) {
-        guard isEnglishSideVisible,
+        guard isShowingAnswer,
               let variant = session.currentCard?.englishVariants.first(where: { $0.id == variantID })
-        else {
-            return
-        }
-
+        else { return }
         speech.speak(variant.text)
     }
 
     public func speakUsageExample(variantID: UUID, exampleID: UUID) {
-        guard canAssess,
+        guard isShowingAnswer,
               isShowingUsageExamples,
-              let variant = session.currentCard?.englishVariants.first(
-                where: { $0.id == variantID }
-              ),
-              let example = variant.usageExamples.first(where: { $0.id == exampleID }) else {
-            return
-        }
-
+              let variant = session.currentCard?.englishVariants.first(where: { $0.id == variantID }),
+              let example = variant.usageExamples.first(where: { $0.id == exampleID })
+        else { return }
         speech.speak(example.text)
     }
 
@@ -247,16 +178,18 @@ public final class StudySessionViewModel {
 
     public func persistSnapshot() {
         store?.save(StudySessionSnapshot(
-            mode: repeatConfiguration.mode,
-            direction: session.direction,
+            mode: .writing,
+            direction: .russianToEnglish,
             selectedTagIDs: repeatConfiguration.selectedTagIDs,
             originalCardIDs: repeatConfiguration.cards.map(\.id),
             queueCardIDs: session.queue.map(\.id),
-            isShowingAnswer: isShowingAnswer,
-            isRevealed: session.isRevealed,
+            isShowingAnswer: session.isShowingAnswer,
+            isRevealed: session.hasRevealedAnswer,
             forgottenCount: session.forgottenCount,
             repeatedCardIDs: session.repeatedCardIDs,
             totalAssessmentCount: session.totalAssessmentCount,
+            writingResponse: session.response,
+            writingEvaluation: session.evaluation,
             startedAt: sessionStartedAt,
             accumulatedDurationSeconds: result?.elapsedSeconds ?? elapsedSeconds,
             completedResult: result
@@ -266,14 +199,5 @@ public final class StudySessionViewModel {
     private var elapsedSeconds: Int {
         accumulatedDurationAtStart
             + max(0, Int(now().timeIntervalSince(segmentStartedAt).rounded(.down)))
-    }
-
-    private var isEnglishSideVisible: Bool {
-        switch session.direction {
-        case .russianToEnglish:
-            isShowingAnswer
-        case .englishToRussian:
-            !isShowingAnswer
-        }
     }
 }

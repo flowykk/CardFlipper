@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 
 struct ActivityCalendarView: View {
@@ -6,7 +7,7 @@ struct ActivityCalendarView: View {
     var body: some View {
         VStack(spacing: 12) {
             HStack {
-                Button(action: model.moveToPreviousMonth) {
+                HapticButton(action: model.moveToPreviousMonth) {
                     Image(systemName: "chevron.left")
                         .frame(minWidth: 44, minHeight: 44)
                 }
@@ -14,7 +15,7 @@ struct ActivityCalendarView: View {
                 Spacer()
                 Text(model.monthTitle).font(.headline)
                 Spacer()
-                Button(action: model.moveToNextMonth) {
+                HapticButton(action: model.moveToNextMonth) {
                     Image(systemName: "chevron.right")
                         .frame(minWidth: 44, minHeight: 44)
                 }

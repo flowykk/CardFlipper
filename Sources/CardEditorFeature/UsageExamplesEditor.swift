@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 struct UsageExamplesEditor: View {
@@ -57,7 +58,7 @@ struct UsageExamplesEditor: View {
                 .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
             }
 
-            Button(action: onAdd) {
+            HapticButton(action: onAdd) {
                 Label("editor.example.add", systemImage: "plus.circle")
             }
             .foregroundStyle(canAddExample ? Color.accentColor : Color.secondary)
@@ -76,7 +77,7 @@ struct UsageExamplesEditor: View {
 
     private func exampleActions(example: UsageExampleInput) -> some View {
         HStack(spacing: 0) {
-            Button {
+            HapticButton {
                 onSpeak(example.id)
             } label: {
                 Image(systemName: "speaker.wave.2")
@@ -90,7 +91,7 @@ struct UsageExamplesEditor: View {
                 examplePosition: position(of: example.id)
             )))
 
-            Button(role: .destructive) {
+            HapticButton(role: .destructive) {
                 onRemove(example.id)
             } label: {
                 Image(systemName: "minus.circle")
@@ -108,7 +109,7 @@ struct UsageExamplesEditor: View {
     private func partOfSpeechMenu(example: UsageExampleInput) -> some View {
         Menu {
             ForEach(variant.partsOfSpeech, id: \.rawValue) { partOfSpeech in
-                Button {
+                HapticButton(feedback: .selection) {
                     onChoosePartOfSpeech(partOfSpeech, example.id)
                 } label: {
                     if example.partOfSpeech == partOfSpeech {
@@ -130,6 +131,9 @@ struct UsageExamplesEditor: View {
             }
             .frame(minHeight: 44)
         }
+        .simultaneousGesture(TapGesture().onEnded {
+            FeedbackGenerator.shared.tap()
+        })
         .accessibilityIdentifier(identifier(for: example.id, suffix: "partOfSpeech"))
     }
 

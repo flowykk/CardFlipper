@@ -5,7 +5,7 @@ import Foundation
 public protocol StatisticsRepository: AnyObject {
     var statistics: StudyStatistics { get }
 
-    func record(sessionID: UUID, result: StudyResult)
+    func record(sessionID: UUID, mode: StudyMode, result: StudyResult)
 }
 
 @MainActor
@@ -19,16 +19,34 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
         var lessonsWithoutForgettingCount = 0
         var repeatedCardCount: Int?
         var totalAssessmentCount: Int?
+        var writingCompletedLessonCount: Int?
+        var writingStudiedCardCount: Int?
+        var writingForgottenCount: Int?
+        var writingLessonsWithoutForgettingCount: Int?
+        var writingRepeatedCardCount: Int?
+        var writingTotalAssessmentCount: Int?
         var recordedSessionIDs: Set<UUID> = []
 
         var value: StudyStatistics {
-            StudyStatistics(
+            let overall = StudyModeStatistics(
                 completedLessonCount: completedLessonCount,
                 studiedCardCount: studiedCardCount,
                 forgottenCount: forgottenCount,
                 lessonsWithoutForgettingCount: lessonsWithoutForgettingCount,
                 repeatedCardCount: repeatedCardCount ?? 0,
                 totalAssessmentCount: totalAssessmentCount ?? studiedCardCount + forgottenCount
+            )
+            let writing = StudyModeStatistics(
+                completedLessonCount: writingCompletedLessonCount ?? 0,
+                studiedCardCount: writingStudiedCardCount ?? 0,
+                forgottenCount: writingForgottenCount ?? 0,
+                lessonsWithoutForgettingCount: writingLessonsWithoutForgettingCount ?? 0,
+                repeatedCardCount: writingRepeatedCardCount ?? 0,
+                totalAssessmentCount: writingTotalAssessmentCount ?? 0
+            )
+            return StudyStatistics(
+                flashcards: overall.subtracting(writing),
+                writing: writing
             )
         }
     }
@@ -49,7 +67,7 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
         statistics = stored.value
     }
 
-    public func record(sessionID: UUID, result: StudyResult) {
+    public func record(sessionID: UUID, mode: StudyMode, result: StudyResult) {
         guard stored.recordedSessionIDs.insert(sessionID).inserted else { return }
 
         stored.completedLessonCount += 1
@@ -59,6 +77,21 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
         stored.totalAssessmentCount = (stored.totalAssessmentCount ?? 0) + result.totalAssessmentCount
         if result.forgottenCount == 0 {
             stored.lessonsWithoutForgettingCount += 1
+        }
+        if mode == .writing {
+            stored.writingCompletedLessonCount = (stored.writingCompletedLessonCount ?? 0) + 1
+            stored.writingStudiedCardCount = (stored.writingStudiedCardCount ?? 0)
+                + result.uniqueCardCount
+            stored.writingForgottenCount = (stored.writingForgottenCount ?? 0)
+                + result.forgottenCount
+            stored.writingRepeatedCardCount = (stored.writingRepeatedCardCount ?? 0)
+                + result.repeatedCardCount
+            stored.writingTotalAssessmentCount = (stored.writingTotalAssessmentCount ?? 0)
+                + result.totalAssessmentCount
+            if result.forgottenCount == 0 {
+                stored.writingLessonsWithoutForgettingCount =
+                    (stored.writingLessonsWithoutForgettingCount ?? 0) + 1
+            }
         }
 
         statistics = stored.value

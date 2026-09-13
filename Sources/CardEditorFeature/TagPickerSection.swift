@@ -46,7 +46,7 @@ public struct TagPickerSection: View {
                     .onSubmit(onCreate)
                     .accessibilityIdentifier("editor.tag.new")
 
-                Button(action: onCreate) {
+                HapticButton(action: onCreate) {
                     Image(systemName: "plus.circle.fill")
                         .frame(minWidth: 32, minHeight: 32)
                 }
@@ -63,7 +63,7 @@ public struct TagPickerSection: View {
             }
 
             if loadFailed {
-                Button(action: onRetryLoad) {
+                HapticButton(action: onRetryLoad) {
                     Label("editor.tag.load.retry", systemImage: "arrow.clockwise")
                 }
             }
@@ -78,13 +78,12 @@ public struct TagPickerSection: View {
         } else {
             selectedTagIDs.insert(id)
         }
-        FeedbackGenerator.shared.selection()
     }
 
     private func tagButton(_ tag: Tag) -> some View {
         let isSelected = selectedTagIDs.contains(tag.id)
 
-        return Button {
+        return HapticButton(feedback: .selection) {
             toggle(tag.id)
         } label: {
             HStack(spacing: 6) {

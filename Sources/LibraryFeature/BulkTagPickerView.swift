@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 struct BulkTagPickerView: View {
@@ -19,7 +20,7 @@ struct BulkTagPickerView: View {
             List(tags) { tag in
                 let isSelected = selectedTagIDs.contains(tag.id)
 
-                Button {
+                HapticButton(feedback: .selection) {
                     withAnimation(selectionAnimation) {
                         toggle(tag.id)
                     }
@@ -38,10 +39,10 @@ struct BulkTagPickerView: View {
             .navigationTitle("library.bulk.tags")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("common.cancel", action: dismiss.callAsFunction)
+                    HapticButton("common.cancel", action: dismiss.callAsFunction)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(action: onConfirm) {
+                    HapticButton(action: onConfirm) {
                         Text(
                             String(
                                 format: String(localized: "library.bulk.addTags", bundle: .main),

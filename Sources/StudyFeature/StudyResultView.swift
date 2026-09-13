@@ -138,7 +138,7 @@ public struct StudyResultView: View {
 
                 VStack(spacing: 12) {
                     if let onRepeatDifficult {
-                        Button(action: onRepeatDifficult) {
+                        HapticButton(action: onRepeatDifficult) {
                             Label("study.result.repeatDifficult", systemImage: "arrow.clockwise")
                                 .frame(maxWidth: .infinity, minHeight: 44)
                         }
@@ -146,7 +146,7 @@ public struct StudyResultView: View {
                         .accessibilityIdentifier("study.repeat")
                     }
 
-                    Button(action: onFinish) {
+                    HapticButton(action: onFinish) {
                         Label("common.done", systemImage: "checkmark")
                     }
                     .buttonStyle(PrimaryActionButtonStyle())

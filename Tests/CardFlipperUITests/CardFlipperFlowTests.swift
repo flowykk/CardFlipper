@@ -68,6 +68,21 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("settings-custom-accent-picker")
     }
 
+    func testSettingsExplainHowToCreateAnImportFileWithAI() throws {
+        launch(seed: false)
+        tap("library.settings")
+
+        tap("settings.cards.aiHelp")
+
+        XCTAssertTrue(app.navigationBars["Create Import File"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["settings.cards.aiHelp.prompt"].exists)
+
+        let copyButton = app.buttons["settings.cards.aiHelp.copy"]
+        XCTAssertTrue(copyButton.isHittable)
+        copyButton.tap()
+        XCTAssertEqual(copyButton.label, "Prompt Copied")
+    }
+
     func testF1FirstLaunchReachesEditorAndReturnsToEmptyLibrary() throws {
         launch(seed: false)
 
@@ -143,6 +158,24 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(app.searchFields["Search parts of speech"].waitForExistence(timeout: 3))
         XCTAssertTrue(noun.exists)
         XCTAssertTrue(noun.isSelected)
+    }
+
+    func testPartOfSpeechPickerUsesCompactRows() {
+        launch(seed: false)
+        tap("library.add")
+        assertExists("editor.root")
+
+        let details = app.buttons["editor.english.0.details"]
+        XCTAssertTrue(details.waitForExistence(timeout: 3))
+        details.tap()
+
+        let picker = app.buttons["editor.english.0.partOfSpeechPicker"]
+        scrollToHittable(picker)
+        picker.tap()
+
+        let noun = app.buttons["editor.english.0.partOfSpeech.noun"]
+        XCTAssertTrue(noun.waitForExistence(timeout: 3))
+        XCTAssertLessThanOrEqual(noun.frame.height, 46)
     }
 
     func testEditorUsesCompactToolbarActionsAndDisablesExampleUntilPartIsSelected() {
@@ -504,6 +537,69 @@ final class CardFlipperFlowTests: XCTestCase {
         tap("study.finish")
         assertExists("library.root")
         snap("F2-08-finished-library")
+    }
+
+    func testWritingModeRetriesChecksRevealsDetailsAndAssessesExplicitly() throws {
+        launch(seed: true)
+        tap("library.study")
+        tap("study.mode.writing")
+        XCTAssertFalse(app.buttons["study.direction.englishToRussian"].exists)
+        XCTAssertFalse(app.staticTexts["Direction"].exists)
+        tap("study.start")
+
+        let field = app.textFields["study.writing.answer"]
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        let writingCard = app.otherElements["study.writing.card"]
+        XCTAssertTrue(writingCard.waitForExistence(timeout: 3))
+        XCTAssertGreaterThan(field.frame.minY, writingCard.frame.maxY)
+        let checkButton = app.buttons["study.writing.check"]
+        XCTAssertTrue(checkButton.waitForExistence(timeout: 3))
+        XCTAssertGreaterThanOrEqual(checkButton.frame.width, 44)
+        XCTAssertFalse(app.buttons["study.writing.showAnswer"].exists)
+        XCTAssertFalse(app.buttons["study.writing.hideAnswer"].exists)
+
+        let answer: String
+        if writingCard.buttons["книга"].exists {
+            answer = " BOOK "
+        } else if writingCard.buttons["кот"].exists {
+            answer = " CAT "
+        } else {
+            XCTAssertTrue(writingCard.buttons["дом"].exists)
+            answer = " HOME "
+        }
+
+        field.tap()
+        field.typeText("wrong")
+        tap("study.writing.check")
+        XCTAssertFalse(app.staticTexts["Try again"].exists)
+        XCTAssertFalse(app.staticTexts["Correct"].exists)
+        XCTAssertTrue(field.isEnabled)
+        XCTAssertFalse(app.buttons["study.writing.next"].exists)
+        XCTAssertFalse(app.buttons["study.remember"].exists)
+        XCTAssertFalse(app.buttons["study.forget"].exists)
+
+        tapEmptyCardSpace("study.writing.card")
+        assertExists("study.writing.speak")
+        XCTAssertTrue(field.isEnabled)
+        XCTAssertTrue(app.keyboards.firstMatch.exists)
+
+        for _ in "wrong" {
+            field.typeText(XCUIKeyboardKey.delete.rawValue)
+        }
+        field.typeText(answer)
+        XCTAssertEqual(
+            (field.value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+            answer.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+        tap("study.writing.check")
+        XCTAssertFalse(app.staticTexts["Correct"].exists)
+        assertExists("study.remember")
+        assertExists("study.forget")
+        XCTAssertFalse(app.buttons["study.writing.next"].exists)
+
+        tap("study.forget")
+        assertExists("study.writing.answer")
+        XCTAssertTrue(field.isEnabled)
     }
 
     func testF3SeededCardDeletionRefreshesLibrary() throws {

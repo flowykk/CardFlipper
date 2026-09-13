@@ -267,44 +267,11 @@ public struct StudyCardView: View {
     @ViewBuilder
     private func faceValues(_ face: StudyCardFace) -> some View {
         if face.language == .english {
-            ForEach(card.englishVariants) { variant in
-                VStack(spacing: 8) {
-                    Text(verbatim: variant.text)
-                        .font(.largeTitle.weight(.semibold))
-                        .multilineTextAlignment(.center)
-
-                    if let ipa = variant.ipa, !ipa.isEmpty {
-                        Text(verbatim: ipa)
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .accessibilityLabel("card.ipa")
-                            .accessibilityValue(Text(verbatim: ipa))
-                    }
-
-                    if !variant.partsOfSpeech.isEmpty {
-                        let partsOfSpeechText = variant.partsOfSpeech
-                            .map { $0.localizedName() }
-                            .joined(separator: ", ")
-
-                        Text(verbatim: partsOfSpeechText)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .accessibilityLabel("card.partsOfSpeech")
-                            .accessibilityValue(Text(verbatim: partsOfSpeechText))
-                    }
-
-                    Button {
-                        onSpeak(variant.id)
-                    } label: {
-                        Label("card.speak", systemImage: "speaker.wave.2.fill")
-                            .padding(.vertical, 4)
-                    }
-                    .buttonStyle(.bordered)
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
-                    .accessibilityHint(Text(verbatim: variant.text))
-                }
-            }
+            StudyEnglishVariantsView(
+                variants: card.englishVariants,
+                speakAccessibilityIdentifier: "study.card.speak",
+                onSpeak: onSpeak
+            )
         } else {
             ForEach(card.russianMeanings) { meaning in
                 Text(verbatim: meaning.text)
@@ -315,7 +282,7 @@ public struct StudyCardView: View {
     }
 }
 
-private struct EqualSizeZStack: Layout {
+struct EqualSizeZStack: Layout {
     func sizeThatFits(
         proposal: ProposedViewSize,
         subviews: Subviews,
@@ -345,7 +312,7 @@ private struct EqualSizeZStack: Layout {
     }
 }
 
-private struct StableStudyCardFlip: @preconcurrency AnimatableModifier {
+struct StableStudyCardFlip: @preconcurrency AnimatableModifier {
     var progress: Double
     let face: StudyCardFaceKind
     let reduceMotion: Bool
