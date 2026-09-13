@@ -100,7 +100,7 @@ public struct StudyHistoryView: View {
                                 }
                             }
                         }
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                        .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
                     } header: {
                         Text("history.sessions.section", bundle: .module)
@@ -130,17 +130,21 @@ private struct StudyHistoryRow: View {
 
     var body: some View {
         MetricTableRow(systemImage: modeSystemImage) {
-            Text(verbatim: HistoryPresentation.dateTime(entry.completedAt))
-                .font(.body)
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: HistoryPresentation.dateTime(entry.completedAt))
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+
+                Text(verbatim: "\(entry.completedCardCount)/\(entry.plannedCardCount) · \(entry.recallRatePercentage)%")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .lineLimit(1)
+            }
         } trailing: {
-            Text(verbatim: "\(entry.completedCardCount)/\(entry.plannedCardCount) · \(entry.recallRatePercentage)%")
-                .font(.subheadline.weight(.regular))
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
-                .lineLimit(1)
+            EmptyView()
         }
         .contentShape(Rectangle())
         .accessibilityLabel(
