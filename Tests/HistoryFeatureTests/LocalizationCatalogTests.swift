@@ -1,5 +1,23 @@
 @testable import HistoryFeature
+import Foundation
 import Testing
+
+@Test func historyDurationUsesEnglishAndRussianPluralForms() {
+    let examples: [(String, Int, String)] = [
+        ("en", 0, "0 seconds"), ("en", 1, "1 second"), ("en", 2, "2 seconds"),
+        ("ru", 0, "0 секунд"), ("ru", 1, "1 секунда"), ("ru", 2, "2 секунды"),
+        ("ru", 5, "5 секунд"), ("ru", 11, "11 секунд"), ("ru", 21, "21 секунда"),
+        ("ru", 61, "61 секунда"),
+    ]
+    for (language, seconds, expected) in examples {
+        let actual = String(
+            format: HistoryLocalization.string("history.duration.format", language: language),
+            locale: Locale(identifier: language),
+            arguments: [seconds]
+        )
+        #expect(actual == expected)
+    }
+}
 
 @Test func historyCatalogResolvesEverySupportedKeyInEnglishAndRussian() {
     let keys = [

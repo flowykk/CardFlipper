@@ -57,8 +57,20 @@
     },
     "history.duration.format" : {
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld seconds" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "%lld секунд" } }
+        "en" : {
+          "variations" : { "plural" : {
+            "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld second" } },
+            "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld seconds" } }
+          } }
+        },
+        "ru" : {
+          "variations" : { "plural" : {
+            "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld секунда" } },
+            "few" : { "stringUnit" : { "state" : "translated", "value" : "%lld секунды" } },
+            "many" : { "stringUnit" : { "state" : "translated", "value" : "%lld секунд" } },
+            "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld секунды" } }
+          } }
+        }
       }
     },
     "history.duration.label" : {

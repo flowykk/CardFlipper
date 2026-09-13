@@ -58,10 +58,9 @@ public struct StudySessionView: View {
                 progressHeader
             }
         }
-        .confirmationDialog(
+        .alert(
             Text("study.exit.title", bundle: .module),
-            isPresented: exitConfirmation,
-            titleVisibility: .visible
+            isPresented: exitConfirmation
         ) {
             HapticButton {
                 model.cancelExit()

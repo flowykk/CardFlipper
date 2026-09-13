@@ -74,10 +74,9 @@ public struct WritingSessionView: View {
                 value: model.canAssess
             )
         }
-        .confirmationDialog(
+        .alert(
             Text("study.exit.title", bundle: .module),
-            isPresented: exitConfirmation,
-            titleVisibility: .visible
+            isPresented: exitConfirmation
         ) {
             HapticButton {
                 model.cancelExit()

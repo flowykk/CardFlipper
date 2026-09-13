@@ -5,6 +5,7 @@ import SwiftUI
 
 public struct ResumableStudyBanner: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.self) private var environment
 
     private let snapshot: StudySessionSnapshot
     private let onResume: () -> Void
@@ -45,13 +46,13 @@ public struct ResumableStudyBanner: View {
             .contentShape(RoundedRectangle(cornerRadius: 18))
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .ignore)
         .accessibilityLabel([mode, progress, lastActivity, continueTitle].joined(separator: ", "))
         .accessibilityIdentifier("study.resume.banner")
     }
 
     private var foregroundColor: Color {
-        AccessibleAccent.preferredForegroundColor(over: .accentColor, scheme: colorScheme)
+        let resolvedAccent = Color(Color.accentColor.resolve(in: environment))
+        return AccessibleAccent.preferredForegroundColor(over: resolvedAccent, scheme: colorScheme)
     }
 
     private var modeText: some View {

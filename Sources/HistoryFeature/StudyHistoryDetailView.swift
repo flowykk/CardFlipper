@@ -44,6 +44,7 @@ public struct StudyHistoryDetailView: View {
                         Text(verbatim: title)
                             .frame(minHeight: 44, alignment: .leading)
                             .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("history.difficult.\(title)")
                     }
                 } header: {
                     Text("history.difficultCards.label", bundle: .module)
@@ -73,6 +74,8 @@ public struct StudyHistoryDetailView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(labelKey.replacingOccurrences(of: ".label", with: "")
+            .replacingOccurrences(of: "history.", with: "history.detail."))
     }
 }
 

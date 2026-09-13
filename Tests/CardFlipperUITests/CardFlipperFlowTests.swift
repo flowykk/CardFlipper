@@ -5,6 +5,224 @@ import UIKit
 final class CardFlipperFlowTests: XCTestCase {
     private lazy var app = XCUIApplication()
 
+    func testHistoryBannerUsesReadableForegroundForDarkAccent() {
+        launchHistory(arguments: [
+            "-uiTestResume",
+            "-com.danilarahmanov.CardFlipper.appearance.accentColor", "invalid",
+            "-com.danilarahmanov.CardFlipper.appearance.accent", "berry",
+            "-AppleInterfaceStyle", "Light",
+        ])
+        let banner = app.buttons["study.resume.banner"]
+        XCTAssertTrue(banner.waitForExistence(timeout: 5))
+        let whiteTextCoverage = pixelCoverage(
+            in: banner.frame.insetBy(dx: 18, dy: 18),
+            screenshot: app.screenshot().image
+        ) { red, green, blue in
+            red > 0.92 && green > 0.92 && blue > 0.92
+        }
+        XCTAssertGreaterThan(whiteTextCoverage, 0.02)
+        snap("history-banner-dark-accent-contrast")
+    }
+
+    func testHistorySeedShowsNewestFirstAndCompleteDetails() {
+        launchHistory(arguments: ["-uiTestHistory"])
+        tap("library.history")
+        let newest = historyRow(902)
+        let older = historyRow(901)
+        XCTAssertTrue(newest.waitForExistence(timeout: 5))
+        XCTAssertTrue(older.exists)
+        XCTAssertLessThan(newest.frame.minY, older.frame.minY)
+        XCTAssertTrue(newest.label.contains("Writing"))
+        XCTAssertTrue(newest.label.contains("2 of 3"))
+        XCTAssertTrue(newest.label.contains("50%"))
+        snap("history-newest-first")
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        XCTAssertTrue(newest.waitForExistence(timeout: 5))
+        newest.tap()
+        assertHistoryDetail("completedAt", contains: "2026")
+        assertHistoryDetail("startedAt", contains: "2026")
+        assertHistoryDetail("duration", contains: "61 seconds")
+        assertHistoryDetail("mode", contains: "Writing")
+        assertHistoryDetail("direction", contains: "Russian to English")
+        assertHistoryDetail("progress", contains: "2 of 3")
+        assertHistoryDetail("recall", contains: "50%")
+        assertHistoryDetail("encountered", contains: "2")
+        assertHistoryDetail("repeated", contains: "1")
+        assertHistoryDetail("forgotten", contains: "2")
+        assertHistoryDetail("assessments", contains: "4")
+        assertHistoryDetail("tags", contains: "Основы")
+        let difficult = app.staticTexts["history.difficult.book"]
+        scrollToHittable(difficult)
+        XCTAssertEqual(difficult.label, "book")
+        snap("history-detail-metrics")
+        app.navigationBars.buttons.firstMatch.tap()
+        older.tap()
+        assertHistoryDetail("duration", contains: "1 second")
+        assertHistoryDetail("direction", contains: "English to Russian")
+        assertHistoryDetail("tags", contains: "All Cards")
+        XCTAssertFalse(app.staticTexts["history.difficult.book"].exists)
+    }
+
+    func testHistoryResumeSurvivesRelaunchAndCompletionAppearsInHistory() {
+        launchHistory(arguments: ["-uiTestResume", "-uiTestHistory"])
+        let banner = app.buttons["study.resume.banner"]
+        XCTAssertTrue(banner.waitForExistence(timeout: 5))
+        XCTAssertTrue(banner.label.contains("1 of 2"))
+        XCTAssertFalse(app.alerts.firstMatch.exists)
+        app.terminate()
+        launchHistory(arguments: ["-uiTestSeed", "-uiTestHistory", "-uiTestPreserveStudySession"])
+        XCTAssertTrue(banner.waitForExistence(timeout: 5))
+        tap("library.history")
+        XCTAssertTrue(historyRow(902).waitForExistence(timeout: 5))
+        tap("study.resume.banner")
+        let progress = app.descendants(matching: .any)["study.progress"].firstMatch
+        XCTAssertTrue(progress.waitForExistence(timeout: 5))
+        XCTAssertTrue(progress.label.contains("2"))
+        rememberCurrentCard()
+        assertExists("study.result")
+        snap("history-resumed-natural-completion")
+        tap("study.finish")
+        XCTAssertTrue(app.buttons["library.history"].waitForExistence(timeout: 5))
+        XCTAssertFalse(banner.exists)
+        tap("library.history")
+        XCTAssertTrue(historyRow(900).waitForExistence(timeout: 5))
+        XCTAssertTrue(historyRow(900).label.contains("2 of 2"))
+        XCTAssertFalse(banner.exists)
+        XCTAssertEqual(app.buttons.matching(identifier: historyRow(900).identifier).count, 1)
+        snap("history-refreshed-after-completion")
+    }
+
+    func testHistoryConflictCancelContinueAndStartNewPreserveConfiguredWriting() {
+        launchHistory(arguments: ["-uiTestResume"])
+        tap("library.study")
+        tap("study.mode.writing")
+        tap("study.start")
+        assertConflictActions()
+        app.alerts.buttons["Cancel"].tap()
+        XCTAssertTrue(app.buttons["study.mode.writing"].isSelected)
+        tap("study.start")
+        app.alerts.buttons["Continue Saved Game"].tap()
+        assertExists("study.card.prompt")
+        XCTAssertFalse(app.textFields["study.writing.answer"].exists)
+        saveAndExit()
+        tap("library.study")
+        tap("study.mode.writing")
+        tap("study.start")
+        assertConflictActions()
+        snap("history-replacement-conflict")
+        app.alerts.buttons["Start New Game"].tap()
+        XCTAssertTrue(app.textFields["study.writing.answer"].waitForExistence(timeout: 5))
+        app.textFields["study.writing.answer"].tap()
+        app.textFields["study.writing.answer"].typeText("ca")
+        saveAndExit()
+        XCTAssertTrue(app.buttons["study.resume.banner"].label.contains("Writing"))
+        tap("library.history")
+        let old = historyRow(900)
+        XCTAssertTrue(old.waitForExistence(timeout: 5))
+        XCTAssertTrue(old.label.contains("1 of 2"))
+        XCTAssertTrue(old.label.contains("100%"))
+        XCTAssertFalse(old.label.localizedCaseInsensitiveContains("early"))
+        old.tap()
+        assertHistoryDetail("progress", contains: "1 of 2")
+        assertHistoryDetail("mode", contains: "Flashcards")
+        snap("history-replaced-partial-detail")
+        app.terminate()
+        launchHistory(arguments: ["-uiTestSeed", "-uiTestPreserveStudySession"])
+        XCTAssertTrue(app.buttons["study.resume.banner"].label.contains("Writing"))
+        tap("study.resume.banner")
+        let restoredAnswer = app.textFields["study.writing.answer"]
+        XCTAssertTrue(restoredAnswer.waitForExistence(timeout: 5))
+        XCTAssertEqual(restoredAnswer.value as? String, "ca")
+        snap("history-writing-answer-restored")
+    }
+
+    func testHistorySaveAndExitResumesRemainingCardOfTwoCardGame() {
+        launch(seed: true)
+        tap("library.bulk.select")
+        let cards = app.buttons.matching(identifier: "library.card")
+        tapTrailingEmptySpace(in: cards.element(boundBy: 0))
+        tapTrailingEmptySpace(in: cards.element(boundBy: 1))
+        tap("library.bulk.tags")
+        tap("library.bulk.tag.00000000-0000-0000-0000-000000000101")
+        tap("library.bulk.confirm")
+        tap("library.study")
+        tap("Повторение")
+        tap("study.start")
+        rememberCurrentCard()
+        waitForStablePromptAfterAssessment()
+        app.navigationBars.buttons["Close"].tap()
+        snap("history-close-confirmation")
+        XCTAssertTrue(app.buttons["Continue Game"].waitForExistence(timeout: 5), app.debugDescription)
+        app.buttons["Continue Game"].tap()
+        assertExists("study.card.prompt")
+        saveAndExit()
+        let banner = app.buttons["study.resume.banner"]
+        XCTAssertTrue(banner.waitForExistence(timeout: 5))
+        XCTAssertTrue(banner.label.contains("1 of 2"))
+        snap("history-saved-two-card-game")
+        banner.tap()
+        rememberCurrentCard()
+        assertExists("study.result")
+        tap("study.finish")
+        XCTAssertFalse(banner.exists)
+        tap("library.history")
+        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'history.row.'"))
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertTrue(rows.firstMatch.label.contains("2 of 2"))
+    }
+
+    func testHistoryRussianLabelsAndEmptyState() {
+        launchHistory(arguments: [], language: "ru")
+        tap("library.history")
+        XCTAssertTrue(app.staticTexts["Истории занятий пока нет"].waitForExistence(timeout: 5))
+        snap("history-russian-empty")
+        app.terminate()
+        launchHistory(arguments: ["-uiTestHistory", "-uiTestResume"], language: "ru")
+        XCTAssertTrue(app.buttons["study.resume.banner"].label.contains("1 из 2"))
+        tap("library.history")
+        historyRow(902).tap()
+        assertHistoryDetail("mode", contains: "Письмо")
+        assertHistoryDetail("duration", contains: "61 секунда")
+        assertHistoryDetail("direction", contains: "С русского на английский")
+        assertHistoryDetail("progress", contains: "2 из 3")
+        assertHistoryDetail("recall", contains: "50% вспоминания")
+        snap("history-russian-details")
+    }
+
+    private func launchHistory(arguments: [String], language: String = "en") {
+        continueAfterFailure = false
+        app.launchArguments = ["-uiTesting", "-AppleLanguages", "(\(language))",
+                               "-AppleLocale", language == "ru" ? "ru_RU" : "en_US"] + arguments
+        app.launch()
+        assertExists("library.root")
+    }
+
+    private func historyRow(_ suffix: Int) -> XCUIElement {
+        app.buttons[String(format: "history.row.00000000-0000-0000-0000-%012d", suffix)]
+    }
+
+    private func assertHistoryDetail(_ field: String, contains value: String) {
+        let metric = app.descendants(matching: .any)["history.detail.\(field)"].firstMatch
+        scrollToHittable(metric)
+        XCTAssertTrue(metric.label.contains(value), "Expected \(value) in \(metric.label)")
+    }
+
+    private func assertConflictActions() {
+        for action in ["Continue Saved Game", "Start New Game", "Cancel"] {
+            XCTAssertTrue(app.alerts.buttons[action].waitForExistence(timeout: 5))
+        }
+    }
+
+    private func saveAndExit() {
+        app.navigationBars.buttons["Close"].tap()
+        let save = app.buttons["Save and Exit"]
+        XCTAssertTrue(save.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Continue Game"].exists)
+        save.tap()
+        XCTAssertTrue(app.buttons["library.study"].waitForExistence(timeout: 5))
+    }
+
     func testAppIconNamesAreLocalizedInRussian() {
         continueAfterFailure = false
         app.launchArguments = ["-uiTesting", "-AppleLanguages", "(ru)", "-AppleLocale", "ru_RU"]

@@ -5,7 +5,7 @@ import SwiftUI
 public struct StudyHistoryView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private let model: StudyHistoryViewModel
+    @State private var model: StudyHistoryViewModel
     private let resumableSnapshot: StudySessionSnapshot?
     private let onResume: () -> Void
 
@@ -14,7 +14,7 @@ public struct StudyHistoryView: View {
         resumableSnapshot: StudySessionSnapshot?,
         onResume: @escaping () -> Void
     ) {
-        self.model = model
+        _model = State(initialValue: model)
         self.resumableSnapshot = resumableSnapshot
         self.onResume = onResume
     }
@@ -92,6 +92,7 @@ public struct StudyHistoryView: View {
                             } label: {
                                 StudyHistoryRow(entry: entry)
                             }
+                            .accessibilityIdentifier("history.row.\(entry.id.uuidString)")
                         }
                     } header: {
                         Text("history.sessions.section", bundle: .module)

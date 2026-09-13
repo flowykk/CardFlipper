@@ -559,6 +559,20 @@ private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double
 }
 
 #if DEBUG
+@Test func studyHistoryLaunchFlagsAlwaysIsolateDataAndSeedPlayableVocabulary() {
+    for flag in ["-uiTestHistory", "-uiTestResume"] {
+        let configuration = AppLaunchConfiguration(arguments: [flag])
+        #expect(configuration.usesInMemoryStore)
+        #expect(configuration.seedsDeterministicVocabulary)
+        #expect(configuration.seedsStudyHistory == (flag == "-uiTestHistory"))
+        #expect(configuration.seedsResumableStudy == (flag == "-uiTestResume"))
+    }
+    let production = AppLaunchConfiguration(arguments: [])
+    #expect(!production.seedsStudyHistory)
+    #expect(!production.seedsResumableStudy)
+    #expect(!production.usesInMemoryStore)
+}
+
 @Test func uiTestLaunchConfigurationSelectsIsolatedStoreAndSeed() {
     let configuration = AppLaunchConfiguration(arguments: [
         "CardFlipper",

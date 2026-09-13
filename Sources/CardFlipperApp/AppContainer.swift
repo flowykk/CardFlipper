@@ -9,9 +9,14 @@ struct AppLaunchConfiguration: Equatable {
     let usesInMemoryStore: Bool
     let seedsDeterministicVocabulary: Bool
     let preservesStudySession: Bool
+    let seedsStudyHistory: Bool
+    let seedsResumableStudy: Bool
 
     init(arguments: [String]) {
+        seedsStudyHistory = arguments.contains("-uiTestHistory")
+        seedsResumableStudy = arguments.contains("-uiTestResume")
         seedsDeterministicVocabulary = arguments.contains("-uiTestSeed")
+            || seedsStudyHistory || seedsResumableStudy
         usesInMemoryStore = arguments.contains("-uiTesting") || seedsDeterministicVocabulary
         preservesStudySession = arguments.contains("-uiTestPreserveStudySession")
     }
@@ -63,6 +68,11 @@ final class AppContainer {
             self.init(modelContainer: container, defaults: defaults)
             if let preservedSnapshot {
                 studySessionStore.save(preservedSnapshot)
+            } else if configuration.seedsResumableStudy {
+                studySessionStore.save(UITestStudyHistorySeed.resumableSnapshot)
+            }
+            if configuration.seedsStudyHistory {
+                try UITestStudyHistorySeed.insert(into: container)
             }
         } else {
             self.init(modelContainer: container)

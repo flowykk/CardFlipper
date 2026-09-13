@@ -4,6 +4,61 @@ import XCTest
 final class AccessibilityLayoutTests: XCTestCase {
     private lazy var app = XCUIApplication()
 
+    func testHistoryAndResumeRemainReachableAtAccessibilityXXXL() {
+        continueAfterFailure = false
+        app.launchArguments = [
+            "-uiTesting", "-uiTestHistory", "-uiTestResume",
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+        ]
+        app.launch()
+        let banner = app.buttons["study.resume.banner"]
+        assertHistoryElementFits(banner)
+        XCTAssertTrue(banner.label.contains("Flashcards"))
+        XCTAssertTrue(banner.label.contains("1 of 2"))
+        XCTAssertTrue(banner.label.contains("Continue"))
+        captureHistory("AX-History-Library-Banner")
+        app.buttons["library.study"].firstMatch.tap()
+        let start = app.buttons["study.start"]
+        scrollToHittable(start)
+        start.tap()
+        for action in ["Continue Saved Game", "Start New Game", "Cancel"] {
+            assertHistoryElementFits(app.alerts.buttons[action])
+        }
+        captureHistory("AX-History-Conflict")
+        app.alerts.buttons["Cancel"].tap()
+        app.navigationBars.buttons.firstMatch.tap()
+        app.buttons["library.history"].tap()
+        assertHistoryElementFits(banner)
+        let row = app.buttons["history.row.00000000-0000-0000-0000-000000000902"]
+        assertHistoryElementFits(row)
+        XCTAssertTrue(row.label.contains("2 of 3"))
+        XCTAssertTrue(row.label.contains("50%"))
+        captureHistory("AX-History-Row")
+        row.tap()
+        for field in ["completedAt", "startedAt", "duration", "mode", "direction",
+                      "progress", "recall", "encountered", "repeated", "forgotten",
+                      "assessments", "tags"] {
+            assertHistoryElementFits(app.descendants(matching: .any)["history.detail.\(field)"].firstMatch)
+        }
+        assertHistoryElementFits(app.staticTexts["history.difficult.book"])
+        captureHistory("AX-History-Detail")
+    }
+
+    private func assertHistoryElementFits(_ element: XCUIElement) {
+        scrollToHittable(element)
+        XCTAssertGreaterThanOrEqual(element.frame.minX, app.frame.minX)
+        XCTAssertLessThanOrEqual(element.frame.maxX, app.frame.maxX)
+        XCTAssertGreaterThanOrEqual(element.frame.height, 44)
+    }
+
+    private func captureHistory(_ name: String) {
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = name
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
     func testEmptyLibraryClearsToolbarAtAccessibilityXXXL() {
         continueAfterFailure = false
         app.launchArguments = [
