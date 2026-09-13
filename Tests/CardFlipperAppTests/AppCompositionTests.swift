@@ -10,6 +10,83 @@ import StatisticsFeature
 @testable import CardFlipper
 
 @MainActor
+@Test func legacyReplacementBackfillsProgressAndLabelsBeforeFinalizing() async throws {
+    let snapshot = try StudySessionSnapshot.appLegacyFixture()
+    let cards = [VocabularyCard.appFixture(id: 1, russian: "слово", english: "word"),
+                 VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")]
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake(cards), studySessionStore: store, history: history,
+                              tags: AppTagRepositoryFake([Tag(id: .appFixture(700), name: "Legacy tag")]))
+    await model.loadLibrary()
+    #expect(store.snapshot?.sessionID == snapshot.sessionID)
+    model.requestStartStudy(StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: cards))
+    model.replaceInterruptedStudy()
+    let entry = try #require(history.entries.first)
+    #expect(entry.completedCardCount == 1)
+    #expect(entry.encounteredCardCount == 2)
+    #expect(entry.repeatedCardCount == 1)
+    #expect(entry.recallRatePercentage == 50)
+    #expect(entry.selectedTagNames == ["Legacy tag"])
+    #expect(entry.difficultCardTitles == ["book"])
+}
+
+@MainActor
+@Test func legacyCompletionAfterResumePreservesPriorProgressAndCapturedLabels() async throws {
+    let snapshot = try StudySessionSnapshot.appLegacyFixture()
+    let cards = [VocabularyCard.appFixture(id: 1, russian: "слово", english: "word"),
+                 VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")]
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake(cards), studySessionStore: store, history: history,
+                              tags: AppTagRepositoryFake([Tag(id: .appFixture(700), name: "Legacy tag")]))
+    await model.loadLibrary()
+    model.continueInterruptedStudy()
+    let active = try #require(model.navigation.activeStudy)
+    let session = model.makeStudySessionModel(for: active)
+    session.toggleCardSide()
+    try session.remember()
+    model.recordCompletedStudy(sessionID: active.sessionID, mode: .flashcards, result: try #require(session.result))
+    #expect(history.entries.first?.completedCardCount == 2)
+    #expect(history.entries.first?.encounteredCardCount == 2)
+    #expect(history.entries.first?.repeatedCardCount == 1)
+    #expect(history.entries.first?.selectedTagNames == ["Legacy tag"])
+    #expect(history.entries.first?.difficultCardTitles == ["book"])
+}
+
+@MainActor
+@Test func staleRepeatAndFinishCannotFinalizeOrDismissTheNextSession() async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let store = AppStudySessionStoreFake()
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store, history: history)
+    await model.loadLibrary()
+    let configuration = StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: [card])
+    model.requestStartStudy(configuration)
+    let first = try #require(model.navigation.activeStudy)
+    let firstModel = model.makeStudySessionModel(for: first)
+    firstModel.toggleCardSide()
+    try firstModel.remember()
+    model.recordCompletedStudy(sessionID: first.sessionID, mode: .flashcards, result: try #require(firstModel.result))
+    model.repeatStudy(configuration, sessionID: first.sessionID)
+    let second = try #require(model.navigation.activeStudy)
+    let secondModel = model.makeStudySessionModel(for: second)
+    model.studyDidAppear(sessionID: second.sessionID)
+    let savedSecond = store.snapshot
+    model.repeatStudy(configuration, sessionID: first.sessionID)
+    model.finishStudy(sessionID: first.sessionID)
+    model.saveAndExitStudy(sessionID: first.sessionID)
+    model.studyDidAppear(sessionID: first.sessionID)
+    model.studyDidDisappear(sessionID: first.sessionID)
+    #expect(model.navigation.activeStudy == second)
+    #expect(model.makeStudySessionModel(for: second) === secondModel)
+    #expect(store.snapshot == savedSecond)
+    #expect(history.entries.count == 1)
+    #expect(model.pendingStudyConfiguration == nil)
+    #expect(model.studyTimer.snapshot.isVisible)
+}
+
+@MainActor
 @Test func writingCorrectAnswerSavedBeforeRememberDoesNotCountAsForgotten() async throws {
     let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
     let store = AppStudySessionStoreFake()
@@ -109,7 +186,7 @@ import StatisticsFeature
     try session.remember()
     history.fails = true
     model.recordCompletedStudy(sessionID: active.sessionID, mode: .flashcards, result: try #require(session.result))
-    model.repeatStudy(configuration)
+    model.repeatStudy(configuration, sessionID: active.sessionID)
     #expect(model.navigation.activeStudy?.sessionID == active.sessionID)
     #expect(store.snapshot?.sessionID == active.sessionID)
     #expect(model.pendingStudyConfiguration == configuration)
@@ -780,7 +857,8 @@ private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double
         dailyProgress: progress,
         studyTimer: timer
     )
-    let sessionID = UUID()
+    model.navigation.startStudy(StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: []))
+    let sessionID = model.navigation.activeStudy!.sessionID
 
     model.sceneActivityChanged(isActive: true)
     model.studyDidAppear(sessionID: sessionID)
@@ -796,11 +874,12 @@ private func makeRootModel(
     cards: AppCardRepositoryFake,
     studySessionStore: any StudySessionStore = AppStudySessionStoreFake(),
     history: any StudyHistoryRepository = AppHistoryRepositoryFake(),
-    statistics: any StatisticsRepository = AppStatisticsSpy()
+    statistics: any StatisticsRepository = AppStatisticsSpy(),
+    tags: any TagRepository = AppTagRepositoryFake()
 ) -> RootViewModel {
     RootViewModel(
         cards: cards,
-        tags: AppTagRepositoryFake(),
+        tags: tags,
         dictionary: AppDictionaryServiceFake(),
         speech: AppSpeechServiceFake(),
         shuffler: AppIdentityShuffler(),

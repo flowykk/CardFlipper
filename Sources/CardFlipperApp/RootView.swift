@@ -361,7 +361,8 @@ final class RootViewModel {
         isPendingRepeat = false
     }
 
-    func repeatStudy(_ configuration: StudyConfiguration) {
+    func repeatStudy(_ configuration: StudyConfiguration, sessionID: UUID) {
+        guard navigation.activeStudy?.sessionID == sessionID else { return }
         if let snapshot = studySessionStore.load() {
             pendingStudyConfiguration = configuration
             isPendingRepeat = true
@@ -396,6 +397,7 @@ final class RootViewModel {
     }
 
     func recordCompletedStudy(sessionID: UUID, mode: StudyMode, result: StudyResult) {
+        guard navigation.activeStudy?.sessionID == sessionID else { return }
         studyTimer.endSession(id: sessionID)
         guard let snapshot = studySessionStore.load(), snapshot.sessionID == sessionID,
               snapshot.completedResult != nil else { return }
@@ -403,6 +405,8 @@ final class RootViewModel {
     }
 
     func studyDidAppear(sessionID: UUID) {
+        guard navigation.activeStudy?.sessionID == sessionID,
+              !finalizedSessionIDs.contains(sessionID) else { return }
         studyTimer.startSession(id: sessionID)
     }
 
@@ -415,6 +419,7 @@ final class RootViewModel {
     }
 
     func saveAndExitStudy(sessionID: UUID) {
+        guard navigation.activeStudy?.sessionID == sessionID else { return }
         studyTimer.endSession(id: sessionID)
         cachedStudyModel = nil
         cachedWritingModel = nil
@@ -434,7 +439,11 @@ final class RootViewModel {
         guard library.state == .loaded,
               navigation.activeStudy == nil else { return }
         resumableStudy = nil
-        guard let snapshot = studySessionStore.load() else { return }
+        guard let persistedSnapshot = studySessionStore.load() else { return }
+        let snapshot = persistedSnapshot.backfillingStudyMetadata(cards: library.cards, tags: library.tags)
+        if snapshot != persistedSnapshot {
+            studySessionStore.save(snapshot)
+        }
 
         let cardsByID = Dictionary(uniqueKeysWithValues: library.cards.map { ($0.id, $0) })
         let availableCards = snapshot.originalCardIDs.compactMap { cardsByID[$0] }
@@ -615,7 +624,7 @@ struct RootView: View {
                     case .flashcards:
                         StudySessionView(
                             model: model.makeStudySessionModel(for: presentation),
-                            onRepeat: model.repeatStudy,
+                            onRepeat: { model.repeatStudy($0, sessionID: presentation.sessionID) },
                             onFinish: { model.saveAndExitStudy(sessionID: presentation.sessionID) },
                             onComplete: {
                                 model.recordCompletedStudy(
@@ -628,7 +637,7 @@ struct RootView: View {
                     case .writing:
                         WritingSessionView(
                             model: model.makeWritingSessionModel(for: presentation),
-                            onRepeat: model.repeatStudy,
+                            onRepeat: { model.repeatStudy($0, sessionID: presentation.sessionID) },
                             onFinish: { model.saveAndExitStudy(sessionID: presentation.sessionID) },
                             onComplete: {
                                 model.recordCompletedStudy(

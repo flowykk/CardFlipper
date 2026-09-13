@@ -93,7 +93,7 @@ public final class StudySetupViewModel {
     }
 }
 
-func studyCardDisplayTitle(_ card: VocabularyCard) -> String {
+public func studyCardDisplayTitle(_ card: VocabularyCard) -> String {
     let english = card.englishVariants.map(\.text)
     return english.isEmpty
         ? card.russianMeanings.map(\.text).joined(separator: " • ")

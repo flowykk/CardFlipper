@@ -117,6 +117,18 @@ final class AppStatisticsSpy: StatisticsRepository {
 }
 
 extension StudySessionSnapshot {
+    static func appLegacyFixture() throws -> StudySessionSnapshot {
+        try JSONDecoder().decode(Self.self, from: Data("""
+        {"version":1,"mode":"flashcards","direction":"englishToRussian",
+         "selectedTagIDs":["00000000-0000-0000-0000-000000000700"],
+         "originalCardIDs":["00000000-0000-0000-0000-000000000001","00000000-0000-0000-0000-000000000002"],
+         "queueCardIDs":["00000000-0000-0000-0000-000000000002"],
+         "isShowingAnswer":false,"isRevealed":false,"forgottenCount":1,
+         "repeatedCardIDs":["00000000-0000-0000-0000-000000000002"],
+         "totalAssessmentCount":2,"startedAt":100,"accumulatedDurationSeconds":15}
+        """.utf8))
+    }
+
     static func appHistoryFixture(
         mode: StudyMode = .flashcards,
         queue: [UUID] = [.appFixture(2), .appFixture(3)],
