@@ -20,10 +20,15 @@ public final class UserDefaultsStudySessionStore: StudySessionStore {
         guard let data = defaults.data(forKey: storageKey) else { return nil }
 
         do {
-            let snapshot = try JSONDecoder().decode(StudySessionSnapshot.self, from: data)
+            let decoder = JSONDecoder()
+            let persistedVersion = try decoder.decode(PersistedVersion.self, from: data).version
+            let snapshot = try decoder.decode(StudySessionSnapshot.self, from: data)
             guard snapshot.version == StudySessionSnapshot.currentVersion else {
                 clear()
                 return nil
+            }
+            if persistedVersion == 1 {
+                save(snapshot)
             }
             return snapshot
         } catch {
@@ -42,5 +47,9 @@ public final class UserDefaultsStudySessionStore: StudySessionStore {
 
     public func clear() {
         defaults.removeObject(forKey: storageKey)
+    }
+
+    private struct PersistedVersion: Decodable {
+        let version: Int
     }
 }

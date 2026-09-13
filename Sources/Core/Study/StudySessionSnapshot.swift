@@ -1,9 +1,14 @@
 import Foundation
 
+public enum StudySessionSnapshotError: Error, Equatable, Sendable {
+    case unsupportedVersion(Int)
+}
+
 public struct StudySessionSnapshot: Codable, Equatable, Sendable {
-    public static let currentVersion = 1
+    public static let currentVersion = 2
 
     public let version: Int
+    public let sessionID: UUID
     public let mode: StudyMode
     public let direction: StudyDirection
     public let selectedTagIDs: Set<UUID>
@@ -17,7 +22,11 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
     public let writingResponse: String
     public let writingEvaluation: WritingAnswerEvaluation
     public let startedAt: Date
+    public let lastActivityAt: Date
     public let accumulatedDurationSeconds: Int
+    public let encounteredCardIDs: Set<UUID>
+    public let selectedTagNames: [String]
+    public let cardDisplaySnapshots: [StudyCardDisplaySnapshot]
     public let completedResult: StudyResult?
 
     public init(
@@ -36,9 +45,15 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
         writingEvaluation: WritingAnswerEvaluation = .unanswered,
         startedAt: Date = Date(),
         accumulatedDurationSeconds: Int,
+        sessionID: UUID = UUID(),
+        lastActivityAt: Date? = nil,
+        encounteredCardIDs: Set<UUID> = [],
+        selectedTagNames: [String] = [],
+        cardDisplaySnapshots: [StudyCardDisplaySnapshot] = [],
         completedResult: StudyResult? = nil
     ) {
         self.version = version
+        self.sessionID = sessionID
         self.mode = mode
         self.direction = direction
         self.selectedTagIDs = selectedTagIDs
@@ -52,12 +67,17 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
         self.writingResponse = writingResponse
         self.writingEvaluation = writingEvaluation
         self.startedAt = startedAt
+        self.lastActivityAt = lastActivityAt ?? startedAt
         self.accumulatedDurationSeconds = max(0, accumulatedDurationSeconds)
+        self.encounteredCardIDs = encounteredCardIDs
+        self.selectedTagNames = selectedTagNames
+        self.cardDisplaySnapshots = cardDisplaySnapshots
         self.completedResult = completedResult
     }
 
     private enum CodingKeys: String, CodingKey {
         case version
+        case sessionID
         case mode
         case direction
         case selectedTagIDs
@@ -71,13 +91,22 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
         case writingResponse
         case writingEvaluation
         case startedAt
+        case lastActivityAt
         case accumulatedDurationSeconds
+        case encounteredCardIDs
+        case selectedTagNames
+        case cardDisplaySnapshots
         case completedResult
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        version = try container.decode(Int.self, forKey: .version)
+        let decodedVersion = try container.decode(Int.self, forKey: .version)
+        guard decodedVersion == 1 || decodedVersion == Self.currentVersion else {
+            throw StudySessionSnapshotError.unsupportedVersion(decodedVersion)
+        }
+        version = Self.currentVersion
+        sessionID = try container.decodeIfPresent(UUID.self, forKey: .sessionID) ?? UUID()
         mode = try container.decodeIfPresent(StudyMode.self, forKey: .mode) ?? .flashcards
         direction = try container.decode(StudyDirection.self, forKey: .direction)
         selectedTagIDs = try container.decode(Set<UUID>.self, forKey: .selectedTagIDs)
@@ -97,10 +126,17 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
             forKey: .writingEvaluation
         ) ?? .unanswered
         startedAt = try container.decodeIfPresent(Date.self, forKey: .startedAt) ?? Date()
+        lastActivityAt = try container.decodeIfPresent(Date.self, forKey: .lastActivityAt) ?? startedAt
         accumulatedDurationSeconds = max(
             0,
             try container.decode(Int.self, forKey: .accumulatedDurationSeconds)
         )
+        encounteredCardIDs = try container.decodeIfPresent(Set<UUID>.self, forKey: .encounteredCardIDs) ?? []
+        selectedTagNames = try container.decodeIfPresent([String].self, forKey: .selectedTagNames) ?? []
+        cardDisplaySnapshots = try container.decodeIfPresent(
+            [StudyCardDisplaySnapshot].self,
+            forKey: .cardDisplaySnapshots
+        ) ?? []
         completedResult = try container.decodeIfPresent(StudyResult.self, forKey: .completedResult)
     }
 }

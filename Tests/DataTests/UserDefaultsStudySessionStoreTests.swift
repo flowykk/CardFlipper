@@ -4,11 +4,14 @@ import Testing
 @testable import Data
 
 @MainActor
-@Test func studySessionStoreRoundTripsAndClearsSnapshot() throws {
+@Test func studySessionStoreRoundTripsVersionTwoSnapshotAndClearsIt() throws {
     let suiteName = "StudySessionStore.roundTrip.\(UUID().uuidString)"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defer { defaults.removePersistentDomain(forName: suiteName) }
     let store = UserDefaultsStudySessionStore(defaults: defaults)
+    let sessionID = UUID()
+    let encounteredCardID = UUID()
+    let displaySnapshot = StudyCardDisplaySnapshot(id: encounteredCardID, title: "Вопрос")
     let snapshot = StudySessionSnapshot(
         direction: .russianToEnglish,
         selectedTagIDs: [],
@@ -19,7 +22,12 @@ import Testing
         forgottenCount: 0,
         repeatedCardIDs: [],
         totalAssessmentCount: 0,
-        accumulatedDurationSeconds: 12
+        accumulatedDurationSeconds: 12,
+        sessionID: sessionID,
+        lastActivityAt: Date(timeIntervalSince1970: 456),
+        encounteredCardIDs: [encounteredCardID],
+        selectedTagNames: ["Русский"],
+        cardDisplaySnapshots: [displaySnapshot]
     )
 
     store.save(snapshot)
@@ -64,4 +72,13 @@ import Testing
     #expect(snapshot.mode == .flashcards)
     #expect(snapshot.writingResponse.isEmpty)
     #expect(snapshot.writingEvaluation == .unanswered)
+    #expect(snapshot.version == StudySessionSnapshot.currentVersion)
+    #expect(snapshot.lastActivityAt == snapshot.startedAt)
+    #expect(snapshot.encounteredCardIDs.isEmpty)
+    #expect(snapshot.selectedTagNames.isEmpty)
+    #expect(snapshot.cardDisplaySnapshots.isEmpty)
+
+    let persistedSessionID = snapshot.sessionID
+    let loadedAgain = try #require(store.load())
+    #expect(loadedAgain.sessionID == persistedSessionID)
 }
