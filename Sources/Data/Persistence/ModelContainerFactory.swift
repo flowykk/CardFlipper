@@ -16,6 +16,7 @@ public enum ModelContainerFactory {
         )
         return try ModelContainer(
             for: CardFlipperSchema.schema,
+            migrationPlan: CardFlipperMigrationPlan.self,
             configurations: [configuration]
         )
     }
