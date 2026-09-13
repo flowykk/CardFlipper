@@ -88,7 +88,7 @@ public struct StatisticsView: View {
     }
 
     private func metricTable(_ metrics: [StatisticsMetric]) -> some View {
-        MetricTable {
+        MetricTable(backgroundStyle: .thinMaterial) {
             ForEach(metrics.indices, id: \.self) { index in
                 metricRow(metrics[index])
                 if index < metrics.index(before: metrics.endIndex) {

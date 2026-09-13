@@ -13,7 +13,7 @@ public struct StudyHistoryDetailView: View {
     public var body: some View {
         List {
             Section {
-                MetricTable {
+                MetricTable(backgroundStyle: Color(uiColor: .secondarySystemGroupedBackground)) {
                     detailRow("history.completedAt.label", HistoryPresentation.dateTime(entry.completedAt))
                     MetricTableDivider()
                     detailRow("history.startedAt.label", HistoryPresentation.dateTime(entry.startedAt))
@@ -24,7 +24,7 @@ public struct StudyHistoryDetailView: View {
             }
 
             Section {
-                MetricTable {
+                MetricTable(backgroundStyle: Color(uiColor: .secondarySystemGroupedBackground)) {
                     detailRow("history.mode.label", HistoryPresentation.mode(entry.mode))
                     MetricTableDivider()
                     detailRow("history.direction.label", HistoryPresentation.direction(entry.direction))
@@ -51,7 +51,7 @@ public struct StudyHistoryDetailView: View {
             }
 
             Section {
-                MetricTable {
+                MetricTable(backgroundStyle: Color(uiColor: .secondarySystemGroupedBackground)) {
                     detailRow("history.tags.label", HistoryPresentation.tags(entry.selectedTagNames))
                 }
                 .listRowBackground(Color.clear)

@@ -21,9 +21,14 @@ public struct PrimaryActionButtonStyle: ButtonStyle {
 }
 
 public struct MetricTable<Content: View>: View {
+    private let backgroundStyle: AnyShapeStyle
     private let content: Content
 
-    public init(@ViewBuilder content: () -> Content) {
+    public init<Background: ShapeStyle>(
+        backgroundStyle: Background,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.backgroundStyle = AnyShapeStyle(backgroundStyle)
         self.content = content()
     }
 
@@ -32,7 +37,7 @@ public struct MetricTable<Content: View>: View {
             content
         }
         .padding(.horizontal)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .background(backgroundStyle, in: RoundedRectangle(cornerRadius: 18))
     }
 }
 
