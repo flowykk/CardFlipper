@@ -66,6 +66,46 @@ private extension VocabularyCard {
     #expect(clean.repeatedCardCount == 0)
 }
 
+@Test func studyResultUsesEncounteredCardsForPartialRecall() {
+    let result = StudyResult(
+        plannedCardCount: 10,
+        completedCardCount: 3,
+        encounteredCardIDs: [.fixture(1), .fixture(2), .fixture(3), .fixture(4)],
+        repeatedCardIDs: [.fixture(1)],
+        totalAssessmentCount: 6,
+        elapsedSeconds: 60
+    )
+
+    #expect(result.plannedCardCount == 10)
+    #expect(result.completedCardCount == 3)
+    #expect(result.encounteredCardCount == 4)
+    #expect(result.recallRatePercentage == 75)
+}
+
+@Test func constructingFlashcardSessionDoesNotEncounterCards() {
+    let session = StudySession(cards: [.fixture(id: 1)], direction: .russianToEnglish)
+
+    #expect(session.encounteredCardIDs.isEmpty)
+}
+
+@Test func rememberingFlashcardEncountersTheCurrentCard() throws {
+    var session = StudySession(cards: [.fixture(id: 1)], direction: .russianToEnglish)
+
+    session.reveal()
+    try session.remember()
+
+    #expect(session.encounteredCardIDs == [.fixture(1)])
+}
+
+@Test func forgettingFlashcardEncountersTheCurrentCard() throws {
+    var session = StudySession(cards: [.fixture(id: 1)], direction: .russianToEnglish)
+
+    session.reveal()
+    try session.forget()
+
+    #expect(session.encounteredCardIDs == [.fixture(1)])
+}
+
 @Test func assessmentBeforeRevealIsRejected() {
     var rememberedSession = StudySession(cards: [.fixture(id: 1)], direction: .russianToEnglish)
     #expect(throws: StudySessionError.answerNotRevealed) { try rememberedSession.remember() }

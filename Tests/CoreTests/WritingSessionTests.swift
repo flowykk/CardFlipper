@@ -44,6 +44,33 @@ private func writingCard(
     #expect(session.totalAssessmentCount == 1)
 }
 
+@Test func constructingWritingSessionDoesNotEncounterCards() {
+    let session = WritingSession(cards: [writingCard()])
+
+    #expect(session.encounteredCardIDs.isEmpty)
+}
+
+@Test func checkingWritingResponseEncountersTheCurrentCard() {
+    let card = writingCard()
+    var session = WritingSession(cards: [card])
+
+    session.setResponse("word")
+    _ = session.checkResponse()
+
+    #expect(session.encounteredCardIDs == [card.id])
+}
+
+@Test func firstWritingAnswerRevealEncountersTheCurrentCardOnlyOnce() {
+    let card = writingCard()
+    var session = WritingSession(cards: [card])
+
+    session.toggleAnswer()
+    session.toggleAnswer()
+    session.toggleAnswer()
+
+    #expect(session.encounteredCardIDs == [card.id])
+}
+
 @Test func incorrectWritingAttemptKeepsCardActiveAndMarksItDifficult() {
     let card = writingCard()
     var session = WritingSession(cards: [card])

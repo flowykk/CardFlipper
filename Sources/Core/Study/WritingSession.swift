@@ -13,6 +13,7 @@ public struct WritingSession: Sendable {
     public private(set) var isShowingAnswer: Bool
     public private(set) var hasRevealedAnswer: Bool
     public private(set) var forgottenCount: Int
+    public private(set) var encounteredCardIDs: Set<UUID>
     public private(set) var repeatedCardIDs: [UUID]
     public private(set) var totalAssessmentCount: Int
 
@@ -24,6 +25,7 @@ public struct WritingSession: Sendable {
         isShowingAnswer = false
         hasRevealedAnswer = false
         forgottenCount = 0
+        encounteredCardIDs = []
         repeatedCardIDs = []
         totalAssessmentCount = 0
     }
@@ -36,6 +38,7 @@ public struct WritingSession: Sendable {
         isShowingAnswer: Bool,
         hasRevealedAnswer: Bool,
         forgottenCount: Int,
+        encounteredCardIDs: Set<UUID> = [],
         repeatedCardIDs: [UUID],
         totalAssessmentCount: Int
     ) {
@@ -46,6 +49,7 @@ public struct WritingSession: Sendable {
         self.isShowingAnswer = isShowingAnswer && !cards.isEmpty
         self.hasRevealedAnswer = hasRevealedAnswer && !cards.isEmpty
         self.forgottenCount = max(0, forgottenCount)
+        self.encounteredCardIDs = encounteredCardIDs
         self.repeatedCardIDs = repeatedCardIDs
         self.totalAssessmentCount = max(0, totalAssessmentCount)
     }
@@ -67,6 +71,8 @@ public struct WritingSession: Sendable {
         guard let currentCard else { return .unanswered }
         guard evaluation != .correct else { return .correct }
 
+        encounteredCardIDs.insert(currentCard.id)
+
         let responseKey = TextNormalizer.searchKey(response)
         let isCorrect = !responseKey.isEmpty && currentCard.englishVariants.contains {
             TextNormalizer.searchKey($0.text) == responseKey
@@ -84,14 +90,13 @@ public struct WritingSession: Sendable {
     }
 
     public mutating func toggleAnswer() {
-        guard currentCard != nil else { return }
+        guard let currentCard else { return }
         isShowingAnswer.toggle()
         guard isShowingAnswer, !hasRevealedAnswer else { return }
 
         hasRevealedAnswer = true
-        guard evaluation != .correct,
-              let currentCard,
-              !repeatedCardIDs.contains(currentCard.id) else {
+        encounteredCardIDs.insert(currentCard.id)
+        guard evaluation != .correct, !repeatedCardIDs.contains(currentCard.id) else {
             return
         }
         forgottenCount += 1
@@ -103,6 +108,7 @@ public struct WritingSession: Sendable {
         guard currentCard != nil else { throw WritingSessionError.noCurrentCard }
         guard evaluation == .correct else { throw WritingSessionError.answerNotCorrect }
 
+        encounteredCardIDs.insert(queue[0].id)
         queue.removeFirst()
         resetWritingState()
     }
@@ -111,6 +117,7 @@ public struct WritingSession: Sendable {
         guard let currentCard else { throw WritingSessionError.noCurrentCard }
         guard evaluation == .correct else { throw WritingSessionError.answerNotCorrect }
 
+        encounteredCardIDs.insert(currentCard.id)
         queue.removeFirst()
         queue.append(currentCard)
         forgottenCount += 1

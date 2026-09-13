@@ -6,10 +6,30 @@ public enum StudySessionError: Error, Equatable, Sendable {
 }
 
 public struct StudyResult: Codable, Equatable, Sendable {
-    public let reviewedCardCount: Int
+    public let plannedCardCount: Int
+    public let completedCardCount: Int
+    public let encounteredCardCount: Int
     public let repeatedCardIDs: [UUID]
     public let totalAssessmentCount: Int
     public let elapsedSeconds: Int
+
+    public init(
+        plannedCardCount: Int,
+        completedCardCount: Int,
+        encounteredCardIDs: Set<UUID>,
+        repeatedCardIDs: [UUID],
+        totalAssessmentCount: Int,
+        elapsedSeconds: Int
+    ) {
+        self.init(
+            plannedCardCount: plannedCardCount,
+            completedCardCount: completedCardCount,
+            encounteredCardCount: encounteredCardIDs.count,
+            repeatedCardIDs: repeatedCardIDs,
+            totalAssessmentCount: totalAssessmentCount,
+            elapsedSeconds: elapsedSeconds
+        )
+    }
 
     public init(
         reviewedCardCount: Int,
@@ -17,10 +37,15 @@ public struct StudyResult: Codable, Equatable, Sendable {
         totalAssessmentCount: Int,
         elapsedSeconds: Int
     ) {
-        self.reviewedCardCount = reviewedCardCount
-        self.repeatedCardIDs = repeatedCardIDs
-        self.totalAssessmentCount = totalAssessmentCount
-        self.elapsedSeconds = max(0, elapsedSeconds)
+        let reviewedCardCount = max(0, reviewedCardCount)
+        self.init(
+            plannedCardCount: reviewedCardCount,
+            completedCardCount: reviewedCardCount,
+            encounteredCardCount: reviewedCardCount,
+            repeatedCardIDs: repeatedCardIDs,
+            totalAssessmentCount: totalAssessmentCount,
+            elapsedSeconds: elapsedSeconds
+        )
     }
 
     public init(uniqueCardCount: Int, forgottenCount: Int) {
@@ -32,16 +57,38 @@ public struct StudyResult: Codable, Equatable, Sendable {
         )
     }
 
-    public var uniqueCardCount: Int { reviewedCardCount }
-    public var forgottenCount: Int { max(0, totalAssessmentCount - reviewedCardCount) }
+    public var reviewedCardCount: Int { completedCardCount }
+    public var uniqueCardCount: Int { completedCardCount }
+    public var forgottenCount: Int { max(0, totalAssessmentCount - completedCardCount) }
     public var repeatedCardCount: Int { repeatedCardIDs.count }
 
     public var recallRatePercentage: Int {
-        guard reviewedCardCount > 0 else { return 0 }
+        guard encounteredCardCount > 0 else { return 0 }
         return Int(
-            (Double(reviewedCardCount - repeatedCardCount) / Double(reviewedCardCount) * 100)
+            (Double(max(0, encounteredCardCount - repeatedCardCount)) / Double(encounteredCardCount) * 100)
                 .rounded()
         )
+    }
+
+    private static func unique(_ ids: [UUID]) -> [UUID] {
+        var seen = Set<UUID>()
+        return ids.filter { seen.insert($0).inserted }
+    }
+
+    private init(
+        plannedCardCount: Int,
+        completedCardCount: Int,
+        encounteredCardCount: Int,
+        repeatedCardIDs: [UUID],
+        totalAssessmentCount: Int,
+        elapsedSeconds: Int
+    ) {
+        self.plannedCardCount = max(0, plannedCardCount)
+        self.completedCardCount = min(self.plannedCardCount, max(0, completedCardCount))
+        self.encounteredCardCount = min(self.plannedCardCount, max(0, encounteredCardCount))
+        self.repeatedCardIDs = Self.unique(repeatedCardIDs)
+        self.totalAssessmentCount = max(0, totalAssessmentCount)
+        self.elapsedSeconds = max(0, elapsedSeconds)
     }
 }
 
@@ -50,6 +97,7 @@ public struct StudySession: Sendable {
     public let initialCardCount: Int
     public private(set) var queue: [VocabularyCard]
     public private(set) var forgottenCount = 0
+    public private(set) var encounteredCardIDs: Set<UUID> = []
     public private(set) var repeatedCardIDs: [UUID] = []
     public private(set) var totalAssessmentCount = 0
     public private(set) var isRevealed = false
@@ -65,6 +113,7 @@ public struct StudySession: Sendable {
         direction: StudyDirection,
         initialCardCount: Int,
         forgottenCount: Int,
+        encounteredCardIDs: Set<UUID> = [],
         repeatedCardIDs: [UUID],
         totalAssessmentCount: Int,
         isRevealed: Bool
@@ -73,6 +122,7 @@ public struct StudySession: Sendable {
         self.initialCardCount = max(cards.count, initialCardCount)
         queue = cards
         self.forgottenCount = max(0, forgottenCount)
+        self.encounteredCardIDs = encounteredCardIDs
         self.repeatedCardIDs = repeatedCardIDs
         self.totalAssessmentCount = max(0, totalAssessmentCount)
         self.isRevealed = isRevealed && !cards.isEmpty
@@ -89,6 +139,7 @@ public struct StudySession: Sendable {
     public mutating func remember() throws {
         guard isRevealed else { throw StudySessionError.answerNotRevealed }
         guard !queue.isEmpty else { throw StudySessionError.noCurrentCard }
+        encounteredCardIDs.insert(queue[0].id)
         queue.removeFirst()
         totalAssessmentCount += 1
         isRevealed = false
@@ -97,6 +148,7 @@ public struct StudySession: Sendable {
     public mutating func forget() throws {
         guard isRevealed else { throw StudySessionError.answerNotRevealed }
         guard !queue.isEmpty else { throw StudySessionError.noCurrentCard }
+        encounteredCardIDs.insert(queue[0].id)
         let forgottenCard = queue.removeFirst()
         queue.append(forgottenCard)
         forgottenCount += 1
