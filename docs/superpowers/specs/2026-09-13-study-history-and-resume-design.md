@@ -124,6 +124,7 @@ Active foreground study time continues to feed daily progress through the existi
 
 Extend the resumable **StudySessionSnapshot** with versioned fields needed for correct partial-game presentation and finalization:
 
+- **sessionID**, preserved across every save and resume so history and aggregate-statistics deduplication use one stable identity;
 - **lastActivityAt**;
 - **encounteredCardIDs**;
 - immutable session-start display metadata sufficient to finalize even after source objects change: selected tag names and a card-ID-to-display-title snapshot for every planned card.
