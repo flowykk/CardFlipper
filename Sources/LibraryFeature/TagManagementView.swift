@@ -35,7 +35,7 @@ public struct TagManagementView: View {
                     )
                 } else {
                     ForEach(model.tags) { tag in
-                        Button {
+                        HapticButton {
                             selectedTag = tag
                         } label: {
                             HStack(spacing: 12) {
@@ -90,7 +90,7 @@ public struct TagManagementView: View {
             }
         }
         .alert("data.save.failed", isPresented: mutationFailureBinding) {
-            Button("common.close", role: .cancel) { model.dismissTagMutationFailure() }
+            HapticButton("common.close", role: .cancel) { model.dismissTagMutationFailure() }
         }
     }
 
@@ -100,7 +100,7 @@ public struct TagManagementView: View {
             .textInputAutocapitalization(.words)
             .onSubmit(createTag)
             .accessibilityIdentifier("tag.create.name")
-        Button("tag.create.action", action: createTag)
+        HapticButton("tag.create.action", action: createTag)
             .buttonStyle(.borderedProminent)
             .disabled(newTagName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .accessibilityIdentifier("tag.create")
@@ -176,13 +176,16 @@ private struct TagManagementDetailView: View {
 
             if !mergeDestinations.isEmpty {
                 Section {
-                    Picker("tag.merge.destination", selection: $destinationID) {
+                    Picker(
+                        "tag.merge.destination",
+                        selection: $destinationID.withSelectionFeedback()
+                    ) {
                         Text("tag.merge.choose").tag(nil as UUID?)
                         ForEach(mergeDestinations) { destination in
                             Text(verbatim: destination.name).tag(destination.id as UUID?)
                         }
                     }
-                    Button("tag.merge.action") { isShowingMergeConfirmation = true }
+                    HapticButton("tag.merge.action") { isShowingMergeConfirmation = true }
                         .disabled(isWorking || destinationID == nil)
                 } header: {
                     Text("tag.merge.title")
@@ -192,7 +195,7 @@ private struct TagManagementDetailView: View {
             }
 
             Section {
-                Button("tag.delete.action", role: .destructive) {
+                HapticButton("tag.delete.action", role: .destructive) {
                     isShowingDeleteConfirmation = true
                 }
                 .disabled(isWorking)
@@ -204,10 +207,10 @@ private struct TagManagementDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("common.close") { dismiss() }
+                HapticButton("common.close") { dismiss() }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("common.save") { performRename() }
+                HapticButton("common.save") { performRename() }
                     .disabled(!canRename)
                     .accessibilityIdentifier("tag.rename.save")
             }
@@ -217,8 +220,8 @@ private struct TagManagementDetailView: View {
             isPresented: $isShowingMergeConfirmation,
             titleVisibility: .visible
         ) {
-            Button("tag.merge.action") { performMerge() }
-            Button("common.cancel", role: .cancel) {}
+            HapticButton("tag.merge.action") { performMerge() }
+            HapticButton("common.cancel", role: .cancel) {}
         } message: {
             Text(verbatim: affectedText)
         }
@@ -227,8 +230,8 @@ private struct TagManagementDetailView: View {
             isPresented: $isShowingDeleteConfirmation,
             titleVisibility: .visible
         ) {
-            Button("tag.delete.action", role: .destructive) { performDelete() }
-            Button("common.cancel", role: .cancel) {}
+            HapticButton("tag.delete.action", role: .destructive) { performDelete() }
+            HapticButton("common.cancel", role: .cancel) {}
         } message: {
             Text(verbatim: affectedText)
         }

@@ -271,6 +271,21 @@ final class RootViewModel {
         )
     }
 
+    func makeWritingSessionModel(for activeStudy: ActiveStudy) -> WritingSessionViewModel {
+        let today = dailyProgress.progress(for: Date(), calendar: .current)
+        return WritingSessionViewModel(
+            configuration: activeStudy.configuration,
+            snapshot: activeStudy.snapshot,
+            shuffler: shuffler,
+            speech: speech,
+            initialDailyGoalProgress: StudyDailyGoalProgress(
+                elapsedSeconds: today.elapsedSeconds,
+                goalSeconds: today.goalSeconds
+            ),
+            store: studySessionStore
+        )
+    }
+
     func resumeInterruptedStudy() {
         guard let resumableStudy else { return }
         navigation.resumeStudy(resumableStudy)
@@ -290,9 +305,9 @@ final class RootViewModel {
         library.cards.count
     }
 
-    func recordCompletedStudy(sessionID: UUID, result: StudyResult) {
+    func recordCompletedStudy(sessionID: UUID, mode: StudyMode, result: StudyResult) {
         studyTimer.endSession(id: sessionID)
-        statistics.record(sessionID: sessionID, result: result)
+        statistics.record(sessionID: sessionID, mode: mode, result: result)
     }
 
     func studyDidAppear(sessionID: UUID) {
@@ -336,6 +351,7 @@ final class RootViewModel {
 
         resumableStudy = ActiveStudy(
             configuration: StudyConfiguration(
+                mode: snapshot.mode,
                 direction: snapshot.direction,
                 selectedTagIDs: snapshot.selectedTagIDs,
                 cards: availableCards
@@ -372,7 +388,7 @@ struct RootView: View {
     var body: some View {
         @Bindable var navigation = model.navigation
 
-        NavigationStack(path: $navigation.path) {
+        NavigationStack(path: $navigation.path.withBackNavigationFeedback()) {
             LibraryView(
                 model: model.library,
                 onAddCard: navigation.openNewEditor,
@@ -384,17 +400,17 @@ struct RootView: View {
             )
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button(action: navigation.openNewEditor) {
+                    HapticButton(action: navigation.openNewEditor) {
                         Label("library.add", systemImage: "plus")
                     }
                     .accessibilityIdentifier("library.add")
 
-                    Button(action: navigation.openSettings) {
+                    HapticButton(action: navigation.openSettings) {
                         Label("settings.open", systemImage: AppSymbol.settings)
                     }
                     .accessibilityIdentifier("library.settings")
 
-                    Button {
+                    HapticButton {
                         navigation.path.append(.statistics)
                     } label: {
                         Label {
@@ -457,17 +473,36 @@ struct RootView: View {
             onDismiss: navigation.studyPresentationDidDismiss
         ) { presentation in
             NavigationStack {
-                StudySessionView(
-                    model: model.makeStudySessionModel(for: presentation),
-                    onRepeat: navigation.repeatStudy,
-                    onFinish: { model.finishStudy(sessionID: presentation.sessionID) },
-                    onComplete: {
-                        model.recordCompletedStudy(
-                            sessionID: presentation.sessionID,
-                            result: $0
+                Group {
+                    switch presentation.configuration.mode {
+                    case .flashcards:
+                        StudySessionView(
+                            model: model.makeStudySessionModel(for: presentation),
+                            onRepeat: navigation.repeatStudy,
+                            onFinish: { model.finishStudy(sessionID: presentation.sessionID) },
+                            onComplete: {
+                                model.recordCompletedStudy(
+                                    sessionID: presentation.sessionID,
+                                    mode: presentation.configuration.mode,
+                                    result: $0
+                                )
+                            }
+                        )
+                    case .writing:
+                        WritingSessionView(
+                            model: model.makeWritingSessionModel(for: presentation),
+                            onRepeat: navigation.repeatStudy,
+                            onFinish: { model.finishStudy(sessionID: presentation.sessionID) },
+                            onComplete: {
+                                model.recordCompletedStudy(
+                                    sessionID: presentation.sessionID,
+                                    mode: presentation.configuration.mode,
+                                    result: $0
+                                )
+                            }
                         )
                     }
-                )
+                }
                 .toolbar {
                     if model.studyTimer.snapshot.isVisible {
                         ToolbarItem(placement: .topBarLeading) {
@@ -512,8 +547,8 @@ struct RootView: View {
                 set: { _ in }
             )
         ) {
-            Button("study.resume.action", action: model.resumeInterruptedStudy)
-            Button(
+            HapticButton("study.resume.action", action: model.resumeInterruptedStudy)
+            HapticButton(
                 "study.resume.discard",
                 role: .destructive,
                 action: model.discardInterruptedStudy
@@ -573,7 +608,7 @@ struct RootView: View {
             get: { transferMessage != nil },
             set: { if !$0 { transferMessage = nil } }
         )) {
-            Button("common.close", role: .cancel) { transferMessage = nil }
+            HapticButton("common.close", role: .cancel) { transferMessage = nil }
         } message: {
             Text(transferMessage ?? "")
         }
@@ -593,7 +628,7 @@ struct RootView: View {
                 ContentUnavailableView {
                     Label("data.load.failed", systemImage: "exclamationmark.triangle")
                 } actions: {
-                    Button("common.close", action: model.navigation.dismissEditor)
+                    HapticButton("common.close", action: model.navigation.dismissEditor)
                 }
                 .navigationTitle("editor.title")
             }
@@ -613,7 +648,7 @@ struct AppStartupView: View {
             } description: {
                 Text("app.startup.failed.message")
             } actions: {
-                Button("common.retry", action: startup.retry)
+                HapticButton("common.retry", action: startup.retry)
                     .buttonStyle(.borderedProminent)
             }
         }

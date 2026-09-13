@@ -47,3 +47,21 @@ import Testing
     #expect(store.load() == nil)
     #expect(defaults.data(forKey: UserDefaultsStudySessionStore.storageKey) == nil)
 }
+
+@MainActor
+@Test func studySessionStoreLoadsLegacySnapshotAsFlashcards() throws {
+    let suiteName = "StudySessionStore.legacy.\(UUID().uuidString)"
+    let defaults = try #require(UserDefaults(suiteName: suiteName))
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+    let store = UserDefaultsStudySessionStore(defaults: defaults)
+    let legacy = """
+    {"version":1,"direction":"russianToEnglish","selectedTagIDs":[],"originalCardIDs":[],"queueCardIDs":[],"isShowingAnswer":false,"isRevealed":false,"forgottenCount":0,"repeatedCardIDs":[],"totalAssessmentCount":0,"startedAt":0,"accumulatedDurationSeconds":0}
+    """
+    defaults.set(Data(legacy.utf8), forKey: UserDefaultsStudySessionStore.storageKey)
+
+    let snapshot = try #require(store.load())
+
+    #expect(snapshot.mode == .flashcards)
+    #expect(snapshot.writingResponse.isEmpty)
+    #expect(snapshot.writingEvaluation == .unanswered)
+}

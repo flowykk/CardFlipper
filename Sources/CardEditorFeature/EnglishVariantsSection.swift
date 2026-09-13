@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 public struct EnglishVariantsSection: View {
@@ -74,7 +75,7 @@ public struct EnglishVariantsSection: View {
                 VStack(alignment: .leading, spacing: 6) {
                     adaptiveInputRow(variant: $variant)
 
-                    Button {
+                    HapticButton {
                         toggleMetadata(for: variant.id)
                     } label: {
                         Label {
@@ -106,7 +107,7 @@ public struct EnglishVariantsSection: View {
                 }
             }
 
-            Button(action: onAdd) {
+            HapticButton(action: onAdd) {
                 Label("editor.english.add", systemImage: "plus.circle")
             }
             .accessibilityIdentifier("editor.english.add")
@@ -178,7 +179,7 @@ public struct EnglishVariantsSection: View {
 
     private func actionButtons(for id: UUID, text: String) -> some View {
         HStack(spacing: 0) {
-            Button {
+            HapticButton {
                 onSpeak(id)
             } label: {
                 Image(systemName: "speaker.wave.2")
@@ -190,7 +191,7 @@ public struct EnglishVariantsSection: View {
                 position: position(of: id)
             )))
 
-            Button(role: .destructive) {
+            HapticButton(role: .destructive) {
                 onRemove(id)
             } label: {
                 Image(systemName: "minus.circle")
@@ -233,7 +234,7 @@ public struct EnglishVariantsSection: View {
             }
         }
 
-        Button {
+        HapticButton {
             onChoosePartOfSpeechVariant(id)
         } label: {
             Label("editor.partOfSpeech.choose", systemImage: "textformat")
@@ -255,12 +256,12 @@ public struct EnglishVariantsSection: View {
             lookupStatus(for: id)
             Spacer()
             if lookupState[id] == .conflict {
-                Button("editor.lookup.useSuggestion") {
+                HapticButton("editor.lookup.useSuggestion") {
                     onUseSuggestion(id)
                 }
                 .accessibilityIdentifier("editor.english.\(position(of: id) - 1).useSuggestion")
             } else if lookupState[id] == .failed {
-                Button("common.retry") {
+                HapticButton("common.retry") {
                     onLookup(id)
                 }
             }

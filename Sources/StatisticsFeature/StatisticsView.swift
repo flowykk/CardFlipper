@@ -34,7 +34,18 @@ public struct StatisticsView: View {
                 VStack(spacing: 16) {
                     todayCard
                     ActivityCalendarView(model: progressModel)
-                    metricGrid
+                    metricTable(
+                        StatisticsMetric.makeOverviewMetrics(
+                            libraryCardCount: libraryCardCount,
+                            trend: progressModel.trend
+                        )
+                    )
+                    ForEach(
+                        StatisticsMetric.makeModeSections(statistics: statistics),
+                        id: \.titleKey
+                    ) { section in
+                        metricSection(section)
+                    }
                 }
                 .padding()
             }
@@ -52,7 +63,7 @@ public struct StatisticsView: View {
             HStack {
                 Text("progress.today", bundle: .module).font(.headline)
                 Spacer()
-                Button {
+                HapticButton {
                     progressModel.isGoalEditorPresented = true
                 } label: {
                     Text("progress.editGoal", bundle: .module)
@@ -67,49 +78,66 @@ public struct StatisticsView: View {
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
     }
 
-    private var metricGrid: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 12)], spacing: 12) {
-            ForEach(
-                StatisticsMetric.makeMetrics(
-                    statistics: statistics,
-                    libraryCardCount: libraryCardCount,
-                    trend: progressModel.trend
-                ),
-                id: \.titleKey
-            ) { metric in
-                metricCard(
-                    title: LocalizedStringKey(metric.titleKey),
-                    value: metric.value,
-                    systemImage: metric.systemImage,
-                    detail: metric.detail
-                )
-            }
+    private func metricSection(_ section: StatisticsMetricSection) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(LocalizedStringKey(section.titleKey), bundle: .module)
+                .font(.headline)
+                .padding(.horizontal, 4)
+            metricTable(section.metrics)
         }
     }
 
-    private func metricCard(
-        title: LocalizedStringKey,
-        value: String,
-        systemImage: String,
-        detail: String?
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Image(systemName: systemImage).font(.title2).foregroundStyle(Color.accentColor).accessibilityHidden(true)
-            Text(verbatim: value).font(.system(.title, design: .rounded, weight: .bold))
-            Text(title, bundle: .module).font(.subheadline).foregroundStyle(.secondary)
-            if let detail {
-                (
-                    Text(verbatim: detail)
-                    + Text(verbatim: " ")
-                    + Text("statistics.vsPrevious", bundle: .module)
-                )
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(detail.hasPrefix("+") ? Color.green : .secondary)
+    private func metricTable(_ metrics: [StatisticsMetric]) -> some View {
+        VStack(spacing: 0) {
+            ForEach(metrics.indices, id: \.self) { index in
+                metricRow(metrics[index])
+                if index < metrics.index(before: metrics.endIndex) {
+                    Divider().padding(.leading, 56)
+                }
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
-        .padding()
+        .padding(.horizontal)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    private func metricRow(_ metric: StatisticsMetric) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: metric.systemImage)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 28)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(LocalizedStringKey(metric.titleKey), bundle: .module)
+                    .font(.body)
+                if let subtitleKey = metric.subtitleKey {
+                    Text(LocalizedStringKey(subtitleKey), bundle: .module)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer(minLength: 12)
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(verbatim: metric.value)
+                    .font(.system(.headline, design: .rounded, weight: .bold))
+                    .monospacedDigit()
+                if let detail = metric.detail {
+                    (
+                        Text(verbatim: detail)
+                        + Text(verbatim: " ")
+                        + Text("statistics.vsPrevious", bundle: .module)
+                    )
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(detail.hasPrefix("+") ? Color.green : .secondary)
+                }
+            }
+            .multilineTextAlignment(.trailing)
+        }
+        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+        .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
     }
 
@@ -123,7 +151,7 @@ public struct StatisticsView: View {
         } description: {
             Text("statistics.zero.message", bundle: .module)
         } actions: {
-            Button(action: onStartStudy) {
+            HapticButton(action: onStartStudy) {
                 Label {
                     Text("statistics.zero.action", bundle: .module)
                 } icon: {

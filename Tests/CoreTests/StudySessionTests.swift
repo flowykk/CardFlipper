@@ -103,6 +103,7 @@ private extension VocabularyCard {
         elapsedSeconds: 42
     )
     let snapshot = StudySessionSnapshot(
+        mode: .writing,
         direction: .englishToRussian,
         selectedTagIDs: [.fixture(9)],
         originalCardIDs: [.fixture(1), .fixture(2)],
@@ -112,6 +113,8 @@ private extension VocabularyCard {
         forgottenCount: 1,
         repeatedCardIDs: [.fixture(1)],
         totalAssessmentCount: 2,
+        writingResponse: "answer",
+        writingEvaluation: .incorrect,
         accumulatedDurationSeconds: 37,
         completedResult: result
     )

@@ -29,7 +29,10 @@ public struct LibraryFiltersSheet: View {
         NavigationStack {
             Form {
                 Section("library.learningFilter") {
-                    Picker("library.learningFilter", selection: $learningFilter) {
+                    Picker(
+                        "library.learningFilter",
+                        selection: $learningFilter.withSelectionFeedback()
+                    ) {
                         Text("learningFilter.all").tag(CardLearningFilter.all)
                         Text("learningFilter.learned").tag(CardLearningFilter.learned)
                         Text("learningFilter.unlearned").tag(CardLearningFilter.unlearned)
@@ -43,7 +46,7 @@ public struct LibraryFiltersSheet: View {
                         tagButton(tag)
                     }
 
-                    Button {
+                    HapticButton {
                         dismiss()
                         onManageTags()
                     } label: {
@@ -55,7 +58,7 @@ public struct LibraryFiltersSheet: View {
                 Section("library.filters.display") {
                     Toggle(
                         "library.translations.show",
-                        isOn: $showsRussianMeanings
+                        isOn: $showsRussianMeanings.withSelectionFeedback()
                     )
                     .accessibilityIdentifier("library.translations.toggle")
                 }
@@ -64,13 +67,13 @@ public struct LibraryFiltersSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("library.filters.reset", action: reset)
+                    HapticButton("library.filters.reset", action: reset)
                         .disabled(!canReset)
                         .accessibilityIdentifier("library.filters.reset")
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
+                    HapticButton {
                         dismiss()
                     } label: {
                         Label("common.done", systemImage: "checkmark")
@@ -88,13 +91,12 @@ public struct LibraryFiltersSheet: View {
     private func tagButton(_ tag: Tag) -> some View {
         let isSelected = selectedTagIDs.contains(tag.id)
 
-        return Button {
+        return HapticButton(feedback: .selection) {
             if isSelected {
                 selectedTagIDs.remove(tag.id)
             } else {
                 selectedTagIDs.insert(tag.id)
             }
-            FeedbackGenerator.shared.selection()
         } label: {
             HStack {
                 Text(verbatim: tag.name)
@@ -122,6 +124,5 @@ public struct LibraryFiltersSheet: View {
         selectedTagIDs = []
         learningFilter = .all
         showsRussianMeanings = false
-        FeedbackGenerator.shared.selection()
     }
 }

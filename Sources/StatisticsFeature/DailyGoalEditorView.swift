@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 
 enum DailyGoalEditorCopy {
@@ -36,7 +37,7 @@ struct DailyGoalEditorView: View {
         NavigationStack {
             HStack(spacing: 0) {
                 Picker(
-                    selection: $editorModel.selectedMinutes,
+                    selection: $editorModel.selectedMinutes.withSelectionFeedback(),
                     label: Text("progress.dailyGoal", bundle: .module)
                 ) {
                     ForEach(editorModel.minuteOptions, id: \.self) { minutes in
@@ -59,7 +60,7 @@ struct DailyGoalEditorView: View {
             .navigationTitle(Text(verbatim: DailyGoalEditorCopy.title(locale: locale)))
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
+                    HapticButton {
                         editorModel.confirm()
                         model.isGoalEditorPresented = false
                     } label: {

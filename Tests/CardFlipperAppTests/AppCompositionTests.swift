@@ -9,6 +9,16 @@ import UIKit
 import StatisticsFeature
 @testable import CardFlipper
 
+@Test func aiImportPromptExampleProducesAnImportableCard() throws {
+    let data = try #require(CardImportAIPrompt.exampleJSON.data(using: .utf8))
+    let document = try JSONDecoder().decode(CardTransferDocument.self, from: data)
+
+    #expect(document.version == 1)
+    #expect(document.decodedCards().count == 1)
+    #expect(document.decodedCards().first?.russianMeanings.first?.text == "пример")
+    #expect(document.decodedCards().first?.englishVariants.first?.text == "example")
+}
+
 @MainActor
 @Test func appOffersTenIconsWithLoadablePreviewsAndDeclaredAlternates() throws {
     #expect(AppIconSettings.AppIcon.allCases.count == 10)
@@ -137,6 +147,10 @@ private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double
     navigation.openSettings()
 
     #expect(navigation.path == [.settings])
+}
+
+@Test func appUsesCardsFlipperAsItsDisplayName() {
+    #expect(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String == "Cards Flipper")
 }
 
 #if DEBUG
@@ -359,6 +373,38 @@ private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double
     model.resumeInterruptedStudy()
     #expect(model.navigation.activeStudy == resumable)
     #expect(model.resumableStudy == nil)
+}
+
+@MainActor
+@Test func loadingLibraryRestoresWritingModeAndItsCurrentAnswer() async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let snapshot = StudySessionSnapshot(
+        mode: .writing,
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        originalCardIDs: [card.id],
+        queueCardIDs: [card.id],
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 1,
+        repeatedCardIDs: [card.id],
+        totalAssessmentCount: 1,
+        writingResponse: "wrong",
+        writingEvaluation: .incorrect,
+        accumulatedDurationSeconds: 5
+    )
+    let model = makeRootModel(
+        cards: AppCardRepositoryFake([card]),
+        studySessionStore: AppStudySessionStoreFake(snapshot: snapshot)
+    )
+
+    await model.loadLibrary()
+    let study = try #require(model.resumableStudy)
+    let writingModel = model.makeWritingSessionModel(for: study)
+
+    #expect(study.configuration.mode == .writing)
+    #expect(writingModel.response == "wrong")
+    #expect(writingModel.evaluation == .incorrect)
 }
 
 @MainActor

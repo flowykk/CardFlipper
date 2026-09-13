@@ -29,6 +29,7 @@ public extension Target {
             bundleId: bundleId,
             deploymentTargets: .iOS("18.0"),
             infoPlist: .extendingDefault(with: [
+                "CFBundleDisplayName": "Cards Flipper",
                 "NSSupportsLiveActivities": true,
                 "UILaunchScreen": [:],
                 "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],

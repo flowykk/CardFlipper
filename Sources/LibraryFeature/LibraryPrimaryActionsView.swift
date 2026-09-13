@@ -6,7 +6,7 @@ struct LibraryStudyToolbarButton: View {
     let onStartStudy: () -> Void
 
     var body: some View {
-        Button(action: onStartStudy) {
+        HapticButton(action: onStartStudy) {
             Image(systemName: AppSymbol.study)
         }
         .buttonStyle(.borderedProminent)

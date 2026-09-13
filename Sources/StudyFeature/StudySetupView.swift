@@ -3,6 +3,7 @@ import DesignSystem
 import SwiftUI
 
 public struct StudySetupView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var model: StudySetupViewModel
     private let onStart: (StudyConfiguration) -> Void
 
@@ -16,21 +17,49 @@ public struct StudySetupView: View {
 
     public var body: some View {
         Form {
-            Section("study.direction") {
-                Picker("study.direction", selection: directionSelection) {
-                    Text("study.russianToEnglish")
-                        .tag(0)
-                        .accessibilityIdentifier("study.direction.russianToEnglish")
-                    Text("study.englishToRussian")
-                        .tag(1)
-                        .accessibilityIdentifier("study.direction.englishToRussian")
+            Section("study.mode") {
+                Picker("study.mode", selection: modeSelection.withSelectionFeedback()) {
+                    Text("study.mode.flashcards")
+                        .tag(StudyMode.flashcards)
+                        .accessibilityIdentifier("study.mode.flashcards")
+                    Text("study.mode.writing")
+                        .tag(StudyMode.writing)
+                        .accessibilityIdentifier("study.mode.writing")
                 }
                 .pickerStyle(.segmented)
-                .accessibilityHint("study.direction.hint")
+                .accessibilityIdentifier("study.mode")
+
+                if model.mode == .writing {
+                    Label("study.writing.directionHint", systemImage: "character.cursor.ibeam")
+                        .foregroundStyle(.secondary)
+                        .transition(.opacity)
+                }
+            }
+
+            if model.mode == .flashcards {
+                Section("study.direction") {
+                    Picker(
+                        "study.direction",
+                        selection: directionSelection.withSelectionFeedback()
+                    ) {
+                        Text("study.russianToEnglish")
+                            .tag(0)
+                            .accessibilityIdentifier("study.direction.russianToEnglish")
+                        Text("study.englishToRussian")
+                            .tag(1)
+                            .accessibilityIdentifier("study.direction.englishToRussian")
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityHint("study.direction.hint")
+                }
+                .transition(directionTransition)
             }
 
             Section("study.learningFilter") {
-                Picker("study.learningFilter", selection: $model.learningFilter) {
+                Picker(
+                    "study.learningFilter",
+                    selection: $model.learningFilter.withSelectionFeedback()
+                ) {
                     Text("learningFilter.all").tag(CardLearningFilter.all)
                     Text("learningFilter.learned").tag(CardLearningFilter.learned)
                     Text("learningFilter.unlearned").tag(CardLearningFilter.unlearned)
@@ -64,7 +93,7 @@ public struct StudySetupView: View {
                 Text(verbatim: localizedCount("study.matchingCount", model.matchingCards.count))
                     .contentTransition(.numericText())
 
-                Button {
+                HapticButton {
                     guard let configuration = model.configuration else { return }
                     onStart(configuration)
                 } label: {
@@ -76,8 +105,17 @@ public struct StudySetupView: View {
                 .accessibilityIdentifier("study.start")
             }
         }
+        .animation(modeTransitionAnimation, value: model.mode)
         .accessibilityIdentifier("study.setup")
         .navigationTitle("study.setup.title")
+    }
+
+    private var modeTransitionAnimation: Animation {
+        reduceMotion ? .easeInOut(duration: 0.15) : .smooth(duration: 0.25)
+    }
+
+    private var directionTransition: AnyTransition {
+        reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity)
     }
 
     private func localizedCount(_ key: String, _ count: Int) -> String {
@@ -102,10 +140,17 @@ public struct StudySetupView: View {
         )
     }
 
+    private var modeSelection: Binding<StudyMode> {
+        Binding(
+            get: { model.mode },
+            set: { model.chooseMode($0) }
+        )
+    }
+
     private func tagButton(_ tag: Tag) -> some View {
         let isSelected = model.selectedTagIDs.contains(tag.id)
 
-        return Button {
+        return HapticButton(feedback: .selection) {
             model.toggleTag(tag.id)
         } label: {
             HStack {

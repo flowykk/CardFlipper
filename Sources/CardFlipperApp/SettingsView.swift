@@ -1,5 +1,6 @@
 import DesignSystem
 import SwiftUI
+import UIKit
 
 struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -9,6 +10,7 @@ struct SettingsView: View {
     let isPreparingExport: Bool
     let onExportCards: () -> Void
     let onImportCards: () -> Void
+    @State private var isShowingAIImportHelp = false
 
     init(
         settings: AppearanceSettings,
@@ -29,7 +31,7 @@ struct SettingsView: View {
             Section("settings.appearance") {
                 ColorPicker(
                     "settings.interfaceColor",
-                    selection: $settings.accentColor,
+                    selection: $settings.accentColor.withSelectionFeedback(),
                     supportsOpacity: false
                 )
                 .accessibilityIdentifier("settings.colorPicker")
@@ -42,7 +44,7 @@ struct SettingsView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 16) {
                         ForEach(AppIconSettings.AppIcon.allCases) { icon in
-                            Button {
+                            HapticButton(feedback: .selection) {
                                 Task { await iconSettings.select(icon) }
                             } label: {
                                 AppIconPreview(
@@ -77,7 +79,7 @@ struct SettingsView: View {
             }
 
             Section("settings.cards") {
-                Button(action: onExportCards) {
+                HapticButton(action: onExportCards) {
                     if isPreparingExport {
                         HStack {
                             ProgressView()
@@ -88,9 +90,15 @@ struct SettingsView: View {
                     }
                 }
                 .disabled(isPreparingExport)
-                Button(action: onImportCards) {
+                HapticButton(action: onImportCards) {
                     Label("settings.cards.import", systemImage: AppSymbol.importCards)
                 }
+                HapticButton {
+                    isShowingAIImportHelp = true
+                } label: {
+                    Label("settings.cards.aiHelp", systemImage: "info.circle")
+                }
+                .accessibilityIdentifier("settings.cards.aiHelp")
             }
         }
         .navigationTitle("settings.title")
@@ -101,9 +109,13 @@ struct SettingsView: View {
             get: { iconSettings.errorMessage != nil },
             set: { if !$0 { iconSettings.errorMessage = nil } }
         )) {
-            Button("common.close", role: .cancel) { iconSettings.errorMessage = nil }
+            HapticButton("common.close", role: .cancel) { iconSettings.errorMessage = nil }
         } message: {
             Text(iconSettings.errorMessage ?? "")
+        }
+        .sheet(isPresented: $isShowingAIImportHelp) {
+            AIImportHelpView()
+                .presentationDetents([.large])
         }
     }
 
@@ -167,5 +179,124 @@ private struct AppIconPreview: View {
             .foregroundStyle(.primary)
             .multilineTextAlignment(dynamicTypeSize.isAccessibilitySize ? .leading : .center)
             .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+enum CardImportAIPrompt {
+    static let exampleJSON = #"""
+    {
+      "version": 1,
+      "cards": [
+        {
+          "id": "F0A1B2C3-D4E5-4678-9ABC-DEF012345678",
+          "russianMeanings": [
+            {
+              "id": "1A2B3C4D-5E6F-4789-ABCD-EF0123456789",
+              "text": "пример"
+            }
+          ],
+          "englishVariants": [
+            {
+              "id": "2B3C4D5E-6F70-489A-BCDE-F0123456789A",
+              "text": "example",
+              "ipa": "ɪɡˈzɑːmpəl",
+              "partsOfSpeechRawValues": ["noun"],
+              "usageExamples": [
+                {
+                  "id": "3C4D5E6F-7081-49AB-CDEF-0123456789AB",
+                  "text": "This sentence is an example.",
+                  "partOfSpeechRawValue": "noun"
+                }
+              ]
+            }
+          ],
+          "tags": [
+            {
+              "id": "4D5E6F70-8192-4ABC-DEF0-123456789ABC",
+              "name": "AI import"
+            }
+          ],
+          "createdAt": 0,
+          "updatedAt": 0,
+          "isLearned": false
+        }
+      ]
+    }
+    """#
+
+    static func text(bundle: Bundle = .main) -> String {
+        let format = bundle.localizedString(
+            forKey: "settings.cards.aiHelp.prompt",
+            value: "settings.cards.aiHelp.prompt",
+            table: nil
+        )
+        return String(format: format, exampleJSON)
+    }
+}
+
+private struct AIImportHelpView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var didCopyPrompt = false
+
+    private let prompt = CardImportAIPrompt.text()
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("settings.cards.aiHelp.instructions")
+                        .font(.body)
+
+                    Text(prompt)
+                        .font(.callout.monospaced())
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+                        .accessibilityIdentifier("settings.cards.aiHelp.prompt")
+                }
+                .padding()
+            }
+            .safeAreaInset(edge: .bottom) {
+                HapticButton {
+                    UIPasteboard.general.string = prompt
+                    didCopyPrompt = true
+                } label: {
+                    Label {
+                        Text(didCopyPrompt
+                             ? "settings.cards.aiHelp.copied"
+                             : "settings.cards.aiHelp.copy")
+                    } icon: {
+                        Image(systemName: didCopyPrompt ? "checkmark" : "doc.on.doc")
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .accessibilityIdentifier("settings.cards.aiHelp.copy")
+                .padding(.horizontal)
+                .padding(.top, 28)
+                .padding(.bottom)
+                .background {
+                    LinearGradient(
+                        colors: [
+                            .clear,
+                            Color(uiColor: .systemBackground).opacity(0.9),
+                            Color(uiColor: .systemBackground),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea(edges: .bottom)
+                }
+            }
+            .navigationTitle("settings.cards.aiHelp.title")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    HapticButton("common.close") { dismiss() }
+                }
+            }
+        }
     }
 }

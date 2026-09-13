@@ -55,6 +55,31 @@ import Testing
     ])
 }
 
+@Test func writingModeCopyExistsInEnglishAndRussian() throws {
+    let catalog = try loadLocalizationCatalog()
+    let keys = [
+        "study.mode",
+        "study.mode.flashcards",
+        "study.mode.writing",
+        "study.writing.directionHint",
+        "study.writing.answer.placeholder",
+        "study.writing.check",
+        "study.writing.correct",
+        "study.writing.incorrect",
+        "study.writing.showAnswer",
+        "study.writing.hideAnswer",
+        "study.writing.next",
+    ]
+
+    for key in keys {
+        for locale in ["en", "ru"] {
+            let value = catalog[key]?[locale]
+            #expect(value?.isEmpty == false, "Missing \(locale) localization for \(key)")
+            #expect(value != key, "Unresolved \(locale) localization for \(key)")
+        }
+    }
+}
+
 private func loadLocalizationCatalog() throws -> [String: [String: String]] {
     let strings = try loadCatalogStringsRoot()
 

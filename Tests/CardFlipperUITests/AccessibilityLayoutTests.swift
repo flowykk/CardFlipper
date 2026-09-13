@@ -65,6 +65,44 @@ final class AccessibilityLayoutTests: XCTestCase {
         add(screenshot)
     }
 
+    func testWritingAnswerAndCheckRemainReachableAtAccessibilityXXXL() {
+        continueAfterFailure = false
+        app.launchArguments = [
+            "-uiTesting",
+            "-uiTestSeed",
+            "-AppleLanguages", "(en)",
+            "-AppleLocale", "en_US",
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityXXXL",
+        ]
+        app.launch()
+
+        let study = app.descendants(matching: .any)["library.study"].firstMatch
+        XCTAssertTrue(study.waitForExistence(timeout: 5))
+        study.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        tap("study.mode.writing")
+        tap("study.start")
+
+        let field = app.textFields["study.writing.answer"]
+        let check = app.buttons["study.writing.check"]
+        let writingCard = app.otherElements["study.writing.card"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertTrue(check.waitForExistence(timeout: 5))
+        XCTAssertTrue(writingCard.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["study.writing.showAnswer"].exists)
+        XCTAssertFalse(app.buttons["study.writing.hideAnswer"].exists)
+        scrollToHittable(field)
+        scrollToHittable(check)
+        XCTAssertFalse(field.frame.intersects(check.frame))
+        XCTAssertLessThan(field.frame.maxX, check.frame.minX)
+        XCTAssertGreaterThanOrEqual(check.frame.width, 44)
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "AX-Writing-Answer"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
     func testEditorProgressiveDetailsRemainReachableAtAccessibilityXXXL() {
         continueAfterFailure = false
         app.launchArguments = [
@@ -178,6 +216,6 @@ final class AccessibilityLayoutTests: XCTestCase {
             if element.exists, element.isHittable { return }
             app.swipeUp()
         }
-        XCTFail("Expected hittable element: \(element)")
+        XCTFail("Expected hittable element: \(element), frame: \(element.frame), app: \(app.frame)")
     }
 }

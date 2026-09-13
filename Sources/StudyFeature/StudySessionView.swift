@@ -44,7 +44,7 @@ public struct StudySessionView: View {
         .toolbar {
             if model.result == nil {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(role: .destructive) {
+                    HapticButton(role: .destructive) {
                         model.requestExit()
                     } label: {
                         Label("common.close", systemImage: "xmark")
@@ -63,11 +63,11 @@ public struct StudySessionView: View {
             isPresented: exitConfirmation,
             titleVisibility: .visible
         ) {
-            Button("common.close", role: .destructive) {
+            HapticButton("common.close", role: .destructive) {
                 model.cancelExit()
                 onFinish()
             }
-            Button("common.cancel", role: .cancel) {
+            HapticButton("common.cancel", role: .cancel) {
                 model.cancelExit()
             }
         } message: {
@@ -186,7 +186,7 @@ public struct StudySessionView: View {
     }
 
     private var forgetButton: some View {
-        Button {
+        HapticButton(feedback: .none) {
             try? model.forget()
         } label: {
             Label("study.forget", systemImage: AppSymbol.repeatedCards)
@@ -202,7 +202,7 @@ public struct StudySessionView: View {
     }
 
     private var rememberButton: some View {
-        Button {
+        HapticButton(feedback: .none) {
             try? model.remember()
         } label: {
             Label("study.remember", systemImage: "checkmark.circle.fill")

@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 public struct StudyUsageExamplesView: View {
@@ -23,7 +24,7 @@ public struct StudyUsageExamplesView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Button(action: onToggle) {
+            HapticButton(action: onToggle) {
                 HStack {
                     Label(
                         isExpanded ? "study.examples.hide" : "study.examples.show",
@@ -64,7 +65,7 @@ public struct StudyUsageExamplesView: View {
                                         .font(.body)
                                         .accessibilityIdentifier("study.usageExample")
 
-                                    Button {
+                                    HapticButton {
                                         onSpeak(variant.id, example.id)
                                     } label: {
                                         Label("card.speak", systemImage: "speaker.wave.2.fill")
