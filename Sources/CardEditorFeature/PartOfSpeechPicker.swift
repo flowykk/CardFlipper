@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import SwiftUI
 
 struct PartOfSpeechPicker: View {
@@ -22,6 +23,7 @@ struct PartOfSpeechPicker: View {
                 ForEach(filteredParts, id: \.rawValue, content: row)
             }
         }
+        .environment(\.defaultMinListRowHeight, 44)
         .navigationTitle("editor.partOfSpeech.title")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "editor.partOfSpeech.search")
@@ -39,7 +41,7 @@ struct PartOfSpeechPicker: View {
     }
 
     private func row(_ partOfSpeech: PartOfSpeech) -> some View {
-        Button {
+        HapticButton(feedback: .selection) {
             onToggle(partOfSpeech)
         } label: {
             HStack {
@@ -54,6 +56,7 @@ struct PartOfSpeechPicker: View {
             }
             .frame(minHeight: 44)
         }
+        .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
         .accessibilityIdentifier("\(identifierPrefix).\(partOfSpeech.rawValue)")
         .accessibilityAddTraits(selected.contains(partOfSpeech) ? .isSelected : [])
     }

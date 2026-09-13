@@ -29,6 +29,7 @@ public extension Target {
             bundleId: bundleId,
             deploymentTargets: .iOS("18.0"),
             infoPlist: .extendingDefault(with: [
+                "CFBundleDisplayName": "Cards Flipper",
                 "NSSupportsLiveActivities": true,
                 "UILaunchScreen": [:],
                 "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
@@ -39,6 +40,8 @@ public extension Target {
                     pattern: "Resources/**",
                     excluding: [
                         "Resources/StatisticsFeature/**",
+                        "Resources/StudyFeature/**",
+                        "Resources/HistoryFeature/**",
                         "Resources/StudyTimerWidget/**",
                     ]
                 ),

@@ -3,17 +3,23 @@ import Foundation
 import Observation
 
 public struct StudyConfiguration: Equatable, Sendable {
+    public let mode: StudyMode
     public let direction: StudyDirection
     public let selectedTagIDs: Set<UUID>
+    public let selectedTagNames: [String]
     public let cards: [VocabularyCard]
 
     public init(
+        mode: StudyMode = .flashcards,
         direction: StudyDirection,
         selectedTagIDs: Set<UUID>,
+        selectedTagNames: [String] = [],
         cards: [VocabularyCard]
     ) {
+        self.mode = mode
         self.direction = direction
         self.selectedTagIDs = selectedTagIDs
+        self.selectedTagNames = selectedTagNames
         self.cards = cards
     }
 }
@@ -21,15 +27,19 @@ public struct StudyConfiguration: Equatable, Sendable {
 @MainActor
 @Observable
 public final class StudySetupViewModel {
+    public private(set) var mode: StudyMode
     public private(set) var direction: StudyDirection?
     public private(set) var selectedTagIDs: Set<UUID>
     public var learningFilter: CardLearningFilter = .all
     public let cards: [VocabularyCard]
     public let tags: [Tag]
+    private var lastFlashcardDirection: StudyDirection
 
     public init(cards: [VocabularyCard], tags: [Tag]) {
         self.cards = cards
         self.tags = tags
+        mode = .flashcards
+        lastFlashcardDirection = .englishToRussian
         direction = .englishToRussian
         selectedTagIDs = []
     }
@@ -51,14 +61,25 @@ public final class StudySetupViewModel {
         guard let direction, !matchingCards.isEmpty else { return nil }
 
         return StudyConfiguration(
+            mode: mode,
             direction: direction,
             selectedTagIDs: selectedTagIDs,
+            selectedTagNames: selectedTagIDs.isEmpty
+                ? []
+                : tags.filter { selectedTagIDs.contains($0.id) }.map(\.name),
             cards: matchingCards
         )
     }
 
     public func chooseDirection(_ direction: StudyDirection) {
+        guard mode == .flashcards else { return }
+        lastFlashcardDirection = direction
         self.direction = direction
+    }
+
+    public func chooseMode(_ mode: StudyMode) {
+        self.mode = mode
+        direction = mode == .writing ? .russianToEnglish : lastFlashcardDirection
     }
 
     public func toggleTag(_ id: UUID) {
@@ -70,4 +91,11 @@ public final class StudySetupViewModel {
             selectedTagIDs.insert(id)
         }
     }
+}
+
+public func studyCardDisplayTitle(_ card: VocabularyCard) -> String {
+    let english = card.englishVariants.map(\.text)
+    return english.isEmpty
+        ? card.russianMeanings.map(\.text).joined(separator: " • ")
+        : english.joined(separator: " • ")
 }

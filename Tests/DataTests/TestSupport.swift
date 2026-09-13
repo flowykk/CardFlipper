@@ -86,6 +86,8 @@ enum TestIDs {
     static let secondCard = UUID(uuidString: "00000000-0000-0000-0000-000000000108")!
     static let secondRussianMeaning = UUID(uuidString: "00000000-0000-0000-0000-000000000109")!
     static let secondEnglishVariant = UUID(uuidString: "00000000-0000-0000-0000-000000000110")!
+    static let studySession = UUID(uuidString: "00000000-0000-0000-0000-000000000111")!
+    static let secondStudySession = UUID(uuidString: "00000000-0000-0000-0000-000000000112")!
 }
 
 enum TestDates {
@@ -160,6 +162,34 @@ extension VocabularyCard {
             tags: [],
             createdAt: TestDates.created,
             updatedAt: updatedAt
+        )
+    }
+}
+
+extension StudyHistoryEntry {
+    static func fixture(
+        id: UUID = TestIDs.studySession,
+        mode: StudyMode = .writing,
+        direction: StudyDirection = .russianToEnglish,
+        completedAt: Date = Date(timeIntervalSince1970: 4_000),
+        selectedTagNames: [String] = ["Работа: срочно!", "C++ & Swift"],
+        difficultCardTitles: [String] = ["ёж — 'hedgehog'", "well-being?"]
+    ) -> StudyHistoryEntry {
+        StudyHistoryEntry(
+            id: id,
+            startedAt: completedAt.addingTimeInterval(-120),
+            completedAt: completedAt,
+            mode: mode,
+            direction: direction,
+            selectedTagNames: selectedTagNames,
+            plannedCardCount: 12,
+            completedCardCount: 8,
+            encounteredCardCount: 10,
+            repeatedCardCount: 2,
+            forgottenCount: 3,
+            totalAssessmentCount: 15,
+            elapsedSeconds: 120,
+            difficultCardTitles: difficultCardTitles
         )
     }
 }

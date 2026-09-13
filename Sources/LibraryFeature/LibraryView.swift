@@ -52,12 +52,12 @@ public struct LibraryView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if model.isBulkTagSelectionActive {
-                        Button("library.bulk.cancel") {
+                        HapticButton("library.bulk.cancel") {
                             cancelBulkSelection()
                         }
                             .accessibilityIdentifier("library.bulk.cancel")
                     } else if !model.cards.isEmpty {
-                        Button {
+                        HapticButton {
                             beginBulkSelection()
                         } label: {
                             Label("library.bulk.select", systemImage: "checklist")
@@ -86,14 +86,14 @@ public struct LibraryView: View {
                 isPresented: $showingCardDeletion,
                 titleVisibility: .visible
             ) {
-                Button("common.delete", role: .destructive) {
+                HapticButton("common.delete", role: .destructive) {
                     Task {
                         if await model.deletePendingCard() {
                             await onDataChanged()
                         }
                     }
                 }
-                Button("common.cancel", role: .cancel) {
+                HapticButton("common.cancel", role: .cancel) {
                     model.pendingDeletion = nil
                 }
             } message: {
@@ -104,14 +104,14 @@ public struct LibraryView: View {
                 isPresented: $showingTagDeletion,
                 titleVisibility: .visible
             ) {
-                Button("common.delete", role: .destructive) {
+                HapticButton("common.delete", role: .destructive) {
                     Task {
                         if await model.deletePendingTag() {
                             await onDataChanged()
                         }
                     }
                 }
-                Button("common.cancel", role: .cancel) {
+                HapticButton("common.cancel", role: .cancel) {
                     model.pendingTagDeletion = nil
                 }
             } message: {
@@ -121,18 +121,18 @@ public struct LibraryView: View {
                 "data.delete.failed",
                 isPresented: deletionFailureBinding
             ) {
-                Button("common.retry") {
+                HapticButton("common.retry") {
                     retryDeletion()
                 }
-                Button("common.cancel", role: .cancel) {
+                HapticButton("common.cancel", role: .cancel) {
                     cancelFailedDeletion()
                 }
             }
             .alert("data.save.failed", isPresented: bulkTagAssignmentFailureBinding) {
-                Button("common.retry") {
+                HapticButton("common.retry") {
                     addSelectedTags()
                 }
-                Button("common.cancel", role: .cancel) {
+                HapticButton("common.cancel", role: .cancel) {
                     model.dismissBulkTagAssignmentFailure()
                 }
             }
@@ -170,18 +170,18 @@ public struct LibraryView: View {
                 "data.save.failed",
                 isPresented: learningStatusFailureBinding
             ) {
-                Button("common.retry") {
+                HapticButton("common.retry") {
                     retryLearningStatusChange()
                 }
-                Button("common.cancel", role: .cancel) {
+                HapticButton("common.cancel", role: .cancel) {
                     model.dismissLearningStatusFailure()
                 }
             }
             .alert("library.undo.failed", isPresented: undoFailureBinding) {
-                Button("common.retry") {
+                HapticButton("common.retry") {
                     performUndo()
                 }
-                Button("common.cancel", role: .cancel) {
+                HapticButton("common.cancel", role: .cancel) {
                     model.dismissUndo()
                 }
             }
@@ -201,7 +201,7 @@ public struct LibraryView: View {
             ContentUnavailableView {
                 Label("data.load.failed", systemImage: "exclamationmark.triangle")
             } actions: {
-                Button("common.retry") {
+                HapticButton("common.retry") {
                     Task { await model.load() }
                 }
                 .buttonStyle(.borderedProminent)
@@ -231,14 +231,14 @@ public struct LibraryView: View {
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    Button(action: onAddCard) {
+                    HapticButton(action: onAddCard) {
                         Label("library.add", systemImage: "plus")
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("library.add")
 
-                    Button(action: onImportCards) {
+                    HapticButton(action: onImportCards) {
                         Label("settings.cards.import", systemImage: AppSymbol.importCards)
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
@@ -257,7 +257,7 @@ public struct LibraryView: View {
             } description: {
                 Text("library.filteredEmpty.message")
             } actions: {
-                Button("library.clearFilters") {
+                HapticButton("library.clearFilters") {
                     model.searchText = ""
                     model.selectedTagIDs = []
                     model.learningFilter = .all
@@ -272,7 +272,9 @@ public struct LibraryView: View {
     private var cardList: some View {
         List {
             ForEach(Array(model.visibleCards.enumerated()), id: \.element.id) { index, card in
-                Button {
+                HapticButton(
+                    feedback: model.isBulkTagSelectionActive ? .selection : .tap
+                ) {
                     if model.isBulkTagSelectionActive {
                         withAnimation(selectionFeedbackAnimation) {
                             model.toggleBulkCardSelection(id: card.id)
@@ -316,7 +318,7 @@ public struct LibraryView: View {
                 )
                 .swipeActions {
                     if !model.isBulkTagSelectionActive {
-                        Button("common.delete") {
+                        HapticButton("common.delete") {
                             model.pendingDeletion = card
                             showingCardDeletion = true
                         }
@@ -329,7 +331,7 @@ public struct LibraryView: View {
                 }
                 .contextMenu {
                     learningStatusButton(for: card)
-                    Button("common.delete", role: .destructive) {
+                    HapticButton("common.delete", role: .destructive) {
                         model.pendingDeletion = card
                         showingCardDeletion = true
                     }
@@ -351,7 +353,7 @@ public struct LibraryView: View {
     }
 
     private var filterButton: some View {
-        Button {
+        HapticButton {
             showingFilters = true
         } label: {
             Image(systemName: "line.3.horizontal.decrease")
@@ -425,7 +427,7 @@ public struct LibraryView: View {
 
     @ViewBuilder
     private func learningStatusButton(for card: VocabularyCard) -> some View {
-        Button(card.isLearned ? "library.markUnlearned" : "library.markLearned") {
+        HapticButton(card.isLearned ? "library.markUnlearned" : "library.markLearned") {
             Task {
                 await model.toggleLearningStatus(for: card)
             }
@@ -444,10 +446,10 @@ public struct LibraryView: View {
                 .font(.subheadline)
                 .lineLimit(2)
             Spacer(minLength: 8)
-            Button("library.undo", action: performUndo)
+            HapticButton("library.undo", action: performUndo)
                 .fontWeight(.semibold)
                 .accessibilityIdentifier("library.undo")
-            Button {
+            HapticButton {
                 model.dismissUndo()
             } label: {
                 Image(systemName: "xmark")
@@ -491,7 +493,7 @@ public struct LibraryView: View {
                 .font(.subheadline.weight(.medium))
                 .contentTransition(.numericText())
             Spacer()
-            Button("library.bulk.tags") {
+            HapticButton("library.bulk.tags") {
                 selectedBulkTagIDs = []
                 showingBulkTagPicker = true
             }

@@ -9,6 +9,43 @@ import Testing
     #expect(model.direction == .englishToRussian)
     #expect(model.canStart)
     #expect(model.configuration?.direction == .englishToRussian)
+    #expect(model.mode == .flashcards)
+    #expect(model.configuration?.mode == .flashcards)
+}
+
+@MainActor
+@Test func writingModeForcesRussianToEnglishAndPreservesFilters() {
+    let learnedWork = VocabularyCard.fixture(id: 1, tags: [.work], isLearned: true)
+    let other = VocabularyCard.fixture(id: 2, tags: [.exam])
+    let model = StudySetupViewModel(
+        cards: [learnedWork, other],
+        tags: [.work, .exam]
+    )
+    model.learningFilter = .learned
+    model.toggleTag(Tag.work.id)
+
+    model.chooseMode(.writing)
+
+    #expect(model.mode == .writing)
+    #expect(model.direction == .russianToEnglish)
+    #expect(model.configuration == StudyConfiguration(
+        mode: .writing,
+        direction: .russianToEnglish,
+        selectedTagIDs: [Tag.work.id],
+        selectedTagNames: [Tag.work.name],
+        cards: [learnedWork]
+    ))
+}
+
+@MainActor
+@Test func returningToFlashcardsRestoresLastFlashcardDirection() {
+    let model = StudySetupViewModel(cards: [.fixture(id: 1)], tags: [])
+    model.chooseDirection(.englishToRussian)
+    model.chooseMode(.writing)
+
+    model.chooseMode(.flashcards)
+
+    #expect(model.direction == .englishToRussian)
 }
 
 @MainActor
@@ -91,7 +128,23 @@ import Testing
         model.configuration == StudyConfiguration(
             direction: .englishToRussian,
             selectedTagIDs: [Tag.exam.id],
+            selectedTagNames: [Tag.exam.name],
             cards: [first, second]
         )
     )
+}
+
+@MainActor
+@Test func configurationPreservesSelectedTagDisplayOrderAndUsesNoLabelsForAllCards() {
+    let model = StudySetupViewModel(
+        cards: [.fixture(id: 1, tags: [.work, .exam])],
+        tags: [.exam, .work]
+    )
+
+    #expect(model.configuration?.selectedTagNames == [])
+
+    model.toggleTag(Tag.work.id)
+    model.toggleTag(Tag.exam.id)
+
+    #expect(model.configuration?.selectedTagNames == ["Exam", "Work"])
 }

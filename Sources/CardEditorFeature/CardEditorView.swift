@@ -90,7 +90,7 @@ public struct CardEditorView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(action: cancel) {
+                    HapticButton(action: cancel) {
                         Label("common.cancel", systemImage: "xmark")
                             .labelStyle(.iconOnly)
                             .frame(minWidth: 44, minHeight: 44)
@@ -99,7 +99,7 @@ public struct CardEditorView: View {
                     .accessibilityIdentifier("editor.cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
+                    HapticButton {
                         Task { await save() }
                     } label: {
                         if model.isSaving {
@@ -119,10 +119,10 @@ public struct CardEditorView: View {
                 "editor.duplicate.title",
                 isPresented: $model.isDuplicateConfirmationPresented
             ) {
-                Button("editor.duplicate.saveAnyway") {
+                HapticButton("editor.duplicate.saveAnyway") {
                     Task { await confirmDuplicateAndSave() }
                 }
-                Button("common.cancel", role: .cancel) {}
+                HapticButton("common.cancel", role: .cancel) {}
             } message: {
                 Text("editor.duplicate.message")
             }
@@ -130,10 +130,10 @@ public struct CardEditorView: View {
                 "editor.discard.title",
                 isPresented: $isDiscardConfirmationPresented
             ) {
-                Button("editor.discard.confirm", role: .destructive) {
+                HapticButton("editor.discard.confirm", role: .destructive) {
                     discardAndDismiss()
                 }
-                Button("editor.discard.continue", role: .cancel) {}
+                HapticButton("editor.discard.continue", role: .cancel) {}
             } message: {
                 Text("editor.discard.message")
             }
@@ -153,7 +153,7 @@ public struct CardEditorView: View {
                     )
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
-                            Button("common.done") {
+                            HapticButton("common.done") {
                                 partOfSpeechPicker = nil
                             }
                         }

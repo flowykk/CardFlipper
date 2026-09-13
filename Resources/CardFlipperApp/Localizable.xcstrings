@@ -1,6 +1,62 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "history.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "History" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "История" } }
+      }
+    },
+    "study.conflict.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You Have a Saved Game" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Есть сохранённая игра" } }
+      }
+    },
+    "study.conflict.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue your saved game, or save its results to history and start the new game." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Продолжите сохранённую игру или сохраните её результаты в историю и начните новую." } }
+      }
+    },
+    "study.conflict.continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue Saved Game" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Продолжить сохранённую игру" } }
+      }
+    },
+    "study.conflict.startNew" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start New Game" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начать новую игру" } }
+      }
+    },
+    "study.finalization.failed.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Save Game Results" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось сохранить результаты игры" } }
+      }
+    },
+    "study.finalization.failed.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your game is still saved. Try again to add its results to history." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ваша игра сохранена. Попробуйте ещё раз добавить её результаты в историю." } }
+      }
+    },
+    "study.finalization.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Retry" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторить" } }
+      }
+    },
     "" : {
 
     },
@@ -2348,6 +2404,108 @@
         }
       }
     },
+    "settings.cards.aiHelp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create Import File with AI"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создать файл с помощью ИИ"
+          }
+        }
+      }
+    },
+    "settings.cards.aiHelp.copied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prompt Copied"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Промпт скопирован"
+          }
+        }
+      }
+    },
+    "settings.cards.aiHelp.copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Prompt"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировать промпт"
+          }
+        }
+      }
+    },
+    "settings.cards.aiHelp.instructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy this prompt into your AI assistant, replace the placeholder at the end with your words, then import the resulting JSON file."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопируйте этот промпт в свой ИИ, замените текст в конце нужными словами, а затем импортируйте полученный JSON-файл."
+          }
+        }
+      }
+    },
+    "settings.cards.aiHelp.prompt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create a JSON import file for the CardFlipper vocabulary app using the words I provide at the end.\n\nRequirements:\n• Return only valid JSON. Do not use Markdown, code fences, or explanations.\n• Follow the example structure exactly and set version to 1.\n• Give every id field a unique valid UUID.\n• russianMeanings contains one or more natural Russian translations.\n• englishVariants contains the English spelling, IPA without slash or bracket characters, parts of speech, and natural English usage examples.\n• Allowed part-of-speech values are: noun, verb, adj, adv, pronoun, preposition, conjunction, interjection, determiner, numeral, auxiliary, modal, phrase, other.\n• Each usage example must use one of its parent variant’s part-of-speech values.\n• tags must be an array. Use an empty array if I do not request a tag. Reuse the same tag id for the same tag on different cards.\n• createdAt and updatedAt must be numbers representing seconds since 2001-01-01 00:00:00 UTC. You may use 0 for both.\n• Set isLearned to false.\n• Create one card for each requested word and keep translations and examples accurate.\n\nUse this exact structure:\n%@\n\nWords to include:\n[REPLACE THIS LINE WITH MY WORDS]"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создай JSON-файл для импорта в приложение CardFlipper со словами, которые я укажу в конце.\n\nТребования:\n• Верни только валидный JSON — без Markdown, блока кода и пояснений.\n• В точности соблюдай структуру примера и укажи version: 1.\n• Для каждого поля id создай уникальный валидный UUID.\n• russianMeanings должен содержать один или несколько естественных переводов на русский язык.\n• englishVariants должен содержать английское написание, IPA без косых черт и квадратных скобок, части речи и естественные примеры употребления на английском.\n• Допустимые части речи: noun, verb, adj, adv, pronoun, preposition, conjunction, interjection, determiner, numeral, auxiliary, modal, phrase, other.\n• Часть речи каждого примера должна входить в список частей речи родительского варианта.\n• tags всегда должен быть массивом. Если я не запросил тег, используй пустой массив. Для одинакового тега на разных карточках используй один и тот же id.\n• createdAt и updatedAt должны быть числами — количеством секунд с 2001-01-01 00:00:00 UTC. Для обоих полей можно использовать 0.\n• Укажи isLearned: false.\n• Создай отдельную карточку для каждого запрошенного слова. Переводы и примеры должны быть точными.\n\nИспользуй строго эту структуру:\n%@\n\nСлова для добавления:\n[ЗАМЕНИ ЭТУ СТРОКУ МОИМИ СЛОВАМИ]"
+          }
+        }
+      }
+    },
+    "settings.cards.aiHelp.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create Import File"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создание файла импорта"
+          }
+        }
+      }
+    },
     "settings.cards.export" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2911,6 +3069,83 @@
             "value" : "Ответ"
           }
         }
+      }
+    },
+    "study.mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Study Mode" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Режим занятия" } }
+      }
+    },
+    "study.mode.flashcards" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточки" } }
+      }
+    },
+    "study.mode.writing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Writing" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Письмо" } }
+      }
+    },
+    "study.writing.directionHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Write the English translation of the Russian word" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Введите английский перевод русского слова" } }
+      }
+    },
+    "study.writing.answer.placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "English translation" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Перевод на английский" } }
+      }
+    },
+    "study.writing.check" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Check Answer" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Проверить ответ" } }
+      }
+    },
+    "study.writing.correct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Correct" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Правильно" } }
+      }
+    },
+    "study.writing.incorrect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try again" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Попробуйте ещё раз" } }
+      }
+    },
+    "study.writing.showAnswer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show Answer" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Показать ответ" } }
+      }
+    },
+    "study.writing.hideAnswer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Return to Writing" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вернуться к вводу" } }
+      }
+    },
+    "study.writing.next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Next" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Дальше" } }
       }
     },
     "study.direction" : {

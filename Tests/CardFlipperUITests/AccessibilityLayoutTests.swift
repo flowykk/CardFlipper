@@ -4,6 +4,61 @@ import XCTest
 final class AccessibilityLayoutTests: XCTestCase {
     private lazy var app = XCUIApplication()
 
+    func testHistoryAndResumeRemainReachableAtAccessibilityXXXL() {
+        continueAfterFailure = false
+        app.launchArguments = [
+            "-uiTesting", "-uiTestHistory", "-uiTestResume",
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+        ]
+        app.launch()
+        let banner = app.buttons["study.resume.banner"]
+        assertHistoryElementFits(banner)
+        XCTAssertTrue(banner.label.contains("Flashcards"))
+        XCTAssertTrue(banner.label.contains("1 of 2"))
+        XCTAssertTrue(banner.label.contains("Continue"))
+        captureHistory("AX-History-Library-Banner")
+        app.buttons["library.study"].firstMatch.tap()
+        let start = app.buttons["study.start"]
+        scrollToHittable(start)
+        start.tap()
+        for action in ["Continue Saved Game", "Start New Game", "Cancel"] {
+            assertHistoryElementFits(app.alerts.buttons[action])
+        }
+        captureHistory("AX-History-Conflict")
+        app.alerts.buttons["Cancel"].tap()
+        app.navigationBars.buttons.firstMatch.tap()
+        app.buttons["library.history"].tap()
+        assertHistoryElementFits(banner)
+        let row = app.buttons["history.row.00000000-0000-0000-0000-000000000902"]
+        assertHistoryElementFits(row)
+        XCTAssertTrue(row.label.contains("2 of 3"))
+        XCTAssertTrue(row.label.contains("50%"))
+        captureHistory("AX-History-Row")
+        row.tap()
+        for field in ["completedAt", "startedAt", "duration", "mode", "direction",
+                      "progress", "recall", "encountered", "repeated", "forgotten",
+                      "assessments", "tags"] {
+            assertHistoryElementFits(app.descendants(matching: .any)["history.detail.\(field)"].firstMatch)
+        }
+        assertHistoryElementFits(app.staticTexts["history.difficult.book"])
+        captureHistory("AX-History-Detail")
+    }
+
+    private func assertHistoryElementFits(_ element: XCUIElement) {
+        scrollToHittable(element)
+        XCTAssertGreaterThanOrEqual(element.frame.minX, app.frame.minX)
+        XCTAssertLessThanOrEqual(element.frame.maxX, app.frame.maxX)
+        XCTAssertGreaterThanOrEqual(element.frame.height, 44)
+    }
+
+    private func captureHistory(_ name: String) {
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = name
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
     func testEmptyLibraryClearsToolbarAtAccessibilityXXXL() {
         continueAfterFailure = false
         app.launchArguments = [
@@ -61,6 +116,44 @@ final class AccessibilityLayoutTests: XCTestCase {
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "AX-Study-Answer"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
+    func testWritingAnswerAndCheckRemainReachableAtAccessibilityXXXL() {
+        continueAfterFailure = false
+        app.launchArguments = [
+            "-uiTesting",
+            "-uiTestSeed",
+            "-AppleLanguages", "(en)",
+            "-AppleLocale", "en_US",
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityXXXL",
+        ]
+        app.launch()
+
+        let study = app.descendants(matching: .any)["library.study"].firstMatch
+        XCTAssertTrue(study.waitForExistence(timeout: 5))
+        study.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        tap("study.mode.writing")
+        tap("study.start")
+
+        let field = app.textFields["study.writing.answer"]
+        let check = app.buttons["study.writing.check"]
+        let writingCard = app.otherElements["study.writing.card"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertTrue(check.waitForExistence(timeout: 5))
+        XCTAssertTrue(writingCard.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["study.writing.showAnswer"].exists)
+        XCTAssertFalse(app.buttons["study.writing.hideAnswer"].exists)
+        scrollToHittable(field)
+        scrollToHittable(check)
+        XCTAssertFalse(field.frame.intersects(check.frame))
+        XCTAssertLessThan(field.frame.maxX, check.frame.minX)
+        XCTAssertGreaterThanOrEqual(check.frame.width, 44)
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "AX-Writing-Answer"
         screenshot.lifetime = .keepAlways
         add(screenshot)
     }
@@ -178,6 +271,6 @@ final class AccessibilityLayoutTests: XCTestCase {
             if element.exists, element.isHittable { return }
             app.swipeUp()
         }
-        XCTFail("Expected hittable element: \(element)")
+        XCTFail("Expected hittable element: \(element), frame: \(element.frame), app: \(app.frame)")
     }
 }

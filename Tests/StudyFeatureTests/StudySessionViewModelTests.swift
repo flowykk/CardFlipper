@@ -3,6 +3,32 @@ import Foundation
 import Testing
 @testable import StudyFeature
 
+@MainActor
+@Test func deletedCurrentFlashcardResetsRevealedAnswerWhenResumeAdvancesQueue() throws {
+    let cards = StudyConfiguration.fixture.cards
+    let snapshot = StudySessionSnapshot(
+        direction: .russianToEnglish, selectedTagIDs: [], originalCardIDs: cards.map(\.id),
+        queueCardIDs: cards.map(\.id), isShowingAnswer: true, isRevealed: true,
+        forgottenCount: 0, repeatedCardIDs: [], totalAssessmentCount: 0,
+        accumulatedDurationSeconds: 0
+    )
+    let store = StudySessionStoreSpy()
+    let model = StudySessionViewModel(
+        configuration: StudyConfiguration(direction: .russianToEnglish, selectedTagIDs: [], cards: [cards[1]]),
+        snapshot: snapshot, speech: SpeechServiceSpy(), feedback: StudyFeedbackSpy(), store: store
+    )
+    #expect(model.session.currentCard?.id == cards[1].id)
+    #expect(!model.session.isRevealed)
+    #expect(!model.isShowingAnswer)
+    #expect(!model.canAssess)
+    #expect(store.storedSnapshot?.isRevealed == false)
+    #expect(store.storedSnapshot?.isShowingAnswer == false)
+    #expect(throws: StudySessionError.answerNotRevealed) { try model.remember() }
+    model.toggleCardSide()
+    try model.remember()
+    #expect(model.result?.completedCardCount == 1)
+}
+
 @Test func studyProgressStartsAtFirstCardAndAdvancesWithRememberedCards() {
     let initial = StudySessionProgressPresentation(
         rememberedCount: 0,
@@ -64,6 +90,126 @@ import Testing
 
     model.persistSnapshot()
     #expect(store.saveCount == initialSaves + 3)
+}
+
+@MainActor
+@Test func flashcardSnapshotCapturesStableMetadataAndAssessmentActivity() throws {
+    let sessionID = UUID.fixture(9_001)
+    let store = StudySessionStoreSpy()
+    var instant = Date(timeIntervalSince1970: 100)
+    let model = StudySessionViewModel(
+        configuration: .fixture,
+        sessionID: sessionID,
+        selectedTagNames: ["Work"],
+        shuffler: IdentityShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy(),
+        store: store,
+        now: { instant }
+    )
+
+    let initialSnapshot = try #require(store.storedSnapshot)
+    #expect(initialSnapshot.sessionID == sessionID)
+    #expect(initialSnapshot.lastActivityAt == instant)
+    #expect(initialSnapshot.selectedTagNames == ["Work"])
+    #expect(initialSnapshot.cardDisplaySnapshots == [
+        StudyCardDisplaySnapshot(id: .fixture(1), title: "first"),
+        StudyCardDisplaySnapshot(id: .fixture(2), title: "second"),
+    ])
+    #expect(initialSnapshot.encounteredCardIDs.isEmpty)
+    #expect(initialSnapshot.completedCardIDs.isEmpty)
+
+    model.toggleCardSide()
+    instant = instant.addingTimeInterval(12)
+    try model.remember()
+
+    let assessedSnapshot = try #require(store.storedSnapshot)
+    #expect(assessedSnapshot.lastActivityAt == instant)
+    #expect(assessedSnapshot.encounteredCardIDs == [.fixture(1)])
+    #expect(assessedSnapshot.completedCardIDs == [.fixture(1)])
+}
+
+@MainActor
+@Test func resumedFlashcardSnapshotPreservesOriginalIdentityLabelsTitlesAndEncounters() throws {
+    let originalSessionID = UUID.fixture(9_002)
+    let originalDisplays = [
+        StudyCardDisplaySnapshot(id: .fixture(1), title: "Historical first"),
+        StudyCardDisplaySnapshot(id: .fixture(2), title: "Historical second"),
+    ]
+    let snapshot = StudySessionSnapshot(
+        direction: .russianToEnglish,
+        selectedTagIDs: [Tag.work.id],
+        originalCardIDs: StudyConfiguration.fixture.cards.map(\.id),
+        queueCardIDs: StudyConfiguration.fixture.cards.map(\.id),
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 1,
+        repeatedCardIDs: [.fixture(1)],
+        totalAssessmentCount: 1,
+        accumulatedDurationSeconds: 20,
+        sessionID: originalSessionID,
+        encounteredCardIDs: [.fixture(1)],
+        completedCardIDs: [],
+        selectedTagNames: ["Historical tag"],
+        cardDisplaySnapshots: originalDisplays
+    )
+    let editedConfiguration = StudyConfiguration(
+        direction: .russianToEnglish,
+        selectedTagIDs: [Tag.work.id],
+        selectedTagNames: ["Edited tag"],
+        cards: [
+            .fixture(id: 1, english: "edited first"),
+            .fixture(id: 2, english: "edited second"),
+        ]
+    )
+    let store = StudySessionStoreSpy()
+
+    let model = StudySessionViewModel(
+        configuration: editedConfiguration,
+        sessionID: .fixture(9_999),
+        selectedTagNames: editedConfiguration.selectedTagNames,
+        snapshot: snapshot,
+        shuffler: IdentityShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy(),
+        store: store,
+        now: { Date(timeIntervalSince1970: 200) }
+    )
+
+    #expect(model.session.encounteredCardIDs == [.fixture(1)])
+    #expect(model.session.completedCardIDs.isEmpty)
+    #expect(model.repeatConfiguration.selectedTagNames == ["Historical tag"])
+    #expect(store.storedSnapshot?.sessionID == originalSessionID)
+    #expect(store.storedSnapshot?.selectedTagNames == ["Historical tag"])
+    #expect(store.storedSnapshot?.cardDisplaySnapshots == originalDisplays)
+}
+
+@Test func studyCardDisplayTitlePrefersEveryEnglishVariantAndFallsBackToRussian() {
+    let englishCard = VocabularyCard(
+        id: .fixture(9_010),
+        russianMeanings: [RussianMeaning(id: .fixture(9_011), text: "слово")],
+        englishVariants: [
+            EnglishVariant(id: .fixture(9_012), text: "word", ipa: nil, partsOfSpeech: []),
+            EnglishVariant(id: .fixture(9_013), text: "term", ipa: nil, partsOfSpeech: []),
+        ],
+        tags: [],
+        createdAt: .distantPast,
+        updatedAt: .distantPast
+    )
+    let russianCard = VocabularyCard(
+        id: .fixture(9_020),
+        russianMeanings: [
+            RussianMeaning(id: .fixture(9_021), text: "слово"),
+            RussianMeaning(id: .fixture(9_022), text: "термин"),
+        ],
+        englishVariants: [],
+        tags: [],
+        createdAt: .distantPast,
+        updatedAt: .distantPast
+    )
+
+    #expect(studyCardDisplayTitle(englishCard) == "word • term")
+    #expect(studyCardDisplayTitle(russianCard) == "слово • термин")
 }
 
 @MainActor
@@ -140,8 +286,86 @@ import Testing
     )
 
     #expect(model.session.queue.map(\.id) == [available.id])
-    #expect(model.session.initialCardCount == 1)
+    #expect(model.session.initialCardCount == 2)
     #expect(model.result == result)
+}
+
+@MainActor
+@Test func resumedFlashcardCompletionKeepsPlannedCompletedAndEncounteredCountsSeparate() throws {
+    let available = StudyConfiguration.fixture.cards[0]
+    let snapshot = StudySessionSnapshot(
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        originalCardIDs: StudyConfiguration.fixture.cards.map(\.id),
+        queueCardIDs: [available.id],
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 0,
+        repeatedCardIDs: [],
+        totalAssessmentCount: 0,
+        accumulatedDurationSeconds: 0,
+        completedCardIDs: []
+    )
+    let model = StudySessionViewModel(
+        configuration: StudyConfiguration(
+            direction: .russianToEnglish,
+            selectedTagIDs: [],
+            cards: [available]
+        ),
+        snapshot: snapshot,
+        shuffler: IdentityShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy()
+    )
+
+    model.toggleCardSide()
+    try model.remember()
+
+    #expect(model.result?.plannedCardCount == 2)
+    #expect(model.result?.completedCardCount == 1)
+    #expect(model.result?.encounteredCardCount == 1)
+}
+
+@MainActor
+@Test func deletedPendingFlashcardDoesNotCountAsRememberedOrCompletedAfterResume() throws {
+    let store = StudySessionStoreSpy()
+    let original = StudySessionViewModel(
+        configuration: .fixture,
+        sessionID: .fixture(9_201),
+        selectedTagNames: ["Work"],
+        shuffler: IdentityShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy(),
+        store: store
+    )
+    original.toggleCardSide()
+    try original.forget()
+    let interruptedSnapshot = try #require(store.storedSnapshot)
+    let availableCard = StudyConfiguration.fixture.cards[1]
+
+    let resumed = StudySessionViewModel(
+        configuration: StudyConfiguration(
+            direction: .russianToEnglish,
+            selectedTagIDs: [],
+            cards: [availableCard]
+        ),
+        snapshot: interruptedSnapshot,
+        shuffler: IdentityShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy(),
+        store: store
+    )
+
+    #expect(resumed.rememberedCount == 0)
+    #expect(resumed.progressPresentation.positionText == "1/2")
+
+    resumed.toggleCardSide()
+    try resumed.remember()
+
+    #expect(resumed.result?.plannedCardCount == 2)
+    #expect(resumed.result?.completedCardCount == 1)
+    #expect(resumed.result?.encounteredCardCount == 2)
+    #expect(store.storedSnapshot?.completedCardIDs == [availableCard.id])
 }
 
 @MainActor

@@ -10,6 +10,605 @@ import StatisticsFeature
 @testable import CardFlipper
 
 @MainActor
+@Test(arguments: [StudyMode.flashcards, .writing], ["saveAndExit", "finish", "repeat", "completion", "disappear"])
+func callbacksFromEarlierPresentationCannotAffectResumedSession(mode: StudyMode, callback: String) async throws {
+    let cards = [VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")]
+    let store = AppStudySessionStoreFake()
+    let history = AppHistoryRepositoryFake()
+    let root = makeRootModel(cards: AppCardRepositoryFake(cards), studySessionStore: store, history: history)
+    await root.loadLibrary()
+    let configuration = StudyConfiguration(mode: mode, direction: .russianToEnglish, selectedTagIDs: [], cards: cards)
+    root.requestStartStudy(configuration)
+    let first = try #require(root.navigation.activeStudy)
+    if mode == .writing { _ = root.makeWritingSessionModel(for: first) }
+    else { _ = root.makeStudySessionModel(for: first) }
+    root.saveAndExitStudy(sessionID: first.sessionID, presentationID: first.presentationID)
+    root.continueInterruptedStudy()
+    let resumed = try #require(root.navigation.activeStudy)
+    #expect(resumed.sessionID == first.sessionID)
+    #expect(resumed.presentationID != first.presentationID)
+    root.studyDidAppear(sessionID: resumed.sessionID, presentationID: resumed.presentationID)
+    let saved = store.snapshot
+    switch callback {
+    case "saveAndExit": root.saveAndExitStudy(sessionID: first.sessionID, presentationID: first.presentationID)
+    case "finish": root.finishStudy(sessionID: first.sessionID, presentationID: first.presentationID)
+    case "repeat": root.repeatStudy(configuration, sessionID: first.sessionID, presentationID: first.presentationID)
+    case "completion": root.recordCompletedStudy(sessionID: first.sessionID, presentationID: first.presentationID, mode: mode,
+                                                  result: StudyResult(uniqueCardCount: 1, forgottenCount: 0))
+    default: root.studyDidDisappear(sessionID: first.sessionID, presentationID: first.presentationID)
+    }
+    #expect(root.navigation.activeStudy == resumed)
+    #expect(root.studyTimer.snapshot.isVisible)
+    #expect(root.pendingStudyConfiguration == nil)
+    #expect(root.resumableSnapshot == nil)
+    #expect(store.snapshot == saved)
+    #expect(history.entries.isEmpty)
+}
+
+@MainActor
+@Test(arguments: [StudyMode.flashcards, .writing])
+func staleAppearanceCannotStartTimerForResumedPresentation(mode: StudyMode) async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let root = makeRootModel(cards: AppCardRepositoryFake([card]))
+    await root.loadLibrary()
+    root.requestStartStudy(StudyConfiguration(mode: mode, direction: .russianToEnglish, selectedTagIDs: [], cards: [card]))
+    let first = try #require(root.navigation.activeStudy)
+    if mode == .writing { _ = root.makeWritingSessionModel(for: first) }
+    else { _ = root.makeStudySessionModel(for: first) }
+    root.saveAndExitStudy(sessionID: first.sessionID, presentationID: first.presentationID)
+    root.continueInterruptedStudy()
+    root.studyDidAppear(sessionID: first.sessionID, presentationID: first.presentationID)
+    #expect(!root.studyTimer.snapshot.isVisible)
+}
+
+@MainActor
+@Test(arguments: [StudyMode.flashcards, .writing])
+func departingFactoriesAndModelsCannotOverwriteSavedOrResumedProgress(mode: StudyMode) async throws {
+    let cards = [VocabularyCard.appFixture(id: 1, russian: "слово", english: "word"),
+                 VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")]
+    let store = AppStudySessionStoreFake()
+    let root = makeRootModel(cards: AppCardRepositoryFake(cards), studySessionStore: store)
+    await root.loadLibrary()
+    root.requestStartStudy(StudyConfiguration(mode: mode, direction: .russianToEnglish, selectedTagIDs: [], cards: cards))
+    let first = try #require(root.navigation.activeStudy)
+    let mutateOldModel: () throws -> Void
+    let callOldFactory: () -> Void
+    switch mode {
+    case .flashcards:
+        let model = root.makeStudySessionModel(for: first)
+        model.toggleCardSide()
+        try model.remember()
+        mutateOldModel = { model.toggleCardSide(); model.persistSnapshot() }
+        callOldFactory = { _ = root.makeStudySessionModel(for: first) }
+    case .writing:
+        let model = root.makeWritingSessionModel(for: first)
+        model.setResponse("word")
+        model.checkResponse()
+        try model.remember()
+        model.setResponse("saved draft")
+        mutateOldModel = { model.setResponse("obsolete draft"); model.persistSnapshot() }
+        callOldFactory = { _ = root.makeWritingSessionModel(for: first) }
+    }
+    root.saveAndExitStudy(sessionID: first.sessionID, presentationID: first.presentationID)
+    let saved = try #require(store.snapshot)
+    #expect(saved.completedCardIDs == [cards[0].id])
+    callOldFactory()
+    #expect(store.snapshot == saved)
+    #expect(root.resumableSnapshot == saved)
+    try mutateOldModel()
+    #expect(store.snapshot == saved)
+    #expect(root.resumableSnapshot == saved)
+
+    root.continueInterruptedStudy()
+    let resumed = try #require(root.navigation.activeStudy)
+    #expect(resumed.sessionID == first.sessionID)
+    let verifyResumedModel: () -> Void
+    switch mode {
+    case .flashcards:
+        let model = root.makeStudySessionModel(for: resumed)
+        #expect(model.session.currentCard?.id == cards[1].id)
+        #expect(model.rememberedCount == 1)
+        model.toggleCardSide()
+        verifyResumedModel = { #expect(root.makeStudySessionModel(for: resumed) === model) }
+    case .writing:
+        let model = root.makeWritingSessionModel(for: resumed)
+        #expect(model.session.currentCard?.id == cards[1].id)
+        #expect(model.session.response == "saved draft")
+        model.setResponse("resumed draft")
+        verifyResumedModel = { #expect(root.makeWritingSessionModel(for: resumed) === model) }
+    }
+    let current = store.snapshot
+    callOldFactory()
+    #expect(store.snapshot == current)
+    try mutateOldModel()
+    verifyResumedModel()
+    #expect(store.snapshot == current)
+    root.saveAndExitStudy(sessionID: resumed.sessionID, presentationID: resumed.presentationID)
+    #expect(root.resumableSnapshot == current)
+}
+
+@MainActor
+@Test(arguments: [StudyMode.flashcards, .writing])
+func completedLegacyRecoveryAddsHistoryWithoutDuplicatingPreviouslyRecordedStatistics(mode: StudyMode) async throws {
+    let suite = "App.completedLegacy.\(UUID())"
+    let defaults = try #require(UserDefaults(suiteName: suite))
+    defer { defaults.removePersistentDomain(forName: suite) }
+    defaults.set(Data("""
+    {"version":1,"mode":"\(mode.rawValue)","direction":"englishToRussian",
+     "selectedTagIDs":["00000000-0000-0000-0000-000000000700"],
+     "originalCardIDs":["00000000-0000-0000-0000-000000000001","00000000-0000-0000-0000-000000000002"],
+     "queueCardIDs":[],"isShowingAnswer":false,"isRevealed":false,"forgottenCount":1,
+     "repeatedCardIDs":["00000000-0000-0000-0000-000000000002"],"totalAssessmentCount":3,
+     "startedAt":100,"accumulatedDurationSeconds":15,
+     "completedResult":{"reviewedCardCount":2,"repeatedCardIDs":["00000000-0000-0000-0000-000000000002"],"totalAssessmentCount":3,"elapsedSeconds":15}}
+    """.utf8), forKey: UserDefaultsStudySessionStore.storageKey)
+    defaults.set(Data("""
+    {"completedLessonCount":1,"studiedCardCount":2,"forgottenCount":1,
+     "lessonsWithoutForgettingCount":0,"repeatedCardCount":1,"totalAssessmentCount":3,
+     "writingCompletedLessonCount":\(mode == .writing ? 1 : 0),
+     "writingStudiedCardCount":\(mode == .writing ? 2 : 0),
+     "writingForgottenCount":\(mode == .writing ? 1 : 0),
+     "writingRepeatedCardCount":\(mode == .writing ? 1 : 0),
+     "writingTotalAssessmentCount":\(mode == .writing ? 3 : 0),"recordedSessionIDs":[]}
+    """.utf8), forKey: "statistics.completedStudySessions.v1")
+    let statistics = UserDefaultsStatisticsRepository(defaults: defaults)
+    let originalStatistics = statistics.statistics
+    #expect(originalStatistics.completedLessonCount == 1)
+    #expect(originalStatistics.studiedCardCount == 2)
+    #expect(originalStatistics.encounteredCardCount == 2)
+    #expect(originalStatistics.firstTryRecallPercentage == 50)
+    #expect(originalStatistics.writing.completedLessonCount == (mode == .writing ? 1 : 0))
+    let history = AppHistoryRepositoryFake()
+    history.fails = true
+    let cards = AppCardRepositoryFake([.appFixture(id: 1, russian: "слово", english: "word"), .appFixture(id: 2, russian: "книга", english: "book")])
+    let store = UserDefaultsStudySessionStore(defaults: defaults)
+    let root = makeRootModel(cards: cards, studySessionStore: store, history: history, statistics: statistics,
+                             tags: AppTagRepositoryFake([Tag(id: .appFixture(700), name: "Legacy tag")]))
+    await root.loadLibrary()
+    let retained = try #require(store.load())
+    #expect(root.presentationError == .finalization(sessionID: retained.sessionID))
+    #expect(statistics.statistics == originalStatistics)
+    history.fails = false
+    // A fresh root/store exercises the durable migration marker after a failed write and relaunch.
+    let recovered = makeRootModel(cards: cards, studySessionStore: UserDefaultsStudySessionStore(defaults: defaults), history: history,
+                                  statistics: UserDefaultsStatisticsRepository(defaults: defaults))
+    await recovered.loadLibrary()
+    let entry = try #require(history.entries.first)
+    #expect(entry.id == retained.sessionID)
+    #expect(entry.mode == mode)
+    #expect(entry.plannedCardCount == 2)
+    #expect(entry.completedCardCount == 2)
+    #expect(entry.encounteredCardCount == 2)
+    #expect(entry.recallRatePercentage == 50)
+    #expect(entry.selectedTagNames == ["Legacy tag"])
+    #expect(entry.difficultCardTitles == ["book"])
+    #expect(store.load() == nil)
+    #expect(UserDefaultsStatisticsRepository(defaults: defaults).statistics == originalStatistics)
+    let finalizer = StudyHistoryFinalizer(history: history, statistics: statistics, sessionStore: store)
+    _ = try finalizer.finalize(retained, completedAt: Date())
+    #expect(history.entries.count == 1)
+    #expect(statistics.statistics == originalStatistics)
+}
+
+@MainActor
+@Test func legacyReplacementBackfillsProgressAndLabelsBeforeFinalizing() async throws {
+    let snapshot = try StudySessionSnapshot.appLegacyFixture()
+    let cards = [VocabularyCard.appFixture(id: 1, russian: "слово", english: "word"),
+                 VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")]
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake(cards), studySessionStore: store, history: history,
+                              tags: AppTagRepositoryFake([Tag(id: .appFixture(700), name: "Legacy tag")]))
+    await model.loadLibrary()
+    #expect(store.snapshot?.sessionID == snapshot.sessionID)
+    model.requestStartStudy(StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: cards))
+    model.replaceInterruptedStudy()
+    let entry = try #require(history.entries.first)
+    #expect(entry.completedCardCount == 1)
+    #expect(entry.encounteredCardCount == 2)
+    #expect(entry.repeatedCardCount == 1)
+    #expect(entry.recallRatePercentage == 50)
+    #expect(entry.selectedTagNames == ["Legacy tag"])
+    #expect(entry.difficultCardTitles == ["book"])
+}
+
+@MainActor
+@Test func legacyCompletionAfterResumePreservesPriorProgressAndCapturedLabels() async throws {
+    let snapshot = try StudySessionSnapshot.appLegacyFixture()
+    let cards = [VocabularyCard.appFixture(id: 1, russian: "слово", english: "word"),
+                 VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")]
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake(cards), studySessionStore: store, history: history,
+                              tags: AppTagRepositoryFake([Tag(id: .appFixture(700), name: "Legacy tag")]))
+    await model.loadLibrary()
+    model.continueInterruptedStudy()
+    let active = try #require(model.navigation.activeStudy)
+    let session = model.makeStudySessionModel(for: active)
+    session.toggleCardSide()
+    try session.remember()
+    model.recordCompletedStudy(sessionID: active.sessionID, presentationID: active.presentationID, mode: .flashcards, result: try #require(session.result))
+    #expect(history.entries.first?.completedCardCount == 2)
+    #expect(history.entries.first?.encounteredCardCount == 2)
+    #expect(history.entries.first?.repeatedCardCount == 1)
+    #expect(history.entries.first?.selectedTagNames == ["Legacy tag"])
+    #expect(history.entries.first?.difficultCardTitles == ["book"])
+}
+
+@MainActor
+@Test func staleRepeatAndFinishCannotFinalizeOrDismissTheNextSession() async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let store = AppStudySessionStoreFake()
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store, history: history)
+    await model.loadLibrary()
+    let configuration = StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: [card])
+    model.requestStartStudy(configuration)
+    let first = try #require(model.navigation.activeStudy)
+    let firstModel = model.makeStudySessionModel(for: first)
+    firstModel.toggleCardSide()
+    try firstModel.remember()
+    model.recordCompletedStudy(sessionID: first.sessionID, presentationID: first.presentationID, mode: .flashcards, result: try #require(firstModel.result))
+    model.repeatStudy(configuration, sessionID: first.sessionID, presentationID: first.presentationID)
+    let second = try #require(model.navigation.activeStudy)
+    let secondModel = model.makeStudySessionModel(for: second)
+    model.studyDidAppear(sessionID: second.sessionID, presentationID: second.presentationID)
+    let savedSecond = store.snapshot
+    model.repeatStudy(configuration, sessionID: first.sessionID, presentationID: first.presentationID)
+    model.finishStudy(sessionID: first.sessionID, presentationID: first.presentationID)
+    model.saveAndExitStudy(sessionID: first.sessionID, presentationID: first.presentationID)
+    model.studyDidAppear(sessionID: first.sessionID, presentationID: first.presentationID)
+    model.studyDidDisappear(sessionID: first.sessionID, presentationID: first.presentationID)
+    #expect(model.navigation.activeStudy == second)
+    #expect(model.makeStudySessionModel(for: second) === secondModel)
+    #expect(store.snapshot == savedSecond)
+    #expect(history.entries.count == 1)
+    #expect(model.pendingStudyConfiguration == nil)
+    #expect(model.studyTimer.snapshot.isVisible)
+}
+
+@MainActor
+@Test func writingCorrectAnswerSavedBeforeRememberDoesNotCountAsForgotten() async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let store = AppStudySessionStoreFake()
+    let history = AppHistoryRepositoryFake()
+    let statistics = AppStatisticsSpy()
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store, history: history, statistics: statistics)
+    await model.loadLibrary()
+    let configuration = StudyConfiguration(mode: .writing, direction: .russianToEnglish, selectedTagIDs: [], cards: [card])
+    model.requestStartStudy(configuration)
+    let active = try #require(model.navigation.activeStudy)
+    let writing = model.makeWritingSessionModel(for: active)
+    writing.setResponse("word")
+    writing.checkResponse()
+    model.saveAndExitStudy(sessionID: active.sessionID, presentationID: active.presentationID)
+    model.requestStartStudy(configuration)
+    model.replaceInterruptedStudy()
+    #expect(history.entries.first?.completedCardCount == 0)
+    #expect(history.entries.first?.encounteredCardCount == 1)
+    #expect(history.entries.first?.totalAssessmentCount == 1)
+    #expect(history.entries.first?.forgottenCount == 0)
+    #expect(history.entries.first?.recallRatePercentage == 100)
+    #expect(statistics.results.first?.forgottenCount == 0)
+}
+
+@MainActor
+@Test func writingNaturalCompletionPreservesActualMistakesThroughSnapshotCoding() async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let store = AppStudySessionStoreFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store)
+    await model.loadLibrary()
+    model.requestStartStudy(StudyConfiguration(mode: .writing, direction: .russianToEnglish, selectedTagIDs: [], cards: [card]))
+    let writing = model.makeWritingSessionModel(for: try #require(model.navigation.activeStudy))
+    writing.setResponse("word")
+    writing.checkResponse()
+    try writing.forget()
+    writing.setResponse("word")
+    writing.checkResponse()
+    try writing.remember()
+    let restored = try JSONDecoder().decode(StudySessionSnapshot.self, from: JSONEncoder().encode(try #require(store.snapshot)))
+    #expect(restored.completedResult?.forgottenCount == 1)
+    #expect(restored.completedResult?.totalAssessmentCount == 3)
+    #expect(restored.completedResult?.completedCardCount == 1)
+}
+
+@MainActor
+@Test func deletingLastAvailableQueuedCardRefreshesBannerIntoHistory() async {
+    let snapshot = StudySessionSnapshot.appHistoryFixture()
+    let cards = AppCardRepositoryFake([.appFixture(id: 2, russian: "книга", english: "book")])
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: cards, studySessionStore: store, history: history)
+    await model.loadLibrary()
+    #expect(model.resumableSnapshot != nil)
+    cards.fetchedCards = []
+    await model.libraryChanged()
+    #expect(model.resumableSnapshot == nil)
+    #expect(store.snapshot == nil)
+    #expect(history.entries.count == 1)
+}
+
+@MainActor
+@Test func rootKeepsLiveModelsAcrossViewUpdatesAndRejectsWritesAfterFinalization() async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let store = AppStudySessionStoreFake()
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store, history: history)
+    await model.loadLibrary()
+    model.requestStartStudy(StudyConfiguration(mode: .writing, direction: .russianToEnglish, selectedTagIDs: [], cards: [card]))
+    let active = try #require(model.navigation.activeStudy)
+    let writing = model.makeWritingSessionModel(for: active)
+    writing.setResponse("word")
+    let refreshed = model.makeWritingSessionModel(for: active)
+    #expect(refreshed === writing)
+    #expect(store.snapshot?.writingResponse == "word")
+    writing.checkResponse()
+    try writing.remember()
+    model.recordCompletedStudy(sessionID: active.sessionID, presentationID: active.presentationID, mode: .writing, result: try #require(writing.result))
+    writing.persistSnapshot()
+    _ = model.makeWritingSessionModel(for: active)
+    #expect(store.snapshot == nil)
+    #expect(history.entries.count == 1)
+}
+
+@MainActor
+@Test func repeatWaitsForFailedNaturalCompletionBeforeStartingDistinctSession() async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let store = AppStudySessionStoreFake()
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store, history: history)
+    await model.loadLibrary()
+    let configuration = StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: [card])
+    model.requestStartStudy(configuration)
+    let active = try #require(model.navigation.activeStudy)
+    let session = model.makeStudySessionModel(for: active)
+    #expect(model.makeStudySessionModel(for: active) === session)
+    session.toggleCardSide()
+    try session.remember()
+    history.fails = true
+    model.recordCompletedStudy(sessionID: active.sessionID, presentationID: active.presentationID, mode: .flashcards, result: try #require(session.result))
+    model.repeatStudy(configuration, sessionID: active.sessionID, presentationID: active.presentationID)
+    #expect(model.navigation.activeStudy?.sessionID == active.sessionID)
+    #expect(store.snapshot?.sessionID == active.sessionID)
+    #expect(model.pendingStudyConfiguration == configuration)
+    history.fails = false
+    model.retryFinalization()
+    let repeated = try #require(model.navigation.activeStudy)
+    #expect(repeated.sessionID != active.sessionID)
+    #expect(repeated.id == active.id)
+    #expect(history.entries.count == 1)
+    let newSession = model.makeStudySessionModel(for: repeated)
+    session.persistSnapshot()
+    #expect(store.snapshot?.sessionID == repeated.sessionID)
+    #expect(newSession.result == nil)
+}
+
+@MainActor
+@Test func deletedEncounteredQueuedCardNeverBecomesCompletedWhenFinalizedAfterResume() async throws {
+    let snapshot = StudySessionSnapshot.appHistoryFixture(mode: .writing)
+    let card = VocabularyCard.appFixture(id: 3, russian: "кот", english: "cat")
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store, history: history)
+    await model.loadLibrary()
+    model.continueInterruptedStudy()
+    let active = try #require(model.navigation.activeStudy)
+    _ = model.makeWritingSessionModel(for: active)
+    model.saveAndExitStudy(sessionID: active.sessionID, presentationID: active.presentationID)
+    model.requestStartStudy(StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: [card]))
+    model.replaceInterruptedStudy()
+    #expect(history.entries.first?.completedCardCount == 1)
+    #expect(history.entries.first?.encounteredCardCount == 2)
+    #expect(history.entries.first?.forgottenCount == 1)
+}
+
+@MainActor
+@Test func launchRecoversCompletedSnapshotUsingSavedResultWithoutPresentingGame() async {
+    let result = StudyResult(plannedCardCount: 3, completedCardCount: 2, encounteredCardIDs: [.appFixture(1), .appFixture(2)], repeatedCardIDs: [], totalAssessmentCount: 2, elapsedSeconds: 90)
+    let snapshot = StudySessionSnapshot.appHistoryFixture(queue: [], completedResult: result)
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake(), studySessionStore: store, history: history)
+    await model.loadLibrary()
+    #expect(history.entries.first?.elapsedSeconds == 90)
+    #expect(history.entries.first?.completedCardCount == 2)
+    #expect(history.entries.first?.repeatedCardCount == 0)
+    #expect(model.navigation.activeStudy == nil)
+    #expect(model.resumableSnapshot == nil)
+    #expect(store.snapshot == nil)
+}
+
+@MainActor
+@Test func finalizerOrdersDurableWritesAndDerivesPartialProgressFromPersistedQueue() throws {
+    let snapshot = StudySessionSnapshot.appHistoryFixture()
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    let statistics = AppStatisticsSpy()
+    var order: [String] = []
+    history.onInsert = { order.append("history") }
+    statistics.onRecord = { order.append("statistics") }
+    store.onClear = { order.append("clear") }
+    let finalizer = StudyHistoryFinalizer(history: history, statistics: statistics, sessionStore: store)
+
+    let entry = try finalizer.finalize(snapshot, completedAt: Date(timeIntervalSince1970: 200))
+
+    #expect(order == ["history", "statistics", "clear"])
+    #expect(entry.id == snapshot.sessionID)
+    #expect(entry.plannedCardCount == 3)
+    #expect(entry.completedCardCount == 1)
+    #expect(entry.encounteredCardCount == 2)
+    #expect(entry.recallRatePercentage == 50)
+    #expect(entry.forgottenCount == 1)
+    #expect(entry.elapsedSeconds == 15)
+    #expect(entry.difficultCardTitles == ["Original title"])
+    #expect(entry.selectedTagNames == ["Original tag"])
+    #expect(statistics.results.first?.completedCardCount == 1)
+    #expect(store.snapshot == nil)
+}
+
+@MainActor
+@Test func finalizerFailurePreservesSnapshotAndRetryRepairsAlreadyInsertedHistory() throws {
+    let snapshot = StudySessionSnapshot.appHistoryFixture()
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    let statistics = AppStatisticsSpy()
+    let finalizer = StudyHistoryFinalizer(history: history, statistics: statistics, sessionStore: store)
+    history.fails = true
+    #expect(throws: AppTestError.self) {
+        try finalizer.finalize(snapshot, completedAt: Date())
+    }
+    #expect(store.snapshot == snapshot)
+    #expect(statistics.recordedIDs.isEmpty)
+    history.fails = false
+    let result = StudyResult(finalizing: snapshot)
+    _ = try history.insertIfNeeded(StudyHistoryEntry(finalizing: snapshot, result: result, completedAt: Date()))
+    _ = try finalizer.finalize(snapshot, completedAt: Date())
+    _ = try finalizer.finalize(snapshot, completedAt: Date())
+    #expect(history.entries.count == 1)
+    #expect(statistics.recordedIDs == [snapshot.sessionID])
+    #expect(store.snapshot == nil)
+}
+
+@MainActor
+@Test func rootLaunchConflictContinueAndCancelPreserveSavedIdentity() async throws {
+    let snapshot = StudySessionSnapshot.appHistoryFixture()
+    let card = VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store)
+    let configuration = StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: [card])
+    await model.loadLibrary()
+    #expect(model.resumableSnapshot == snapshot)
+    #expect(!model.isNewGameConflictPresented)
+    #expect(model.presentationError == nil)
+    model.requestStartStudy(configuration)
+    #expect(model.pendingStudyConfiguration == configuration)
+    #expect(model.isNewGameConflictPresented)
+    #expect(model.navigation.activeStudy == nil)
+    model.cancelPendingStudy()
+    #expect(model.pendingStudyConfiguration == nil)
+    #expect(model.resumableSnapshot == snapshot)
+    model.requestStartStudy(configuration)
+    model.continueInterruptedStudy()
+    let active = try #require(model.navigation.activeStudy)
+    #expect(active.sessionID == snapshot.sessionID)
+    #expect(active.id == snapshot.sessionID)
+    #expect(model.pendingStudyConfiguration == nil)
+    #expect(!model.isNewGameConflictPresented)
+    let session = model.makeStudySessionModel(for: active)
+    session.persistSnapshot()
+    #expect(store.snapshot?.sessionID == snapshot.sessionID)
+}
+
+@MainActor
+@Test func rootReplacementWaitsForSuccessfulFinalizationAndRetainsPendingChoiceOnFailure() async throws {
+    let snapshot = StudySessionSnapshot.appHistoryFixture()
+    let card = VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store, history: history)
+    let configuration = StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: [card])
+    await model.loadLibrary()
+    model.requestStartStudy(configuration)
+    history.fails = true
+    model.replaceInterruptedStudy()
+    #expect(model.navigation.activeStudy == nil)
+    #expect(store.snapshot == snapshot)
+    #expect(model.pendingStudyConfiguration == configuration)
+    #expect(model.presentationError != nil)
+    history.fails = false
+    model.retryFinalization()
+    let active = try #require(model.navigation.activeStudy)
+    #expect(active.configuration == configuration)
+    #expect(active.sessionID != snapshot.sessionID)
+    #expect(model.pendingStudyConfiguration == nil)
+    #expect(model.presentationError == nil)
+    #expect(history.entries.count == 1)
+    #expect(store.snapshot == nil)
+}
+
+@MainActor
+@Test func rootCloseKeepsSnapshotAndNaturalCompletionFinalizesOnceWithoutDismissingResults() async throws {
+    let card = VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")
+    let store = AppStudySessionStoreFake()
+    let history = AppHistoryRepositoryFake()
+    let statistics = AppStatisticsSpy()
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store, history: history, statistics: statistics)
+    await model.loadLibrary()
+    model.requestStartStudy(StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: [card]))
+    let active = try #require(model.navigation.activeStudy)
+    let session = model.makeStudySessionModel(for: active)
+    #expect(store.snapshot?.sessionID == active.sessionID)
+    model.studyDidAppear(sessionID: active.sessionID, presentationID: active.presentationID)
+    model.saveAndExitStudy(sessionID: active.sessionID, presentationID: active.presentationID)
+    #expect(!model.studyTimer.snapshot.isVisible)
+    #expect(store.snapshot != nil)
+    #expect(model.resumableSnapshot?.sessionID == active.sessionID)
+    #expect(model.navigation.activeStudy == nil)
+    #expect(history.entries.isEmpty)
+    model.continueInterruptedStudy()
+    let resumed = try #require(model.navigation.activeStudy)
+    let resumedSession = model.makeStudySessionModel(for: resumed)
+    #expect(resumedSession !== session)
+    resumedSession.toggleCardSide()
+    try resumedSession.remember()
+    let result = try #require(resumedSession.result)
+    model.recordCompletedStudy(sessionID: resumed.sessionID, presentationID: resumed.presentationID, mode: .flashcards, result: result)
+    model.recordCompletedStudy(sessionID: resumed.sessionID, presentationID: resumed.presentationID, mode: .flashcards, result: result)
+    #expect(history.entries.count == 1)
+    #expect(history.entries.first?.completedCardCount == 1)
+    #expect(statistics.recordedIDs == [active.sessionID])
+    #expect(model.navigation.activeStudy != nil)
+    #expect(store.snapshot == nil)
+    #expect(model.resumableSnapshot == nil)
+}
+
+@MainActor
+@Test func recoveryFinalizationFailureRetainsSnapshotAndCanRetry() async {
+    let snapshot = StudySessionSnapshot.appHistoryFixture()
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let history = AppHistoryRepositoryFake()
+    history.fails = true
+    let model = makeRootModel(cards: AppCardRepositoryFake(), studySessionStore: store, history: history)
+    await model.loadLibrary()
+    #expect(store.snapshot == snapshot)
+    #expect(model.presentationError != nil)
+    history.fails = false
+    model.retryFinalization()
+    #expect(store.snapshot == nil)
+    #expect(history.entries.first?.completedCardCount == 1)
+    #expect(history.entries.first?.plannedCardCount == 3)
+}
+
+@MainActor
+@Test func writingResumeSkipsDeletedCurrentCardWithoutTransferringItsAnswer() async throws {
+    let snapshot = StudySessionSnapshot.appHistoryFixture(mode: .writing)
+    let card = VocabularyCard.appFixture(id: 3, russian: "кот", english: "cat")
+    let store = AppStudySessionStoreFake(snapshot: snapshot)
+    let model = makeRootModel(cards: AppCardRepositoryFake([card]), studySessionStore: store)
+    await model.loadLibrary()
+    model.continueInterruptedStudy()
+    let active = try #require(model.navigation.activeStudy)
+    let writing = model.makeWritingSessionModel(for: active)
+    #expect(writing.session.currentCard?.id == card.id)
+    #expect(writing.response.isEmpty)
+    #expect(writing.evaluation == .unanswered)
+    #expect(!writing.isShowingAnswer)
+    #expect(!writing.canAssess)
+    #expect(store.snapshot?.sessionID == snapshot.sessionID)
+    #expect(store.snapshot?.completedCardIDs == [.appFixture(1)])
+}
+
+@Test func aiImportPromptExampleProducesAnImportableCard() throws {
+    let data = try #require(CardImportAIPrompt.exampleJSON.data(using: .utf8))
+    let document = try JSONDecoder().decode(CardTransferDocument.self, from: data)
+
+    #expect(document.version == 1)
+    #expect(document.decodedCards().count == 1)
+    #expect(document.decodedCards().first?.russianMeanings.first?.text == "пример")
+    #expect(document.decodedCards().first?.englishVariants.first?.text == "example")
+}
+
+@MainActor
 @Test func appOffersTenIconsWithLoadablePreviewsAndDeclaredAlternates() throws {
     #expect(AppIconSettings.AppIcon.allCases.count == 10)
     let icons = try #require(Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any])
@@ -139,7 +738,25 @@ private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double
     #expect(navigation.path == [.settings])
 }
 
+@Test func appUsesCardsFlipperAsItsDisplayName() {
+    #expect(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String == "Cards Flipper")
+}
+
 #if DEBUG
+@Test func studyHistoryLaunchFlagsAlwaysIsolateDataAndSeedPlayableVocabulary() {
+    for flag in ["-uiTestHistory", "-uiTestResume"] {
+        let configuration = AppLaunchConfiguration(arguments: [flag])
+        #expect(configuration.usesInMemoryStore)
+        #expect(configuration.seedsDeterministicVocabulary)
+        #expect(configuration.seedsStudyHistory == (flag == "-uiTestHistory"))
+        #expect(configuration.seedsResumableStudy == (flag == "-uiTestResume"))
+    }
+    let production = AppLaunchConfiguration(arguments: [])
+    #expect(!production.seedsStudyHistory)
+    #expect(!production.seedsResumableStudy)
+    #expect(!production.usesInMemoryStore)
+}
+
 @Test func uiTestLaunchConfigurationSelectsIsolatedStoreAndSeed() {
     let configuration = AppLaunchConfiguration(arguments: [
         "CardFlipper",
@@ -362,7 +979,39 @@ private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double
 }
 
 @MainActor
-@Test func emptyInterruptedSessionIsDiscardedAndExplicitActionsClearStorage() async {
+@Test func loadingLibraryRestoresWritingModeAndItsCurrentAnswer() async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let snapshot = StudySessionSnapshot(
+        mode: .writing,
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        originalCardIDs: [card.id],
+        queueCardIDs: [card.id],
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 1,
+        repeatedCardIDs: [card.id],
+        totalAssessmentCount: 1,
+        writingResponse: "wrong",
+        writingEvaluation: .incorrect,
+        accumulatedDurationSeconds: 5
+    )
+    let model = makeRootModel(
+        cards: AppCardRepositoryFake([card]),
+        studySessionStore: AppStudySessionStoreFake(snapshot: snapshot)
+    )
+
+    await model.loadLibrary()
+    let study = try #require(model.resumableStudy)
+    let writingModel = model.makeWritingSessionModel(for: study)
+
+    #expect(study.configuration.mode == .writing)
+    #expect(writingModel.response == "wrong")
+    #expect(writingModel.evaluation == .incorrect)
+}
+
+@MainActor
+@Test func emptyInterruptedSessionIsFinalized() async {
     let missingID = UUID.appFixture(999)
     let invalidStore = AppStudySessionStoreFake(snapshot: StudySessionSnapshot(
         direction: .russianToEnglish,
@@ -376,43 +1025,19 @@ private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double
         totalAssessmentCount: 0,
         accumulatedDurationSeconds: 0
     ))
+    let history = AppHistoryRepositoryFake()
     let invalidModel = makeRootModel(
         cards: AppCardRepositoryFake(),
-        studySessionStore: invalidStore
+        studySessionStore: invalidStore,
+        history: history
     )
 
     await invalidModel.loadLibrary()
     #expect(invalidModel.resumableStudy == nil)
     #expect(invalidStore.clearCount == 1)
-
-    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
-    let validStore = AppStudySessionStoreFake(snapshot: StudySessionSnapshot(
-        direction: .russianToEnglish,
-        selectedTagIDs: [],
-        originalCardIDs: [card.id],
-        queueCardIDs: [card.id],
-        isShowingAnswer: false,
-        isRevealed: false,
-        forgottenCount: 0,
-        repeatedCardIDs: [],
-        totalAssessmentCount: 0,
-        accumulatedDurationSeconds: 0
-    ))
-    let validModel = makeRootModel(
-        cards: AppCardRepositoryFake([card]),
-        studySessionStore: validStore
-    )
-    await validModel.loadLibrary()
-    validModel.discardInterruptedStudy()
-    #expect(validStore.clearCount == 1)
-
-    validModel.navigation.startStudy(StudyConfiguration(
-        direction: .russianToEnglish,
-        selectedTagIDs: [],
-        cards: [card]
-    ))
-    validModel.finishStudy(sessionID: validModel.navigation.activeStudy!.sessionID)
-    #expect(validStore.clearCount == 2)
+    #expect(history.entries.count == 1)
+    #expect(history.entries.first?.plannedCardCount == 1)
+    #expect(history.entries.first?.completedCardCount == 0)
 }
 
 @MainActor
@@ -426,31 +1051,39 @@ private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double
         dictionary: AppDictionaryServiceFake(),
         speech: AppSpeechServiceFake(),
         shuffler: AppIdentityShuffler(),
+        history: AppHistoryRepositoryFake(),
         dailyProgress: progress,
         studyTimer: timer
     )
-    let sessionID = UUID()
+    model.navigation.startStudy(StudyConfiguration(direction: .englishToRussian, selectedTagIDs: [], cards: []))
+    let sessionID = model.navigation.activeStudy!.sessionID
+    let presentationID = model.navigation.activeStudy!.presentationID
 
     model.sceneActivityChanged(isActive: true)
-    model.studyDidAppear(sessionID: sessionID)
+    model.studyDidAppear(sessionID: sessionID, presentationID: presentationID)
     #expect(timer.snapshot.isVisible)
 
-    model.finishStudy(sessionID: sessionID)
-    model.finishStudy(sessionID: sessionID)
+    model.finishStudy(sessionID: sessionID, presentationID: presentationID)
+    model.finishStudy(sessionID: sessionID, presentationID: presentationID)
     #expect(!timer.snapshot.isVisible)
 }
 
 @MainActor
 private func makeRootModel(
     cards: AppCardRepositoryFake,
-    studySessionStore: any StudySessionStore = AppStudySessionStoreFake()
+    studySessionStore: any StudySessionStore = AppStudySessionStoreFake(),
+    history: any StudyHistoryRepository = AppHistoryRepositoryFake(),
+    statistics: any StatisticsRepository = AppStatisticsSpy(),
+    tags: any TagRepository = AppTagRepositoryFake()
 ) -> RootViewModel {
     RootViewModel(
         cards: cards,
-        tags: AppTagRepositoryFake(),
+        tags: tags,
         dictionary: AppDictionaryServiceFake(),
         speech: AppSpeechServiceFake(),
         shuffler: AppIdentityShuffler(),
+        history: history,
+        statistics: statistics,
         studySessionStore: studySessionStore
     )
 }

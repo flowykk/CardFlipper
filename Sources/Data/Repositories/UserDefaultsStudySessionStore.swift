@@ -20,11 +20,14 @@ public final class UserDefaultsStudySessionStore: StudySessionStore {
         guard let data = defaults.data(forKey: storageKey) else { return nil }
 
         do {
-            let snapshot = try JSONDecoder().decode(StudySessionSnapshot.self, from: data)
+            let decoder = JSONDecoder()
+            let snapshot = try decoder.decode(StudySessionSnapshot.self, from: data)
             guard snapshot.version == StudySessionSnapshot.currentVersion else {
                 clear()
                 return nil
             }
+            // Persist generated identity/timestamps and migration flags even for incomplete v2 data.
+            save(snapshot)
             return snapshot
         } catch {
             clear()

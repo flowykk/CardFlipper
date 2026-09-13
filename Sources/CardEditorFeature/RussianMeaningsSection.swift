@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 
 public struct RussianMeaningsSection: View {
@@ -38,7 +39,7 @@ public struct RussianMeaningsSection: View {
                 }
             }
 
-            Button(action: onAdd) {
+            HapticButton(action: onAdd) {
                 Label("editor.russian.add", systemImage: "plus.circle")
             }
             .accessibilityIdentifier("editor.russian.add")
@@ -69,7 +70,7 @@ public struct RussianMeaningsSection: View {
     }
 
     private func removeButton(for id: UUID) -> some View {
-        Button(role: .destructive) {
+        HapticButton(role: .destructive) {
             onRemove(id)
         } label: {
             Image(systemName: "minus.circle")

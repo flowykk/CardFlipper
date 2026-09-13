@@ -44,12 +44,12 @@ public struct StudySessionView: View {
         .toolbar {
             if model.result == nil {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(role: .destructive) {
+                    HapticButton(role: .destructive) {
                         model.requestExit()
                     } label: {
                         Label("common.close", systemImage: "xmark")
                     }
-                    .accessibilityHint("study.exit.message")
+                    .accessibilityHint(Text("study.exit.message", bundle: .module))
                 }
             }
         }
@@ -58,20 +58,24 @@ public struct StudySessionView: View {
                 progressHeader
             }
         }
-        .confirmationDialog(
-            "study.exit.title",
-            isPresented: exitConfirmation,
-            titleVisibility: .visible
+        .alert(
+            Text("study.exit.title", bundle: .module),
+            isPresented: exitConfirmation
         ) {
-            Button("common.close", role: .destructive) {
+            HapticButton {
                 model.cancelExit()
+                model.persistSnapshot()
                 onFinish()
+            } label: {
+                Text("study.exit.saveAndExit", bundle: .module)
             }
-            Button("common.cancel", role: .cancel) {
+            HapticButton(role: .cancel) {
                 model.cancelExit()
+            } label: {
+                Text("study.exit.continueGame", bundle: .module)
             }
         } message: {
-            Text("study.exit.message")
+            Text("study.exit.message", bundle: .module)
         }
         .onChange(of: model.result) { _, result in
             if let result {
@@ -186,7 +190,7 @@ public struct StudySessionView: View {
     }
 
     private var forgetButton: some View {
-        Button {
+        HapticButton(feedback: .none) {
             try? model.forget()
         } label: {
             Label("study.forget", systemImage: AppSymbol.repeatedCards)
@@ -202,7 +206,7 @@ public struct StudySessionView: View {
     }
 
     private var rememberButton: some View {
-        Button {
+        HapticButton(feedback: .none) {
             try? model.remember()
         } label: {
             Label("study.remember", systemImage: "checkmark.circle.fill")

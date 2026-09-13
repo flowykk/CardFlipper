@@ -19,7 +19,17 @@ let project = Project(
         .framework(name: "DesignSystem"),
         .framework(name: "LibraryFeature", dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]),
         .framework(name: "CardEditorFeature", dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]),
-        .framework(name: "StudyFeature", dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]),
+        .target(
+            name: "StudyFeature",
+            destinations: .iOS,
+            product: .staticFramework,
+            bundleId: "com.danilarahmanov.CardFlipper.StudyFeature",
+            deploymentTargets: .iOS("18.0"),
+            infoPlist: .default,
+            sources: ["Sources/StudyFeature/**"],
+            resources: ["Resources/StudyFeature/**"],
+            dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]
+        ),
         .target(
             name: "StatisticsFeature",
             destinations: .iOS,
@@ -29,6 +39,17 @@ let project = Project(
             infoPlist: .default,
             sources: ["Sources/StatisticsFeature/**"],
             resources: ["Resources/StatisticsFeature/**"],
+            dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]
+        ),
+        .target(
+            name: "HistoryFeature",
+            destinations: .iOS,
+            product: .staticFramework,
+            bundleId: "com.danilarahmanov.CardFlipper.HistoryFeature",
+            deploymentTargets: .iOS("18.0"),
+            infoPlist: .default,
+            sources: ["Sources/HistoryFeature/**"],
+            resources: ["Resources/HistoryFeature/**"],
             dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]
         ),
         .target(
@@ -50,7 +71,7 @@ let project = Project(
         .app(
             name: "CardFlipper",
             bundleId: "com.danilarahmanov.CardFlipper",
-            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "CardEditorFeature", "StudyFeature", "StatisticsFeature", "StudyTimerWidgetExtension"]
+            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "CardEditorFeature", "StudyFeature", "StatisticsFeature", "HistoryFeature", "StudyTimerWidgetExtension"]
         ),
         .tests(name: "CoreTests", host: "Core"),
         .tests(name: "DataTests", host: "Data"),
@@ -59,10 +80,11 @@ let project = Project(
         .tests(name: "CardEditorFeatureTests", host: "CardEditorFeature"),
         .tests(name: "StudyFeatureTests", host: "StudyFeature"),
         .tests(name: "StatisticsFeatureTests", host: "StatisticsFeature"),
+        .tests(name: "HistoryFeatureTests", host: "HistoryFeature"),
         .tests(
             name: "CardFlipperAppTests",
             host: "CardFlipper",
-            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "StudyFeature", "StatisticsFeature"]
+            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "StudyFeature", "StatisticsFeature", "HistoryFeature"]
         ),
         .uiTests(name: "CardFlipperUITests", host: "CardFlipper"),
     ],
@@ -79,6 +101,7 @@ let project = Project(
                 "CardEditorFeatureTests",
                 "StudyFeatureTests",
                 "StatisticsFeatureTests",
+                "HistoryFeatureTests",
                 "CardFlipperAppTests",
                 "CardFlipperUITests",
             ])
