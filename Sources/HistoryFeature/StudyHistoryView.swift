@@ -86,14 +86,22 @@ public struct StudyHistoryView: View {
                     Section { emptyState }
                 } else {
                     Section {
-                        ForEach(model.entries) { entry in
-                            NavigationLink {
-                                StudyHistoryDetailView(entry: entry)
-                            } label: {
-                                StudyHistoryRow(entry: entry)
+                        MetricTable(backgroundStyle: Color(uiColor: .secondarySystemGroupedBackground)) {
+                            ForEach(Array(model.entries.enumerated()), id: \.element.id) { index, entry in
+                                NavigationLink {
+                                    StudyHistoryDetailView(entry: entry)
+                                } label: {
+                                    StudyHistoryRow(entry: entry)
+                                }
+                                .accessibilityIdentifier("history.row.\(entry.id.uuidString)")
+
+                                if index < model.entries.index(before: model.entries.endIndex) {
+                                    MetricTableDivider(leadingInset: 56)
+                                }
                             }
-                            .accessibilityIdentifier("history.row.\(entry.id.uuidString)")
                         }
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                        .listRowBackground(Color.clear)
                     } header: {
                         Text("history.sessions.section", bundle: .module)
                     }
@@ -121,41 +129,34 @@ private struct StudyHistoryRow: View {
     let entry: StudyHistoryEntry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        MetricTableRow(systemImage: modeSystemImage) {
             Text(verbatim: HistoryPresentation.dateTime(entry.completedAt))
-                .font(.headline)
-
-            Text(verbatim: HistoryPresentation.mode(entry.mode))
-                .font(.subheadline)
+                .font(.body)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+        } trailing: {
+            Text(verbatim: "\(entry.completedCardCount)/\(entry.plannedCardCount) · \(entry.recallRatePercentage)%")
+                .font(.subheadline.weight(.regular))
                 .foregroundStyle(.secondary)
-
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 12) {
-                    metricText(HistoryPresentation.progress(
-                        completed: entry.completedCardCount,
-                        total: entry.plannedCardCount
-                    ))
-                    metricText(HistoryPresentation.recall(entry.recallRatePercentage))
-                }
-
-                VStack(alignment: .leading, spacing: 3) {
-                    metricText(HistoryPresentation.progress(
-                        completed: entry.completedCardCount,
-                        total: entry.plannedCardCount
-                    ))
-                    metricText(HistoryPresentation.recall(entry.recallRatePercentage))
-                }
-            }
+                .monospacedDigit()
+                .lineLimit(1)
         }
-        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-        .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
+        .contentShape(Rectangle())
+        .accessibilityLabel(
+            "\(HistoryPresentation.dateTime(entry.completedAt)), "
+                + "\(HistoryPresentation.mode(entry.mode)), "
+                + "\(HistoryPresentation.progress(completed: entry.completedCardCount, total: entry.plannedCardCount)), "
+                + HistoryPresentation.recall(entry.recallRatePercentage)
+        )
     }
 
-    private func metricText(_ value: String) -> some View {
-        Text(verbatim: value)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-            .monospacedDigit()
+    private var modeSystemImage: String {
+        switch entry.mode {
+        case .flashcards:
+            "rectangle.stack.fill"
+        case .writing:
+            "keyboard.fill"
+        }
     }
 }
