@@ -42,6 +42,17 @@ let project = Project(
             dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]
         ),
         .target(
+            name: "HistoryFeature",
+            destinations: .iOS,
+            product: .staticFramework,
+            bundleId: "com.danilarahmanov.CardFlipper.HistoryFeature",
+            deploymentTargets: .iOS("18.0"),
+            infoPlist: .default,
+            sources: ["Sources/HistoryFeature/**"],
+            resources: ["Resources/HistoryFeature/**"],
+            dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]
+        ),
+        .target(
             name: "StudyTimerWidgetExtension",
             destinations: .iOS,
             product: .appExtension,
@@ -69,6 +80,7 @@ let project = Project(
         .tests(name: "CardEditorFeatureTests", host: "CardEditorFeature"),
         .tests(name: "StudyFeatureTests", host: "StudyFeature"),
         .tests(name: "StatisticsFeatureTests", host: "StatisticsFeature"),
+        .tests(name: "HistoryFeatureTests", host: "HistoryFeature"),
         .tests(
             name: "CardFlipperAppTests",
             host: "CardFlipper",
@@ -89,6 +101,7 @@ let project = Project(
                 "CardEditorFeatureTests",
                 "StudyFeatureTests",
                 "StatisticsFeatureTests",
+                "HistoryFeatureTests",
                 "CardFlipperAppTests",
                 "CardFlipperUITests",
             ])

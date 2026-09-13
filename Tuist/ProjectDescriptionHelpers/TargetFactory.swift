@@ -41,6 +41,7 @@ public extension Target {
                     excluding: [
                         "Resources/StatisticsFeature/**",
                         "Resources/StudyFeature/**",
+                        "Resources/HistoryFeature/**",
                         "Resources/StudyTimerWidget/**",
                     ]
                 ),

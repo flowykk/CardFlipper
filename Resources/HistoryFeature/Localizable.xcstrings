@@ -1,0 +1,204 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "history.allCards" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "All Cards" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Все карточки" } }
+      }
+    },
+    "history.assessments.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Assessments" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ответы" } }
+      }
+    },
+    "history.completedAt.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Completed" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Завершено" } }
+      }
+    },
+    "history.continue" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Продолжить" } }
+      }
+    },
+    "history.detail.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Study Details" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сведения о занятии" } }
+      }
+    },
+    "history.difficultCards.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Difficult Cards" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сложные карточки" } }
+      }
+    },
+    "history.direction.englishToRussian" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "English to Russian" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "С английского на русский" } }
+      }
+    },
+    "history.direction.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Direction" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Направление" } }
+      }
+    },
+    "history.direction.russianToEnglish" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Russian to English" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "С русского на английский" } }
+      }
+    },
+    "history.duration.format" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld seconds" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "%lld секунд" } }
+      }
+    },
+    "history.duration.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Duration" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Длительность" } }
+      }
+    },
+    "history.empty.message" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Completed study sessions will appear here." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Здесь появятся завершённые занятия." } }
+      }
+    },
+    "history.empty.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Study History Yet" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Истории занятий пока нет" } }
+      }
+    },
+    "history.encountered.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Encountered" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Просмотрено" } }
+      }
+    },
+    "history.failure.message" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Check your data and try again." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Проверьте данные и попробуйте ещё раз." } }
+      }
+    },
+    "history.failure.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Load History" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось загрузить историю" } }
+      }
+    },
+    "history.forgotten.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Forgotten" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не вспомнено" } }
+      }
+    },
+    "history.lastActivity.format" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "active %@" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "активность %@" } }
+      }
+    },
+    "history.loading" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading history" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Загрузка истории" } }
+      }
+    },
+    "history.mode.flashcards" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Flashcards" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточки" } }
+      }
+    },
+    "history.mode.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Mode" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Режим" } }
+      }
+    },
+    "history.mode.writing" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Writing" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Письмо" } }
+      }
+    },
+    "history.progress.format" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$lld of %2$lld cards" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "%1$lld из %2$lld карточек" } }
+      }
+    },
+    "history.progress.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Progress" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Прогресс" } }
+      }
+    },
+    "history.recall.format" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld%% recall" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "%lld%% вспоминания" } }
+      }
+    },
+    "history.recall.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recall" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вспоминание" } }
+      }
+    },
+    "history.repeated.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Repeated" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторено" } }
+      }
+    },
+    "history.resume.section" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue Studying" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Продолжить занятие" } }
+      }
+    },
+    "history.retry" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try Again" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторить" } }
+      }
+    },
+    "history.sessions.section" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Completed Sessions" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Завершённые занятия" } }
+      }
+    },
+    "history.startedAt.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Started" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начато" } }
+      }
+    },
+    "history.tags.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточки" } }
+      }
+    },
+    "history.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "History" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "История" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
