@@ -88,26 +88,18 @@ public struct StatisticsView: View {
     }
 
     private func metricTable(_ metrics: [StatisticsMetric]) -> some View {
-        VStack(spacing: 0) {
+        MetricTable {
             ForEach(metrics.indices, id: \.self) { index in
                 metricRow(metrics[index])
                 if index < metrics.index(before: metrics.endIndex) {
-                    Divider().padding(.leading, 56)
+                    MetricTableDivider(leadingInset: 56)
                 }
             }
         }
-        .padding(.horizontal)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
     }
 
     private func metricRow(_ metric: StatisticsMetric) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: metric.systemImage)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(Color.accentColor)
-                .frame(width: 28)
-                .accessibilityHidden(true)
-
+        MetricTableRow(systemImage: metric.systemImage) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(LocalizedStringKey(metric.titleKey), bundle: .module)
                     .font(.body)
@@ -117,9 +109,7 @@ public struct StatisticsView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-
-            Spacer(minLength: 12)
-
+        } trailing: {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(verbatim: metric.value)
                     .font(.system(.headline, design: .rounded, weight: .bold))
@@ -134,11 +124,7 @@ public struct StatisticsView: View {
                         .foregroundStyle(detail.hasPrefix("+") ? Color.green : .secondary)
                 }
             }
-            .multilineTextAlignment(.trailing)
         }
-        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-        .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
     }
 
     private var zeroState: some View {

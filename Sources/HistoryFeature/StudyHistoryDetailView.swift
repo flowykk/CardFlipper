@@ -1,4 +1,5 @@
 import Core
+import DesignSystem
 import Foundation
 import SwiftUI
 
@@ -12,30 +13,48 @@ public struct StudyHistoryDetailView: View {
     public var body: some View {
         List {
             Section {
-                detailRow("history.completedAt.label", HistoryPresentation.dateTime(entry.completedAt))
-                detailRow("history.startedAt.label", HistoryPresentation.dateTime(entry.startedAt))
-                detailRow("history.duration.label", HistoryPresentation.duration(entry.elapsedSeconds))
+                MetricTable {
+                    detailRow("history.completedAt.label", HistoryPresentation.dateTime(entry.completedAt))
+                    MetricTableDivider()
+                    detailRow("history.startedAt.label", HistoryPresentation.dateTime(entry.startedAt))
+                    MetricTableDivider()
+                    detailRow("history.duration.label", HistoryPresentation.duration(entry.elapsedSeconds))
+                }
+                .listRowBackground(Color.clear)
             }
 
             Section {
-                detailRow("history.mode.label", HistoryPresentation.mode(entry.mode))
-                detailRow("history.direction.label", HistoryPresentation.direction(entry.direction))
-                detailRow(
-                    "history.progress.label",
-                    HistoryPresentation.progress(
-                        completed: entry.completedCardCount,
-                        total: entry.plannedCardCount
+                MetricTable {
+                    detailRow("history.mode.label", HistoryPresentation.mode(entry.mode))
+                    MetricTableDivider()
+                    detailRow("history.direction.label", HistoryPresentation.direction(entry.direction))
+                    MetricTableDivider()
+                    detailRow(
+                        "history.progress.label",
+                        HistoryPresentation.progress(
+                            completed: entry.completedCardCount,
+                            total: entry.plannedCardCount
+                        )
                     )
-                )
-                detailRow("history.recall.label", HistoryPresentation.recall(entry.recallRatePercentage))
-                detailRow("history.encountered.label", String(entry.encounteredCardCount))
-                detailRow("history.repeated.label", String(entry.repeatedCardCount))
-                detailRow("history.forgotten.label", String(entry.forgottenCount))
-                detailRow("history.assessments.label", String(entry.totalAssessmentCount))
+                    MetricTableDivider()
+                    detailRow("history.recall.label", HistoryPresentation.recall(entry.recallRatePercentage))
+                    MetricTableDivider()
+                    detailRow("history.encountered.label", String(entry.encounteredCardCount))
+                    MetricTableDivider()
+                    detailRow("history.repeated.label", String(entry.repeatedCardCount))
+                    MetricTableDivider()
+                    detailRow("history.forgotten.label", String(entry.forgottenCount))
+                    MetricTableDivider()
+                    detailRow("history.assessments.label", String(entry.totalAssessmentCount))
+                }
+                .listRowBackground(Color.clear)
             }
 
             Section {
-                detailRow("history.tags.label", HistoryPresentation.tags(entry.selectedTagNames))
+                MetricTable {
+                    detailRow("history.tags.label", HistoryPresentation.tags(entry.selectedTagNames))
+                }
+                .listRowBackground(Color.clear)
             }
 
             if !entry.difficultCardTitles.isEmpty {
@@ -57,11 +76,14 @@ public struct StudyHistoryDetailView: View {
 
     private func detailRow(_ labelKey: String, _ value: String) -> some View {
         ViewThatFits(in: .horizontal) {
-            HStack(alignment: .firstTextBaseline, spacing: 16) {
+            MetricTableRow {
                 Text(LocalizedStringKey(labelKey), bundle: .module)
+                    .font(.body)
                     .foregroundStyle(.secondary)
-                Spacer(minLength: 8)
+            } trailing: {
                 Text(verbatim: value)
+                    .font(.system(.headline, design: .rounded, weight: .semibold))
+                    .monospacedDigit()
                     .multilineTextAlignment(.trailing)
             }
 
@@ -70,9 +92,10 @@ public struct StudyHistoryDetailView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Text(verbatim: value)
+                    .font(.system(.headline, design: .rounded, weight: .semibold))
+                    .monospacedDigit()
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(labelKey.replacingOccurrences(of: ".label", with: "")
             .replacingOccurrences(of: "history.", with: "history.detail."))
