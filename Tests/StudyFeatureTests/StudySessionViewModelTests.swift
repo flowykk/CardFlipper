@@ -3,6 +3,32 @@ import Foundation
 import Testing
 @testable import StudyFeature
 
+@MainActor
+@Test func deletedCurrentFlashcardResetsRevealedAnswerWhenResumeAdvancesQueue() throws {
+    let cards = StudyConfiguration.fixture.cards
+    let snapshot = StudySessionSnapshot(
+        direction: .russianToEnglish, selectedTagIDs: [], originalCardIDs: cards.map(\.id),
+        queueCardIDs: cards.map(\.id), isShowingAnswer: true, isRevealed: true,
+        forgottenCount: 0, repeatedCardIDs: [], totalAssessmentCount: 0,
+        accumulatedDurationSeconds: 0
+    )
+    let store = StudySessionStoreSpy()
+    let model = StudySessionViewModel(
+        configuration: StudyConfiguration(direction: .russianToEnglish, selectedTagIDs: [], cards: [cards[1]]),
+        snapshot: snapshot, speech: SpeechServiceSpy(), feedback: StudyFeedbackSpy(), store: store
+    )
+    #expect(model.session.currentCard?.id == cards[1].id)
+    #expect(!model.session.isRevealed)
+    #expect(!model.isShowingAnswer)
+    #expect(!model.canAssess)
+    #expect(store.storedSnapshot?.isRevealed == false)
+    #expect(store.storedSnapshot?.isShowingAnswer == false)
+    #expect(throws: StudySessionError.answerNotRevealed) { try model.remember() }
+    model.toggleCardSide()
+    try model.remember()
+    #expect(model.result?.completedCardCount == 1)
+}
+
 @Test func studyProgressStartsAtFirstCardAndAdvancesWithRememberedCards() {
     let initial = StudySessionProgressPresentation(
         rememberedCount: 0,

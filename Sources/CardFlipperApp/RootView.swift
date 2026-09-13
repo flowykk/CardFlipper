@@ -43,6 +43,8 @@ enum AppEditorPresentation: Equatable, Identifiable {
 
 struct ActiveStudy: Equatable, Identifiable {
     let id: UUID
+    /// A fresh owner for every model/presentation lifetime, including resumes of the same session.
+    let presentationID = UUID()
     let sessionID: UUID
     let configuration: StudyConfiguration
     let snapshot: StudySessionSnapshot?
@@ -279,7 +281,7 @@ final class RootViewModel {
     }
 
     func makeStudySessionModel(for activeStudy: ActiveStudy) -> StudySessionViewModel {
-        if let cachedStudyModel, cachedStudyModel.id == activeStudy.sessionID {
+        if let cachedStudyModel, cachedStudyModel.id == activeStudy.presentationID {
             return cachedStudyModel.model
         }
         let today = dailyProgress.progress(for: Date(), calendar: .current)
@@ -294,14 +296,16 @@ final class RootViewModel {
                 elapsedSeconds: today.elapsedSeconds,
                 goalSeconds: today.goalSeconds
             ),
-            store: sessionWriteGate(for: activeStudy.sessionID)
+            store: sessionWriteGate(for: activeStudy)
         )
-        cachedStudyModel = (activeStudy.sessionID, model)
+        if navigation.activeStudy?.presentationID == activeStudy.presentationID {
+            cachedStudyModel = (activeStudy.presentationID, model)
+        }
         return model
     }
 
     func makeWritingSessionModel(for activeStudy: ActiveStudy) -> WritingSessionViewModel {
-        if let cachedWritingModel, cachedWritingModel.id == activeStudy.sessionID {
+        if let cachedWritingModel, cachedWritingModel.id == activeStudy.presentationID {
             return cachedWritingModel.model
         }
         let today = dailyProgress.progress(for: Date(), calendar: .current)
@@ -316,17 +320,18 @@ final class RootViewModel {
                 elapsedSeconds: today.elapsedSeconds,
                 goalSeconds: today.goalSeconds
             ),
-            store: sessionWriteGate(for: activeStudy.sessionID)
+            store: sessionWriteGate(for: activeStudy)
         )
-        cachedWritingModel = (activeStudy.sessionID, model)
+        if navigation.activeStudy?.presentationID == activeStudy.presentationID {
+            cachedWritingModel = (activeStudy.presentationID, model)
+        }
         return model
     }
 
-    private func sessionWriteGate(for sessionID: UUID) -> StudySessionWriteGate {
+    private func sessionWriteGate(for study: ActiveStudy) -> StudySessionWriteGate {
         StudySessionWriteGate(store: studySessionStore) { [weak self] in
-            guard let self, !finalizedSessionIDs.contains(sessionID) else { return false }
-            return navigation.activeStudy?.sessionID == sessionID
-                || resumableStudy?.sessionID == sessionID
+            guard let self, !finalizedSessionIDs.contains(study.sessionID) else { return false }
+            return navigation.activeStudy?.presentationID == study.presentationID
         }
     }
 
@@ -361,8 +366,8 @@ final class RootViewModel {
         isPendingRepeat = false
     }
 
-    func repeatStudy(_ configuration: StudyConfiguration, sessionID: UUID) {
-        guard navigation.activeStudy?.sessionID == sessionID else { return }
+    func repeatStudy(_ configuration: StudyConfiguration, sessionID: UUID, presentationID: UUID) {
+        guard ownsPresentation(sessionID: sessionID, presentationID: presentationID) else { return }
         if let snapshot = studySessionStore.load() {
             pendingStudyConfiguration = configuration
             isPendingRepeat = true
@@ -396,16 +401,16 @@ final class RootViewModel {
         library.cards.count
     }
 
-    func recordCompletedStudy(sessionID: UUID, mode: StudyMode, result: StudyResult) {
-        guard navigation.activeStudy?.sessionID == sessionID else { return }
+    func recordCompletedStudy(sessionID: UUID, presentationID: UUID, mode: StudyMode, result: StudyResult) {
+        guard ownsPresentation(sessionID: sessionID, presentationID: presentationID) else { return }
         studyTimer.endSession(id: sessionID)
         guard let snapshot = studySessionStore.load(), snapshot.sessionID == sessionID,
               snapshot.completedResult != nil else { return }
         finalize(snapshot)
     }
 
-    func studyDidAppear(sessionID: UUID) {
-        guard navigation.activeStudy?.sessionID == sessionID,
+    func studyDidAppear(sessionID: UUID, presentationID: UUID) {
+        guard ownsPresentation(sessionID: sessionID, presentationID: presentationID),
               !finalizedSessionIDs.contains(sessionID) else { return }
         studyTimer.startSession(id: sessionID)
     }
@@ -414,12 +419,12 @@ final class RootViewModel {
         studyTimer.setSceneActive(isActive)
     }
 
-    func finishStudy(sessionID: UUID) {
-        saveAndExitStudy(sessionID: sessionID)
+    func finishStudy(sessionID: UUID, presentationID: UUID) {
+        saveAndExitStudy(sessionID: sessionID, presentationID: presentationID)
     }
 
-    func saveAndExitStudy(sessionID: UUID) {
-        guard navigation.activeStudy?.sessionID == sessionID else { return }
+    func saveAndExitStudy(sessionID: UUID, presentationID: UUID) {
+        guard ownsPresentation(sessionID: sessionID, presentationID: presentationID) else { return }
         studyTimer.endSession(id: sessionID)
         cachedStudyModel = nil
         cachedWritingModel = nil
@@ -427,8 +432,14 @@ final class RootViewModel {
         prepareInterruptedStudyIfNeeded()
     }
 
-    func studyDidDisappear(sessionID: UUID) {
+    func studyDidDisappear(sessionID: UUID, presentationID: UUID) {
+        guard ownsPresentation(sessionID: sessionID, presentationID: presentationID) else { return }
         studyTimer.endSession(id: sessionID)
+    }
+
+    private func ownsPresentation(sessionID: UUID, presentationID: UUID) -> Bool {
+        navigation.activeStudy?.sessionID == sessionID
+            && navigation.activeStudy?.presentationID == presentationID
     }
 
     func cleanupOrphanedActivity() {
@@ -624,11 +635,12 @@ struct RootView: View {
                     case .flashcards:
                         StudySessionView(
                             model: model.makeStudySessionModel(for: presentation),
-                            onRepeat: { model.repeatStudy($0, sessionID: presentation.sessionID) },
-                            onFinish: { model.saveAndExitStudy(sessionID: presentation.sessionID) },
+                            onRepeat: { model.repeatStudy($0, sessionID: presentation.sessionID, presentationID: presentation.presentationID) },
+                            onFinish: { model.saveAndExitStudy(sessionID: presentation.sessionID, presentationID: presentation.presentationID) },
                             onComplete: {
                                 model.recordCompletedStudy(
                                     sessionID: presentation.sessionID,
+                                    presentationID: presentation.presentationID,
                                     mode: presentation.configuration.mode,
                                     result: $0
                                 )
@@ -637,11 +649,12 @@ struct RootView: View {
                     case .writing:
                         WritingSessionView(
                             model: model.makeWritingSessionModel(for: presentation),
-                            onRepeat: { model.repeatStudy($0, sessionID: presentation.sessionID) },
-                            onFinish: { model.saveAndExitStudy(sessionID: presentation.sessionID) },
+                            onRepeat: { model.repeatStudy($0, sessionID: presentation.sessionID, presentationID: presentation.presentationID) },
+                            onFinish: { model.saveAndExitStudy(sessionID: presentation.sessionID, presentationID: presentation.presentationID) },
                             onComplete: {
                                 model.recordCompletedStudy(
                                     sessionID: presentation.sessionID,
+                                    presentationID: presentation.presentationID,
                                     mode: presentation.configuration.mode,
                                     result: $0
                                 )
@@ -677,7 +690,7 @@ struct RootView: View {
                 Text("study.finalization.failed.message")
             }
             .task {
-                model.studyDidAppear(sessionID: presentation.sessionID)
+                model.studyDidAppear(sessionID: presentation.sessionID, presentationID: presentation.presentationID)
                 while !Task.isCancelled, model.studyTimer.snapshot.isVisible {
                     try? await Task.sleep(for: .seconds(1))
                     guard !Task.isCancelled else { break }
@@ -685,7 +698,7 @@ struct RootView: View {
                 }
             }
             .onDisappear {
-                model.studyDidDisappear(sessionID: presentation.sessionID)
+                model.studyDidDisappear(sessionID: presentation.sessionID, presentationID: presentation.presentationID)
             }
         }
         .onChange(of: scenePhase, initial: true) { _, phase in

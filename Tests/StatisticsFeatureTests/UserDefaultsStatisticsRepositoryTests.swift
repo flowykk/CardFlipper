@@ -54,7 +54,8 @@ import Testing
 }
 
 @MainActor
-@Test func partialSessionUsesCompletedCardsForTotalsAndEncounteredCardsForRecall() {
+@Test(arguments: [StudyMode.flashcards, .writing])
+func partialSessionUsesCompletedCardsForTotalsAndEncounteredCardsForRecall(mode: StudyMode) {
     let defaults = makeIsolatedDefaults()
     defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
     let repository = UserDefaultsStatisticsRepository(defaults: defaults)
@@ -75,16 +76,26 @@ import Testing
         elapsedSeconds: 0
     )
 
-    repository.record(sessionID: sessionID, mode: .flashcards, result: result)
+    repository.record(sessionID: sessionID, mode: mode, result: result)
 
     #expect(repository.statistics.studiedCardCount == 3)
     #expect(repository.statistics.encounteredCardCount == 4)
     #expect(repository.statistics.firstTryRecallPercentage == 75)
+    #expect(repository.statistics.averageCardsPerLesson == 3)
+    let restored = UserDefaultsStatisticsRepository(defaults: defaults)
+    #expect(restored.statistics == repository.statistics)
+    let modeStatistics = mode == .writing ? restored.statistics.writing : restored.statistics.flashcards
+    #expect(modeStatistics.completedLessonCount == 1)
+    #expect(modeStatistics.studiedCardCount == 3)
+    #expect(modeStatistics.encounteredCardCount == 4)
+    #expect(modeStatistics.repeatedCardCount == 1)
+    #expect(modeStatistics.totalAssessmentCount == 4)
+    #expect(restored.statistics.averageCardsPerLesson == 3)
 
     let totalsAfterFirstRecord = repository.statistics
-    repository.record(sessionID: sessionID, mode: .flashcards, result: result)
+    restored.record(sessionID: sessionID, mode: mode, result: result)
 
-    #expect(repository.statistics == totalsAfterFirstRecord)
+    #expect(restored.statistics == totalsAfterFirstRecord)
 }
 
 @MainActor

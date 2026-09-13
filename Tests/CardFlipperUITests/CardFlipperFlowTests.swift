@@ -14,13 +14,21 @@ final class CardFlipperFlowTests: XCTestCase {
         ])
         let banner = app.buttons["study.resume.banner"]
         XCTAssertTrue(banner.waitForExistence(timeout: 5))
+        let screenshot = app.screenshot().image
         let whiteTextCoverage = pixelCoverage(
             in: banner.frame.insetBy(dx: 18, dy: 18),
-            screenshot: app.screenshot().image
+            screenshot: screenshot
         ) { red, green, blue in
             red > 0.92 && green > 0.92 && blue > 0.92
         }
         XCTAssertGreaterThan(whiteTextCoverage, 0.02)
+        let berryBackgroundCoverage = pixelCoverage(
+            in: banner.frame.insetBy(dx: 18, dy: 18),
+            screenshot: screenshot
+        ) { red, green, blue in
+            abs(red - 173.0 / 255.0) < 0.04 && green < 0.04 && abs(blue - 74.0 / 255.0) < 0.04
+        }
+        XCTAssertGreaterThan(berryBackgroundCoverage, 0.70)
         snap("history-banner-dark-accent-contrast")
     }
 
@@ -78,7 +86,7 @@ final class CardFlipperFlowTests: XCTestCase {
         tap("study.resume.banner")
         let progress = app.descendants(matching: .any)["study.progress"].firstMatch
         XCTAssertTrue(progress.waitForExistence(timeout: 5))
-        XCTAssertTrue(progress.label.contains("2"))
+        XCTAssertEqual(progress.label, "2/2")
         rememberCurrentCard()
         assertExists("study.result")
         snap("history-resumed-natural-completion")

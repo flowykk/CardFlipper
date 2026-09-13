@@ -45,7 +45,8 @@ extension StudySessionSnapshot {
             completedCardIDs: completedCardIDs,
             selectedTagNames: tagNames,
             cardDisplaySnapshots: cardDisplaySnapshots + missingDisplays,
-            completedResult: completedResult
+            completedResult: completedResult,
+            legacyCompletedStatisticsRecorded: legacyCompletedStatisticsRecorded
         )
     }
 }

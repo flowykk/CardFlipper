@@ -29,6 +29,8 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
     public let selectedTagNames: [String]
     public let cardDisplaySnapshots: [StudyCardDisplaySnapshot]
     public let completedResult: StudyResult?
+    /// The v1 app counted completed results without a persistent deduplication ID.
+    public let legacyCompletedStatisticsRecorded: Bool
 
     public init(
         version: Int = Self.currentVersion,
@@ -52,7 +54,8 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
         completedCardIDs: Set<UUID>? = nil,
         selectedTagNames: [String] = [],
         cardDisplaySnapshots: [StudyCardDisplaySnapshot] = [],
-        completedResult: StudyResult? = nil
+        completedResult: StudyResult? = nil,
+        legacyCompletedStatisticsRecorded: Bool = false
     ) {
         self.version = version
         self.sessionID = sessionID
@@ -77,6 +80,7 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
         self.selectedTagNames = selectedTagNames
         self.cardDisplaySnapshots = cardDisplaySnapshots
         self.completedResult = completedResult
+        self.legacyCompletedStatisticsRecorded = legacyCompletedStatisticsRecorded
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -102,6 +106,7 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
         case selectedTagNames
         case cardDisplaySnapshots
         case completedResult
+        case legacyCompletedStatisticsRecorded
     }
 
     public init(from decoder: any Decoder) throws {
@@ -147,5 +152,7 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
             forKey: .cardDisplaySnapshots
         ) ?? []
         completedResult = try container.decodeIfPresent(StudyResult.self, forKey: .completedResult)
+        let persistedLegacyCompletion = try container.decodeIfPresent(Bool.self, forKey: .legacyCompletedStatisticsRecorded) ?? false
+        legacyCompletedStatisticsRecorded = persistedLegacyCompletion || (decodedVersion == 1 && completedResult != nil)
     }
 }

@@ -117,6 +117,7 @@ public final class StudySessionViewModel {
         if let snapshot {
             let cardsByID = Dictionary(uniqueKeysWithValues: configuration.cards.map { ($0.id, $0) })
             let queue = snapshot.queueCardIDs.compactMap { cardsByID[$0] }
+            let resumesSameCard = queue.first?.id == snapshot.queueCardIDs.first
             session = StudySession(
                 cards: queue,
                 direction: snapshot.direction,
@@ -126,9 +127,9 @@ public final class StudySessionViewModel {
                 completedCardIDs: snapshot.completedCardIDs,
                 repeatedCardIDs: snapshot.repeatedCardIDs,
                 totalAssessmentCount: snapshot.totalAssessmentCount,
-                isRevealed: snapshot.isRevealed
+                isRevealed: resumesSameCard && snapshot.isRevealed
             )
-            isShowingAnswer = snapshot.isShowingAnswer && !queue.isEmpty
+            isShowingAnswer = resumesSameCard && snapshot.isShowingAnswer && !queue.isEmpty
             result = snapshot.completedResult
             accumulatedDurationAtStart = snapshot.accumulatedDurationSeconds
             sessionStartedAt = snapshot.startedAt

@@ -4,6 +4,46 @@ import Testing
 @testable import Data
 
 @MainActor
+@Test(arguments: [StudyMode.flashcards, .writing])
+func literalCompletedVersionOneSnapshotSurvivesStoreMigration(mode: StudyMode) throws {
+    let suite = "StudySessionStore.completedLegacy.\(UUID())"
+    let defaults = try #require(UserDefaults(suiteName: suite))
+    defer { defaults.removePersistentDomain(forName: suite) }
+    defaults.set(Data("""
+    {"version":1,"mode":"\(mode.rawValue)","direction":"englishToRussian","selectedTagIDs":[],
+     "originalCardIDs":["00000000-0000-0000-0000-000000000001"],"queueCardIDs":[],
+     "isShowingAnswer":false,"isRevealed":false,"forgottenCount":1,
+     "repeatedCardIDs":["00000000-0000-0000-0000-000000000001"],"totalAssessmentCount":2,
+     "startedAt":100,"accumulatedDurationSeconds":15,
+     "completedResult":{"reviewedCardCount":1,"repeatedCardIDs":["00000000-0000-0000-0000-000000000001"],"totalAssessmentCount":2,"elapsedSeconds":15}}
+    """.utf8), forKey: UserDefaultsStudySessionStore.storageKey)
+    let store = UserDefaultsStudySessionStore(defaults: defaults)
+    let snapshot = try #require(store.load())
+    let result = try #require(snapshot.completedResult)
+    #expect(result == StudyResult(reviewedCardCount: 1, repeatedCardIDs: [UUID(uuidString: "00000000-0000-0000-0000-000000000001")!], totalAssessmentCount: 2, elapsedSeconds: 15))
+    #expect(result.plannedCardCount == 1)
+    #expect(result.encounteredCardCount == 1)
+    #expect(snapshot.mode == mode)
+    #expect(snapshot.version == 2)
+    #expect(snapshot.legacyCompletedStatisticsRecorded)
+    #expect(store.load() == snapshot)
+    #expect(try JSONDecoder().decode(StudySessionSnapshot.self, from: JSONEncoder().encode(snapshot)) == snapshot)
+}
+
+@MainActor
+@Test func incompleteVersionTwoSnapshotKeepsGeneratedIdentityAcrossLoads() throws {
+    let suite = "StudySessionStore.incompleteV2.\(UUID())"
+    let defaults = try #require(UserDefaults(suiteName: suite))
+    defer { defaults.removePersistentDomain(forName: suite) }
+    defaults.set(Data(#"{"version":2,"direction":"russianToEnglish","selectedTagIDs":[],"originalCardIDs":[],"queueCardIDs":[],"isShowingAnswer":false,"isRevealed":false,"forgottenCount":0,"repeatedCardIDs":[],"totalAssessmentCount":0,"accumulatedDurationSeconds":0}"#.utf8), forKey: UserDefaultsStudySessionStore.storageKey)
+    let first = try #require(UserDefaultsStudySessionStore(defaults: defaults).load())
+    let second = try #require(UserDefaultsStudySessionStore(defaults: defaults).load())
+    #expect(first == second)
+    let persisted = try #require(defaults.data(forKey: UserDefaultsStudySessionStore.storageKey))
+    #expect(try JSONDecoder().decode(StudySessionSnapshot.self, from: persisted) == first)
+}
+
+@MainActor
 @Test func studySessionStoreRoundTripsVersionTwoSnapshotAndClearsIt() throws {
     let suiteName = "StudySessionStore.roundTrip.\(UUID().uuidString)"
     let defaults = try #require(UserDefaults(suiteName: suiteName))

@@ -21,15 +21,13 @@ public final class UserDefaultsStudySessionStore: StudySessionStore {
 
         do {
             let decoder = JSONDecoder()
-            let persistedVersion = try decoder.decode(PersistedVersion.self, from: data).version
             let snapshot = try decoder.decode(StudySessionSnapshot.self, from: data)
             guard snapshot.version == StudySessionSnapshot.currentVersion else {
                 clear()
                 return nil
             }
-            if persistedVersion == 1 {
-                save(snapshot)
-            }
+            // Persist generated identity/timestamps and migration flags even for incomplete v2 data.
+            save(snapshot)
             return snapshot
         } catch {
             clear()
@@ -47,9 +45,5 @@ public final class UserDefaultsStudySessionStore: StudySessionStore {
 
     public func clear() {
         defaults.removeObject(forKey: storageKey)
-    }
-
-    private struct PersistedVersion: Decodable {
-        let version: Int
     }
 }

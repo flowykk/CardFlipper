@@ -14,6 +14,48 @@ public struct StudyResult: Codable, Equatable, Sendable {
     public let elapsedSeconds: Int
     private let recordedForgottenCount: Int?
 
+    private enum CodingKeys: String, CodingKey {
+        case plannedCardCount, completedCardCount, encounteredCardCount, reviewedCardCount
+        case repeatedCardIDs, totalAssessmentCount, elapsedSeconds, recordedForgottenCount
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let planned: Int
+        let completed: Int
+        let encountered: Int
+        if container.contains(.plannedCardCount) {
+            planned = try container.decode(Int.self, forKey: .plannedCardCount)
+            completed = try container.decode(Int.self, forKey: .completedCardCount)
+            encountered = try container.decode(Int.self, forKey: .encounteredCardCount)
+        } else {
+            let reviewed = try container.decode(Int.self, forKey: .reviewedCardCount)
+            planned = reviewed
+            completed = reviewed
+            encountered = reviewed
+        }
+        self.init(
+            plannedCardCount: planned,
+            completedCardCount: completed,
+            encounteredCardCount: encountered,
+            repeatedCardIDs: try container.decode([UUID].self, forKey: .repeatedCardIDs),
+            totalAssessmentCount: try container.decode(Int.self, forKey: .totalAssessmentCount),
+            elapsedSeconds: try container.decode(Int.self, forKey: .elapsedSeconds),
+            forgottenCount: try container.decodeIfPresent(Int.self, forKey: .recordedForgottenCount)
+        )
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(plannedCardCount, forKey: .plannedCardCount)
+        try container.encode(completedCardCount, forKey: .completedCardCount)
+        try container.encode(encounteredCardCount, forKey: .encounteredCardCount)
+        try container.encode(repeatedCardIDs, forKey: .repeatedCardIDs)
+        try container.encode(totalAssessmentCount, forKey: .totalAssessmentCount)
+        try container.encode(elapsedSeconds, forKey: .elapsedSeconds)
+        try container.encodeIfPresent(recordedForgottenCount, forKey: .recordedForgottenCount)
+    }
+
     public init(
         plannedCardCount: Int,
         completedCardCount: Int,

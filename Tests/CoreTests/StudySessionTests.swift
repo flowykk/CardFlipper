@@ -13,6 +13,30 @@ import Testing
 }
 @testable import Core
 
+@Test func literalOldStudyResultDecodesWithValidatedCountsAndSemanticEquality() throws {
+    let payload = Data(#"{"reviewedCardCount":-2,"repeatedCardIDs":[],"totalAssessmentCount":-3,"elapsedSeconds":-4}"#.utf8)
+    let result = try JSONDecoder().decode(StudyResult.self, from: payload)
+    #expect(result == StudyResult(reviewedCardCount: 0, repeatedCardIDs: [], totalAssessmentCount: 0, elapsedSeconds: 0))
+    #expect(result.plannedCardCount == 0)
+    #expect(result.completedCardCount == 0)
+    #expect(result.encounteredCardCount == 0)
+}
+
+@Test func currentStudyResultDecodingValidatesCountsAndPreservesExplicitMistakes() throws {
+    let payload = Data(#"{"plannedCardCount":3,"completedCardCount":9,"encounteredCardCount":2,"repeatedCardIDs":["00000000-0000-0000-0000-000000000001","00000000-0000-0000-0000-000000000001"],"totalAssessmentCount":4,"elapsedSeconds":-1,"recordedForgottenCount":1}"#.utf8)
+    let result = try JSONDecoder().decode(StudyResult.self, from: payload)
+    #expect(result.plannedCardCount == 3)
+    #expect(result.completedCardCount == 2)
+    #expect(result.encounteredCardCount == 2)
+    #expect(result.repeatedCardCount == 1)
+    #expect(result.elapsedSeconds == 0)
+    #expect(result.forgottenCount == 1)
+    #expect(result == StudyResult(plannedCardCount: 3, completedCardCount: 2,
+        encounteredCardIDs: [.fixture(1), .fixture(2)], repeatedCardIDs: [.fixture(1)],
+        totalAssessmentCount: 4, elapsedSeconds: 0, forgottenCount: 1))
+    #expect(try JSONDecoder().decode(StudyResult.self, from: JSONEncoder().encode(result)) == result)
+}
+
 private extension UUID {
     static func fixture(_ value: UInt8) -> UUID {
         UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, value))

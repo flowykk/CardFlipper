@@ -5,22 +5,27 @@ import Testing
 @testable import Data
 
 @MainActor
-@Test func studyHistoryFetchesNewestFirstAndRoundTripsImmutableArrays() throws {
+@Test(arguments: [StudyMode.flashcards, .writing], [StudyDirection.englishToRussian, .russianToEnglish])
+func studyHistoryFetchesNewestFirstAndRoundTripsImmutableArrays(mode: StudyMode, direction: StudyDirection) throws {
     let repository = SwiftDataStudyHistoryRepository(
         container: try ModelContainerFactory.makeInMemory()
     )
     let newest = StudyHistoryEntry.fixture(
+        mode: mode,
+        direction: direction,
         completedAt: Date(timeIntervalSince1970: 5_000)
     )
     let oldest = StudyHistoryEntry.fixture(
         id: TestIDs.secondStudySession,
+        mode: mode,
+        direction: direction,
         completedAt: Date(timeIntervalSince1970: 3_000),
         selectedTagNames: ["Фразовые глаголы?!", "Travel / отдых"],
         difficultCardTitles: ["to put up with — мириться", "don't / doesn't"]
     )
 
-    #expect(try repository.insertIfNeeded(newest))
     #expect(try repository.insertIfNeeded(oldest))
+    #expect(try repository.insertIfNeeded(newest))
 
     #expect(try repository.fetchHistory() == [newest, oldest])
 }

@@ -18,7 +18,9 @@ final class StudyHistoryFinalizer {
         let result = StudyResult(finalizing: snapshot)
         let entry = StudyHistoryEntry(finalizing: snapshot, result: result, completedAt: completedAt)
         _ = try history.insertIfNeeded(entry)
-        statistics.record(sessionID: snapshot.sessionID, mode: snapshot.mode, result: result)
+        if !snapshot.legacyCompletedStatisticsRecorded {
+            statistics.record(sessionID: snapshot.sessionID, mode: snapshot.mode, result: result)
+        }
         sessionStore.clear()
         return entry
     }

@@ -169,6 +169,8 @@ extension VocabularyCard {
 extension StudyHistoryEntry {
     static func fixture(
         id: UUID = TestIDs.studySession,
+        mode: StudyMode = .writing,
+        direction: StudyDirection = .russianToEnglish,
         completedAt: Date = Date(timeIntervalSince1970: 4_000),
         selectedTagNames: [String] = ["Работа: срочно!", "C++ & Swift"],
         difficultCardTitles: [String] = ["ёж — 'hedgehog'", "well-being?"]
@@ -177,8 +179,8 @@ extension StudyHistoryEntry {
             id: id,
             startedAt: completedAt.addingTimeInterval(-120),
             completedAt: completedAt,
-            mode: .writing,
-            direction: .russianToEnglish,
+            mode: mode,
+            direction: direction,
             selectedTagNames: selectedTagNames,
             plannedCardCount: 12,
             completedCardCount: 8,
