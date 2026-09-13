@@ -11,89 +11,149 @@ public struct StudyHistoryDetailView: View {
     }
 
     public var body: some View {
-        List {
-            Section {
+        ScrollView {
+            VStack(spacing: 16) {
                 MetricTable(backgroundStyle: Color(uiColor: .secondarySystemGroupedBackground)) {
-                    detailRow("history.completedAt.label", HistoryPresentation.dateTime(entry.completedAt))
-                    MetricTableDivider()
-                    detailRow("history.startedAt.label", HistoryPresentation.dateTime(entry.startedAt))
-                    MetricTableDivider()
-                    detailRow("history.duration.label", HistoryPresentation.duration(entry.elapsedSeconds))
+                    detailRow(
+                        "history.completedAt.label",
+                        systemImage: "checkmark.circle.fill",
+                        value: HistoryPresentation.dateTime(entry.completedAt)
+                    )
+                    MetricTableDivider(leadingInset: 56)
+                    detailRow(
+                        "history.startedAt.label",
+                        systemImage: "play.circle.fill",
+                        value: HistoryPresentation.dateTime(entry.startedAt)
+                    )
+                    MetricTableDivider(leadingInset: 56)
+                    detailRow(
+                        "history.duration.label",
+                        systemImage: "timer",
+                        value: HistoryPresentation.duration(entry.elapsedSeconds)
+                    )
                 }
-                .listRowBackground(Color.clear)
-            }
 
-            Section {
                 MetricTable(backgroundStyle: Color(uiColor: .secondarySystemGroupedBackground)) {
-                    detailRow("history.mode.label", HistoryPresentation.mode(entry.mode))
-                    MetricTableDivider()
-                    detailRow("history.direction.label", HistoryPresentation.direction(entry.direction))
-                    MetricTableDivider()
+                    detailRow(
+                        "history.mode.label",
+                        systemImage: entry.mode == .writing ? "pencil.line" : "rectangle.stack.fill",
+                        value: HistoryPresentation.mode(entry.mode)
+                    )
+                    MetricTableDivider(leadingInset: 56)
+                    detailRow(
+                        "history.direction.label",
+                        systemImage: "arrow.left.arrow.right",
+                        value: HistoryPresentation.direction(entry.direction)
+                    )
+                    MetricTableDivider(leadingInset: 56)
                     detailRow(
                         "history.progress.label",
-                        HistoryPresentation.progress(
+                        systemImage: "chart.bar.fill",
+                        value: HistoryPresentation.progress(
                             completed: entry.completedCardCount,
                             total: entry.plannedCardCount
                         )
                     )
-                    MetricTableDivider()
-                    detailRow("history.recall.label", HistoryPresentation.recall(entry.recallRatePercentage))
-                    MetricTableDivider()
-                    detailRow("history.encountered.label", String(entry.encounteredCardCount))
-                    MetricTableDivider()
-                    detailRow("history.repeated.label", String(entry.repeatedCardCount))
-                    MetricTableDivider()
-                    detailRow("history.forgotten.label", String(entry.forgottenCount))
-                    MetricTableDivider()
-                    detailRow("history.assessments.label", String(entry.totalAssessmentCount))
+                    MetricTableDivider(leadingInset: 56)
+                    detailRow(
+                        "history.recall.label",
+                        systemImage: "target",
+                        value: HistoryPresentation.recall(entry.recallRatePercentage)
+                    )
+                    MetricTableDivider(leadingInset: 56)
+                    detailRow(
+                        "history.encountered.label",
+                        systemImage: "eye.fill",
+                        value: String(entry.encounteredCardCount)
+                    )
+                    MetricTableDivider(leadingInset: 56)
+                    detailRow(
+                        "history.repeated.label",
+                        systemImage: "arrow.clockwise",
+                        value: String(entry.repeatedCardCount)
+                    )
+                    MetricTableDivider(leadingInset: 56)
+                    detailRow(
+                        "history.forgotten.label",
+                        systemImage: "xmark.circle.fill",
+                        value: String(entry.forgottenCount)
+                    )
+                    MetricTableDivider(leadingInset: 56)
+                    detailRow(
+                        "history.assessments.label",
+                        systemImage: "checklist",
+                        value: String(entry.totalAssessmentCount)
+                    )
                 }
-                .listRowBackground(Color.clear)
-            }
 
-            Section {
                 MetricTable(backgroundStyle: Color(uiColor: .secondarySystemGroupedBackground)) {
-                    detailRow("history.tags.label", HistoryPresentation.tags(entry.selectedTagNames))
+                    detailRow(
+                        "history.tags.label",
+                        systemImage: "tag.fill",
+                        value: HistoryPresentation.tags(entry.selectedTagNames)
+                    )
                 }
-                .listRowBackground(Color.clear)
-            }
 
-            if !entry.difficultCardTitles.isEmpty {
-                Section {
-                    ForEach(entry.difficultCardTitles, id: \.self) { title in
-                        Text(verbatim: title)
-                            .frame(minHeight: 44, alignment: .leading)
-                            .accessibilityElement(children: .combine)
-                            .accessibilityIdentifier("history.difficult.\(title)")
+                if !entry.difficultCardTitles.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("history.difficultCards.label", bundle: .module)
+                            .font(.headline)
+                            .padding(.horizontal, 4)
+
+                        MetricTable(backgroundStyle: Color(uiColor: .secondarySystemGroupedBackground)) {
+                            ForEach(Array(entry.difficultCardTitles.enumerated()), id: \.element) { index, title in
+                                MetricTableRow(systemImage: "exclamationmark.triangle.fill") {
+                                    Text(verbatim: title)
+                                        .font(.body)
+                                } trailing: {
+                                    EmptyView()
+                                }
+                                .accessibilityIdentifier("history.difficult.\(title)")
+
+                                if index < entry.difficultCardTitles.index(before: entry.difficultCardTitles.endIndex) {
+                                    MetricTableDivider(leadingInset: 56)
+                                }
+                            }
+                        }
                     }
-                } header: {
-                    Text("history.difficultCards.label", bundle: .module)
                 }
             }
+            .padding()
         }
+        .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
         .navigationTitle(Text("history.detail.title", bundle: .module))
         .navigationBarTitleDisplayMode(.inline)
+        .scrollBounceBehavior(.basedOnSize)
     }
 
-    private func detailRow(_ labelKey: String, _ value: String) -> some View {
+    private func detailRow(
+        _ labelKey: String,
+        systemImage: String,
+        value: String
+    ) -> some View {
         ViewThatFits(in: .horizontal) {
-            MetricTableRow {
+            MetricTableRow(systemImage: systemImage) {
                 Text(LocalizedStringKey(labelKey), bundle: .module)
                     .font(.body)
                     .foregroundStyle(.secondary)
             } trailing: {
                 Text(verbatim: value)
-                    .font(.system(.headline, design: .rounded, weight: .semibold))
+                    .font(.body.weight(.regular))
                     .monospacedDigit()
                     .multilineTextAlignment(.trailing)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(LocalizedStringKey(labelKey), bundle: .module)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text(verbatim: value)
-                    .font(.system(.headline, design: .rounded, weight: .semibold))
-                    .monospacedDigit()
+            MetricTableRow(systemImage: systemImage) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(LocalizedStringKey(labelKey), bundle: .module)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text(verbatim: value)
+                        .font(.body.weight(.regular))
+                        .monospacedDigit()
+                }
+            } trailing: {
+                EmptyView()
             }
         }
         .accessibilityElement(children: .combine)
