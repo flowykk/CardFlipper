@@ -517,6 +517,7 @@ final class RootViewModel {
 
 struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var model: RootViewModel
     @State private var appearanceSettings: AppearanceSettings
     @State private var iconSettings: AppIconSettings
@@ -548,6 +549,7 @@ struct RootView: View {
                 onAddCard: navigation.openNewEditor,
                 onEditCard: { navigation.openEditor(cardID: $0.id) },
                 onStartStudy: model.requestOpenStudySetup,
+                onOpenSettings: navigation.openSettings,
                 onImportCards: { isShowingImporter = true },
                 onManageTags: { navigation.path.append(.tags) },
                 onDataChanged: model.libraryChanged
@@ -560,33 +562,26 @@ struct RootView: View {
                 }
             }
             .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    HapticButton {
-                        navigation.path.append(.history)
-                    } label: {
-                        Label("history.open", systemImage: "clock.arrow.circlepath")
-                    }
-                    .accessibilityIdentifier("library.history")
-                    HapticButton(action: navigation.openNewEditor) {
-                        Label("library.add", systemImage: "plus")
-                    }
-                    .accessibilityIdentifier("library.add")
-
-                    HapticButton(action: navigation.openSettings) {
-                        Label("settings.open", systemImage: AppSymbol.settings)
-                    }
-                    .accessibilityIdentifier("library.settings")
-
-                    HapticButton {
-                        navigation.path.append(.statistics)
-                    } label: {
-                        Label {
-                            Text("statistics.open", bundle: StatisticsFeatureResources.bundle)
-                        } icon: {
-                            Image(systemName: AppSymbol.statistics)
+                if !model.library.isBulkTagSelectionActive {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        HapticButton {
+                            navigation.path.append(.history)
+                        } label: {
+                            Label("history.open", systemImage: "clock.arrow.circlepath")
                         }
+                        .accessibilityIdentifier("library.history")
+
+                        HapticButton {
+                            navigation.path.append(.statistics)
+                        } label: {
+                            Label {
+                                Text("statistics.open", bundle: StatisticsFeatureResources.bundle)
+                            } icon: {
+                                Image(systemName: AppSymbol.statistics)
+                            }
+                        }
+                        .accessibilityIdentifier("library.statistics")
                     }
-                    .accessibilityIdentifier("library.statistics")
                 }
             }
             .navigationDestination(for: AppRoute.self) { route in
@@ -681,9 +676,11 @@ struct RootView: View {
                 .toolbar {
                     if model.studyTimer.snapshot.isVisible {
                         ToolbarItem(placement: .topBarLeading) {
-                            Text(verbatim: StudyTimerCopy.summary(
-                                model.studyTimer.snapshot
-                            ))
+                            Text(verbatim: dynamicTypeSize.isAccessibilitySize
+                                 ? StudyDurationFormatter.string(
+                                    seconds: model.studyTimer.snapshot.sessionElapsedSeconds
+                                 )
+                                 : StudyTimerCopy.summary(model.studyTimer.snapshot))
                             .font(.system(.subheadline, design: .monospaced).weight(.semibold))
                             .padding(.horizontal, 8)
                             .fixedSize(horizontal: true, vertical: false)

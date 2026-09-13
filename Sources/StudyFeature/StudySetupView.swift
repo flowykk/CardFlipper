@@ -97,8 +97,27 @@ public struct StudySetupView: View {
         .animation(modeTransitionAnimation, value: model.mode)
         .accessibilityIdentifier("study.setup")
         .navigationTitle("study.setup.title")
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             startButton
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background {
+                    Color(uiColor: .systemGroupedBackground)
+                        .ignoresSafeArea(edges: .bottom)
+                }
+                .overlay(alignment: .top) {
+                    LinearGradient(
+                        colors: [
+                            .clear,
+                            Color(uiColor: .systemGroupedBackground)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 16)
+                    .offset(y: -16)
+                    .allowsHitTesting(false)
+                }
         }
     }
 
@@ -113,9 +132,6 @@ public struct StudySetupView: View {
         .buttonStyle(PrimaryActionButtonStyle())
         .disabled(!model.canStart)
         .accessibilityIdentifier("study.start")
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
     }
 
     private var modeTransitionAnimation: Animation {

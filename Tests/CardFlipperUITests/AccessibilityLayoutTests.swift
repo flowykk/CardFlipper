@@ -19,15 +19,11 @@ final class AccessibilityLayoutTests: XCTestCase {
         XCTAssertTrue(banner.label.contains("Continue"))
         captureHistory("AX-History-Library-Banner")
         app.buttons["library.study"].firstMatch.tap()
-        let start = app.buttons["study.start"]
-        scrollToHittable(start)
-        start.tap()
         for action in ["Continue Saved Game", "Start New Game", "Cancel"] {
             assertHistoryElementFits(app.alerts.buttons[action])
         }
         captureHistory("AX-History-Conflict")
         app.alerts.buttons["Cancel"].tap()
-        app.navigationBars.buttons.firstMatch.tap()
         app.buttons["library.history"].tap()
         assertHistoryElementFits(banner)
         let row = app.buttons["history.row.00000000-0000-0000-0000-000000000902"]
@@ -105,7 +101,7 @@ final class AccessibilityLayoutTests: XCTestCase {
 
         let remember = app.descendants(matching: .any)["study.remember"]
         let forget = app.descendants(matching: .any)["study.forget"]
-        let timer = app.descendants(matching: .any)["study.timer"]
+        let timer = app.descendants(matching: .any)["study.timer"].firstMatch
         XCTAssertTrue(remember.waitForExistence(timeout: 5))
         XCTAssertTrue(forget.waitForExistence(timeout: 5))
         XCTAssertTrue(timer.waitForExistence(timeout: 5))
@@ -239,7 +235,7 @@ final class AccessibilityLayoutTests: XCTestCase {
     }
 
     private func tap(_ identifier: String) {
-        let element = app.descendants(matching: .any)[identifier]
+        let element = app.descendants(matching: .any)[identifier].firstMatch
         scrollToHittable(element)
         element.tap()
     }

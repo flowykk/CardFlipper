@@ -104,22 +104,20 @@ final class CardFlipperFlowTests: XCTestCase {
     func testHistoryConflictCancelContinueAndStartNewPreserveConfiguredWriting() {
         launchHistory(arguments: ["-uiTestResume"])
         tap("library.study")
-        tap("study.mode.writing")
-        tap("study.start")
         assertConflictActions()
         app.alerts.buttons["Cancel"].tap()
-        XCTAssertTrue(app.buttons["study.mode.writing"].isSelected)
-        tap("study.start")
+        assertExists("library.root")
+        tap("library.study")
         app.alerts.buttons["Continue Saved Game"].tap()
         assertExists("study.card.prompt")
         XCTAssertFalse(app.textFields["study.writing.answer"].exists)
         saveAndExit()
         tap("library.study")
-        tap("study.mode.writing")
-        tap("study.start")
         assertConflictActions()
         snap("history-replacement-conflict")
         app.alerts.buttons["Start New Game"].tap()
+        tap("study.mode.writing")
+        tap("study.start")
         XCTAssertTrue(app.textFields["study.writing.answer"].waitForExistence(timeout: 5))
         app.textFields["study.writing.answer"].tap()
         app.textFields["study.writing.answer"].typeText("ca")
@@ -443,15 +441,15 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(study.label.contains("Study Today"))
         XCTAssertTrue(study.label.contains("3"))
         XCTAssertTrue(study.isHittable)
-        let add = app.navigationBars.buttons["library.add"]
+        let add = app.buttons["library.add"].firstMatch
         XCTAssertTrue(add.isHittable)
 
         let search = app.searchFields["Search cards"]
         XCTAssertTrue(search.waitForExistence(timeout: 3))
         let filters = app.buttons["library.filters"].firstMatch
         XCTAssertTrue(filters.isHittable)
-        XCTAssertGreaterThan(filters.frame.minX, search.frame.maxX)
-        XCTAssertGreaterThan(study.frame.minX, filters.frame.maxX)
+        XCTAssertGreaterThan(add.frame.minX, search.frame.maxX)
+        XCTAssertGreaterThan(study.frame.minX, add.frame.maxX)
         XCTAssertLessThan(study.frame.minY, search.frame.maxY)
         XCTAssertGreaterThan(study.frame.maxY, search.frame.minY)
         snap("library-primary-actions")
@@ -1140,7 +1138,11 @@ final class CardFlipperFlowTests: XCTestCase {
         scrollToHittable(picker)
         for _ in 0..<10 {
             if element.exists, element.isHittable { return }
-            dragIconPickerLeft(picker)
+            if element.exists, element.frame.maxX < picker.frame.minX {
+                dragIconPickerRight(picker)
+            } else {
+                dragIconPickerLeft(picker)
+            }
         }
         XCTAssertTrue(element.exists, "Expected \(element)")
         XCTAssertTrue(element.isHittable, "Expected horizontally reachable \(element)")
@@ -1149,6 +1151,12 @@ final class CardFlipperFlowTests: XCTestCase {
     private func dragIconPickerLeft(_ picker: XCUIElement) {
         let start = picker.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5))
         let end = picker.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5))
+        start.press(forDuration: 0.05, thenDragTo: end)
+    }
+
+    private func dragIconPickerRight(_ picker: XCUIElement) {
+        let start = picker.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5))
+        let end = picker.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5))
         start.press(forDuration: 0.05, thenDragTo: end)
     }
 

@@ -17,6 +17,7 @@ public struct LibraryView: View {
     private let onAddCard: () -> Void
     private let onEditCard: (VocabularyCard) -> Void
     private let onStartStudy: () -> Void
+    private let onOpenSettings: () -> Void
     private let onImportCards: () -> Void
     private let onManageTags: () -> Void
     private let onDataChanged: @MainActor () async -> Void
@@ -26,6 +27,7 @@ public struct LibraryView: View {
         onAddCard: @escaping () -> Void,
         onEditCard: @escaping (VocabularyCard) -> Void,
         onStartStudy: @escaping () -> Void,
+        onOpenSettings: @escaping () -> Void = {},
         onImportCards: @escaping () -> Void = {},
         onManageTags: @escaping () -> Void = {},
         onDataChanged: @escaping @MainActor () async -> Void = {}
@@ -34,6 +36,7 @@ public struct LibraryView: View {
         self.onAddCard = onAddCard
         self.onEditCard = onEditCard
         self.onStartStudy = onStartStudy
+        self.onOpenSettings = onOpenSettings
         self.onImportCards = onImportCards
         self.onManageTags = onManageTags
         self.onDataChanged = onDataChanged
@@ -50,30 +53,48 @@ public struct LibraryView: View {
                 searchText: $model.searchText
             ))
             .toolbar {
+                if !model.isBulkTagSelectionActive {
+                    ToolbarItemGroup(placement: .topBarLeading) {
+                        HapticButton(action: onOpenSettings) {
+                            Label("settings.open", systemImage: AppSymbol.settings)
+                        }
+                        .accessibilityIdentifier("library.settings")
+
+                        if !model.cards.isEmpty {
+                            filterToolbarButton
+                        }
+                    }
+                }
+
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if model.isBulkTagSelectionActive {
                         HapticButton("library.bulk.cancel") {
                             cancelBulkSelection()
                         }
                             .accessibilityIdentifier("library.bulk.cancel")
-                    } else if !model.cards.isEmpty {
-                        HapticButton {
-                            beginBulkSelection()
-                        } label: {
-                            Label("library.bulk.select", systemImage: "checklist")
+                    } else {
+                        if !model.cards.isEmpty {
+                            HapticButton {
+                                beginBulkSelection()
+                            } label: {
+                                Label("library.bulk.select", systemImage: "checklist")
+                            }
+                            .accessibilityIdentifier("library.bulk.select")
                         }
-                        .accessibilityIdentifier("library.bulk.select")
                     }
                 }
 
-                if !model.cards.isEmpty {
+                if !model.cards.isEmpty, !model.isBulkTagSelectionActive {
                     if #available(iOS 26.0, *) {
                         DefaultToolbarItem(kind: .search, placement: .bottomBar)
                         ToolbarSpacer(.fixed, placement: .bottomBar)
                     }
 
                     ToolbarItem(placement: .bottomBar) {
-                        filterToolbarButton
+                        HapticButton(action: onAddCard) {
+                            Label("library.add", systemImage: "plus")
+                        }
+                        .accessibilityIdentifier("library.add")
                     }
 
                     ToolbarItem(placement: .bottomBar) {
