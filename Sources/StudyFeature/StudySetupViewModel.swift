@@ -6,17 +6,20 @@ public struct StudyConfiguration: Equatable, Sendable {
     public let mode: StudyMode
     public let direction: StudyDirection
     public let selectedTagIDs: Set<UUID>
+    public let selectedTagNames: [String]
     public let cards: [VocabularyCard]
 
     public init(
         mode: StudyMode = .flashcards,
         direction: StudyDirection,
         selectedTagIDs: Set<UUID>,
+        selectedTagNames: [String] = [],
         cards: [VocabularyCard]
     ) {
         self.mode = mode
         self.direction = direction
         self.selectedTagIDs = selectedTagIDs
+        self.selectedTagNames = selectedTagNames
         self.cards = cards
     }
 }
@@ -61,6 +64,9 @@ public final class StudySetupViewModel {
             mode: mode,
             direction: direction,
             selectedTagIDs: selectedTagIDs,
+            selectedTagNames: selectedTagIDs.isEmpty
+                ? []
+                : tags.filter { selectedTagIDs.contains($0.id) }.map(\.name),
             cards: matchingCards
         )
     }
@@ -85,4 +91,11 @@ public final class StudySetupViewModel {
             selectedTagIDs.insert(id)
         }
     }
+}
+
+func studyCardDisplayTitle(_ card: VocabularyCard) -> String {
+    let english = card.englishVariants.map(\.text)
+    return english.isEmpty
+        ? card.russianMeanings.map(\.text).joined(separator: " • ")
+        : english.joined(separator: " • ")
 }

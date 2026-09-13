@@ -80,8 +80,33 @@ import Testing
     }
 }
 
-private func loadLocalizationCatalog() throws -> [String: [String: String]] {
-    let strings = try loadCatalogStringsRoot()
+@Test func saveAndExitCopyExistsInTheStudyFeatureCatalog() throws {
+    let catalog = try loadLocalizationCatalog(
+        at: "Resources/StudyFeature/Localizable.xcstrings"
+    )
+
+    #expect(catalog["study.exit.title"] == [
+        "en": "Save and Exit?",
+        "ru": "Сохранить и выйти?",
+    ])
+    #expect(catalog["study.exit.message"] == [
+        "en": "Your progress will be saved so you can continue later.",
+        "ru": "Прогресс будет сохранён, и вы сможете продолжить позже.",
+    ])
+    #expect(catalog["study.exit.saveAndExit"] == [
+        "en": "Save and Exit",
+        "ru": "Сохранить и выйти",
+    ])
+    #expect(catalog["study.exit.continueGame"] == [
+        "en": "Continue Game",
+        "ru": "Продолжить игру",
+    ])
+}
+
+private func loadLocalizationCatalog(
+    at path: String = "Resources/CardFlipperApp/Localizable.xcstrings"
+) throws -> [String: [String: String]] {
+    let strings = try loadCatalogStringsRoot(at: path)
 
     return strings.reduce(into: [:]) { result, entry in
         guard let definition = entry.value as? [String: Any],
@@ -104,7 +129,7 @@ private func loadLocalizationCatalog() throws -> [String: [String: String]] {
 }
 
 private func loadPluralCatalogValues(key: String) throws -> [String: [String: String]] {
-    let strings = try loadCatalogStringsRoot()
+    let strings = try loadCatalogStringsRoot(at: "Resources/CardFlipperApp/Localizable.xcstrings")
     let definition = try #require(strings[key] as? [String: Any])
     let localizations = try #require(definition["localizations"] as? [String: Any])
 
@@ -129,13 +154,12 @@ private func loadPluralCatalogValues(key: String) throws -> [String: [String: St
     }
 }
 
-private func loadCatalogStringsRoot() throws -> [String: Any] {
+private func loadCatalogStringsRoot(at path: String) throws -> [String: Any] {
     let repositoryRoot = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent()
         .deletingLastPathComponent()
         .deletingLastPathComponent()
-    let catalogURL = repositoryRoot
-        .appendingPathComponent("Resources/CardFlipperApp/Localizable.xcstrings")
+    let catalogURL = repositoryRoot.appendingPathComponent(path)
     let data = try Data(contentsOf: catalogURL)
     let root = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
     return try #require(root["strings"] as? [String: Any])

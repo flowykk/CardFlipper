@@ -108,6 +108,7 @@ extension StudyConfiguration {
     static let fixture = StudyConfiguration(
         direction: .russianToEnglish,
         selectedTagIDs: [Tag.work.id],
+        selectedTagNames: [Tag.work.name],
         cards: [
             .fixture(id: 1, russian: "первый", english: "first", tags: [.work]),
             .fixture(id: 2, russian: "второй", english: "second", tags: [.work]),

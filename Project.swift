@@ -19,7 +19,17 @@ let project = Project(
         .framework(name: "DesignSystem"),
         .framework(name: "LibraryFeature", dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]),
         .framework(name: "CardEditorFeature", dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]),
-        .framework(name: "StudyFeature", dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]),
+        .target(
+            name: "StudyFeature",
+            destinations: .iOS,
+            product: .staticFramework,
+            bundleId: "com.danilarahmanov.CardFlipper.StudyFeature",
+            deploymentTargets: .iOS("18.0"),
+            infoPlist: .default,
+            sources: ["Sources/StudyFeature/**"],
+            resources: ["Resources/StudyFeature/**"],
+            dependencies: [.target(name: "Core"), .target(name: "DesignSystem")]
+        ),
         .target(
             name: "StatisticsFeature",
             destinations: .iOS,

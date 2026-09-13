@@ -32,6 +32,7 @@ import Testing
         mode: .writing,
         direction: .russianToEnglish,
         selectedTagIDs: [Tag.work.id],
+        selectedTagNames: [Tag.work.name],
         cards: [learnedWork]
     ))
 }
@@ -127,7 +128,23 @@ import Testing
         model.configuration == StudyConfiguration(
             direction: .englishToRussian,
             selectedTagIDs: [Tag.exam.id],
+            selectedTagNames: [Tag.exam.name],
             cards: [first, second]
         )
     )
+}
+
+@MainActor
+@Test func configurationPreservesSelectedTagDisplayOrderAndUsesNoLabelsForAllCards() {
+    let model = StudySetupViewModel(
+        cards: [.fixture(id: 1, tags: [.work, .exam])],
+        tags: [.exam, .work]
+    )
+
+    #expect(model.configuration?.selectedTagNames == [])
+
+    model.toggleTag(Tag.work.id)
+    model.toggleTag(Tag.exam.id)
+
+    #expect(model.configuration?.selectedTagNames == ["Exam", "Work"])
 }

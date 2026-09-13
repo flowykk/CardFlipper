@@ -51,7 +51,7 @@ public struct WritingSessionView: View {
                     } label: {
                         Label("common.close", systemImage: "xmark")
                     }
-                    .accessibilityHint("study.exit.message")
+                    .accessibilityHint(Text("study.exit.message", bundle: .module))
                 }
             }
         }
@@ -75,19 +75,24 @@ public struct WritingSessionView: View {
             )
         }
         .confirmationDialog(
-            "study.exit.title",
+            Text("study.exit.title", bundle: .module),
             isPresented: exitConfirmation,
             titleVisibility: .visible
         ) {
-            HapticButton("common.close", role: .destructive) {
+            HapticButton {
                 model.cancelExit()
+                model.persistSnapshot()
                 onFinish()
+            } label: {
+                Text("study.exit.saveAndExit", bundle: .module)
             }
-            HapticButton("common.cancel", role: .cancel) {
+            HapticButton(role: .cancel) {
                 model.cancelExit()
+            } label: {
+                Text("study.exit.continueGame", bundle: .module)
             }
         } message: {
-            Text("study.exit.message")
+            Text("study.exit.message", bundle: .module)
         }
         .onChange(of: model.result) { _, result in
             if let result { onComplete(result) }

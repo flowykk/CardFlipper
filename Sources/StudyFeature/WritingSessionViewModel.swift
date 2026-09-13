@@ -12,6 +12,10 @@ public final class WritingSessionViewModel {
 
     public let repeatConfiguration: StudyConfiguration
 
+    private let sessionID: UUID
+    private let originalSelectedTagNames: [String]
+    private let originalCardIDs: [UUID]
+    private let originalCardDisplaySnapshots: [StudyCardDisplaySnapshot]
     private let speech: any SpeechService
     private let feedback: any StudyFeedback
     private let store: (any StudySessionStore)?
@@ -23,6 +27,8 @@ public final class WritingSessionViewModel {
 
     public init(
         configuration: StudyConfiguration,
+        sessionID: UUID,
+        selectedTagNames: [String],
         snapshot: StudySessionSnapshot? = nil,
         shuffler: any CardShuffler = SystemCardShuffler(),
         speech: any SpeechService,
@@ -31,20 +37,35 @@ public final class WritingSessionViewModel {
         store: (any StudySessionStore)? = nil,
         now: @escaping @MainActor () -> Date = Date.init
     ) {
-        repeatConfiguration = configuration
+        let originalSelectedTagNames = snapshot?.selectedTagNames ?? selectedTagNames
+        repeatConfiguration = StudyConfiguration(
+            mode: configuration.mode,
+            direction: configuration.direction,
+            selectedTagIDs: configuration.selectedTagIDs,
+            selectedTagNames: originalSelectedTagNames,
+            cards: configuration.cards
+        )
+        self.sessionID = snapshot?.sessionID ?? sessionID
+        self.originalSelectedTagNames = originalSelectedTagNames
+        originalCardIDs = snapshot?.originalCardIDs ?? configuration.cards.map(\.id)
+        originalCardDisplaySnapshots = snapshot?.cardDisplaySnapshots
+            ?? configuration.cards.map {
+                StudyCardDisplaySnapshot(id: $0.id, title: studyCardDisplayTitle($0))
+            }
         let initializationDate = now()
         if let snapshot {
             let cardsByID = Dictionary(uniqueKeysWithValues: configuration.cards.map { ($0.id, $0) })
             let queue = snapshot.queueCardIDs.compactMap { cardsByID[$0] }
             session = WritingSession(
                 cards: queue,
-                initialCardCount: configuration.cards.count,
+                initialCardCount: snapshot.originalCardIDs.count,
                 response: snapshot.writingResponse,
                 evaluation: snapshot.writingEvaluation,
                 isShowingAnswer: snapshot.isShowingAnswer,
                 hasRevealedAnswer: snapshot.isRevealed,
                 forgottenCount: snapshot.forgottenCount,
-                repeatedCardIDs: snapshot.repeatedCardIDs.filter { cardsByID[$0] != nil },
+                encounteredCardIDs: snapshot.encounteredCardIDs,
+                repeatedCardIDs: snapshot.repeatedCardIDs,
                 totalAssessmentCount: snapshot.totalAssessmentCount
             )
             result = snapshot.completedResult
@@ -62,6 +83,30 @@ public final class WritingSessionViewModel {
         self.now = now
         segmentStartedAt = initializationDate
         persistSnapshot()
+    }
+
+    public convenience init(
+        configuration: StudyConfiguration,
+        snapshot: StudySessionSnapshot? = nil,
+        shuffler: any CardShuffler = SystemCardShuffler(),
+        speech: any SpeechService,
+        feedback: any StudyFeedback = SystemStudyFeedback(),
+        initialDailyGoalProgress: StudyDailyGoalProgress? = nil,
+        store: (any StudySessionStore)? = nil,
+        now: @escaping @MainActor () -> Date = Date.init
+    ) {
+        self.init(
+            configuration: configuration,
+            sessionID: UUID(),
+            selectedTagNames: configuration.selectedTagNames,
+            snapshot: snapshot,
+            shuffler: shuffler,
+            speech: speech,
+            feedback: feedback,
+            initialDailyGoalProgress: initialDailyGoalProgress,
+            store: store,
+            now: now
+        )
     }
 
     public var response: String { session.response }
@@ -92,6 +137,7 @@ public final class WritingSessionViewModel {
             mode: .writing,
             direction: .russianToEnglish,
             selectedTagIDs: repeatConfiguration.selectedTagIDs,
+            selectedTagNames: originalSelectedTagNames,
             cards: difficultCards
         )
     }
@@ -135,7 +181,9 @@ public final class WritingSessionViewModel {
         isShowingUsageExamples = false
         if session.isComplete {
             result = StudyResult(
-                reviewedCardCount: session.initialCardCount,
+                plannedCardCount: session.initialCardCount,
+                completedCardCount: session.initialCardCount - session.remainingCount,
+                encounteredCardIDs: session.encounteredCardIDs,
                 repeatedCardIDs: session.repeatedCardIDs,
                 totalAssessmentCount: session.totalAssessmentCount,
                 elapsedSeconds: elapsedSeconds
@@ -177,11 +225,12 @@ public final class WritingSessionViewModel {
     }
 
     public func persistSnapshot() {
+        let activityDate = now()
         store?.save(StudySessionSnapshot(
             mode: .writing,
             direction: .russianToEnglish,
             selectedTagIDs: repeatConfiguration.selectedTagIDs,
-            originalCardIDs: repeatConfiguration.cards.map(\.id),
+            originalCardIDs: originalCardIDs,
             queueCardIDs: session.queue.map(\.id),
             isShowingAnswer: session.isShowingAnswer,
             isRevealed: session.hasRevealedAnswer,
@@ -191,13 +240,22 @@ public final class WritingSessionViewModel {
             writingResponse: session.response,
             writingEvaluation: session.evaluation,
             startedAt: sessionStartedAt,
-            accumulatedDurationSeconds: result?.elapsedSeconds ?? elapsedSeconds,
+            accumulatedDurationSeconds: result?.elapsedSeconds ?? elapsedSeconds(at: activityDate),
+            sessionID: sessionID,
+            lastActivityAt: activityDate,
+            encounteredCardIDs: session.encounteredCardIDs,
+            selectedTagNames: originalSelectedTagNames,
+            cardDisplaySnapshots: originalCardDisplaySnapshots,
             completedResult: result
         ))
     }
 
     private var elapsedSeconds: Int {
+        elapsedSeconds(at: now())
+    }
+
+    private func elapsedSeconds(at activityDate: Date) -> Int {
         accumulatedDurationAtStart
-            + max(0, Int(now().timeIntervalSince(segmentStartedAt).rounded(.down)))
+            + max(0, Int(activityDate.timeIntervalSince(segmentStartedAt).rounded(.down)))
     }
 }

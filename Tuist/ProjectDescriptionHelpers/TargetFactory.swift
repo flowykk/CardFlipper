@@ -40,6 +40,7 @@ public extension Target {
                     pattern: "Resources/**",
                     excluding: [
                         "Resources/StatisticsFeature/**",
+                        "Resources/StudyFeature/**",
                         "Resources/StudyTimerWidget/**",
                     ]
                 ),

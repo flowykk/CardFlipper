@@ -166,6 +166,134 @@ import Testing
 }
 
 @MainActor
+@Test func writingSnapshotCapturesStableMetadataAndAssessmentActivity() throws {
+    let sessionID = UUID.fixture(9_101)
+    let store = StudySessionStoreSpy()
+    var instant = Date(timeIntervalSince1970: 300)
+    let model = WritingSessionViewModel(
+        configuration: .fixture.writing,
+        sessionID: sessionID,
+        selectedTagNames: ["Work"],
+        shuffler: IdentityShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy(),
+        store: store,
+        now: { instant }
+    )
+
+    let initialSnapshot = try #require(store.storedSnapshot)
+    #expect(initialSnapshot.sessionID == sessionID)
+    #expect(initialSnapshot.lastActivityAt == instant)
+    #expect(initialSnapshot.selectedTagNames == ["Work"])
+    #expect(initialSnapshot.cardDisplaySnapshots == [
+        StudyCardDisplaySnapshot(id: .fixture(1), title: "first"),
+        StudyCardDisplaySnapshot(id: .fixture(2), title: "second"),
+    ])
+    #expect(initialSnapshot.encounteredCardIDs.isEmpty)
+
+    model.setResponse("wrong")
+    instant = instant.addingTimeInterval(15)
+    model.checkResponse()
+
+    let assessedSnapshot = try #require(store.storedSnapshot)
+    #expect(assessedSnapshot.lastActivityAt == instant)
+    #expect(assessedSnapshot.encounteredCardIDs == [.fixture(1)])
+}
+
+@MainActor
+@Test func resumedWritingSnapshotPreservesOriginalIdentityLabelsTitlesAndEncounters() {
+    let originalSessionID = UUID.fixture(9_102)
+    let originalDisplays = [
+        StudyCardDisplaySnapshot(id: .fixture(1), title: "Historical first"),
+        StudyCardDisplaySnapshot(id: .fixture(2), title: "Historical second"),
+    ]
+    let snapshot = StudySessionSnapshot(
+        mode: .writing,
+        direction: .russianToEnglish,
+        selectedTagIDs: [Tag.work.id],
+        originalCardIDs: StudyConfiguration.fixture.cards.map(\.id),
+        queueCardIDs: StudyConfiguration.fixture.cards.map(\.id),
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 1,
+        repeatedCardIDs: [.fixture(1)],
+        totalAssessmentCount: 1,
+        accumulatedDurationSeconds: 20,
+        sessionID: originalSessionID,
+        encounteredCardIDs: [.fixture(1)],
+        selectedTagNames: ["Historical tag"],
+        cardDisplaySnapshots: originalDisplays
+    )
+    let editedConfiguration = StudyConfiguration(
+        mode: .writing,
+        direction: .russianToEnglish,
+        selectedTagIDs: [Tag.work.id],
+        selectedTagNames: ["Edited tag"],
+        cards: [
+            .fixture(id: 1, english: "edited first"),
+            .fixture(id: 2, english: "edited second"),
+        ]
+    )
+    let store = StudySessionStoreSpy()
+
+    let model = WritingSessionViewModel(
+        configuration: editedConfiguration,
+        sessionID: .fixture(9_999),
+        selectedTagNames: editedConfiguration.selectedTagNames,
+        snapshot: snapshot,
+        shuffler: IdentityShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy(),
+        store: store,
+        now: { Date(timeIntervalSince1970: 400) }
+    )
+
+    #expect(model.session.encounteredCardIDs == [.fixture(1)])
+    #expect(model.repeatConfiguration.selectedTagNames == ["Historical tag"])
+    #expect(store.storedSnapshot?.sessionID == originalSessionID)
+    #expect(store.storedSnapshot?.selectedTagNames == ["Historical tag"])
+    #expect(store.storedSnapshot?.cardDisplaySnapshots == originalDisplays)
+}
+
+@MainActor
+@Test func resumedWritingCompletionKeepsPlannedCompletedAndEncounteredCountsSeparate() throws {
+    let available = StudyConfiguration.fixture.cards[0]
+    let snapshot = StudySessionSnapshot(
+        mode: .writing,
+        direction: .russianToEnglish,
+        selectedTagIDs: [],
+        originalCardIDs: StudyConfiguration.fixture.cards.map(\.id),
+        queueCardIDs: [available.id],
+        isShowingAnswer: false,
+        isRevealed: false,
+        forgottenCount: 0,
+        repeatedCardIDs: [],
+        totalAssessmentCount: 0,
+        accumulatedDurationSeconds: 0
+    )
+    let model = WritingSessionViewModel(
+        configuration: StudyConfiguration(
+            mode: .writing,
+            direction: .russianToEnglish,
+            selectedTagIDs: [],
+            cards: [available]
+        ),
+        snapshot: snapshot,
+        shuffler: IdentityShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy()
+    )
+
+    model.setResponse("first")
+    model.checkResponse()
+    try model.remember()
+
+    #expect(model.result?.plannedCardCount == 2)
+    #expect(model.result?.completedCardCount == 1)
+    #expect(model.result?.encounteredCardCount == 1)
+}
+
+@MainActor
 private func makeWritingSession(
     configuration: StudyConfiguration = .fixture.writing,
     speech: SpeechServiceSpy = SpeechServiceSpy(),
@@ -187,6 +315,7 @@ private extension StudyConfiguration {
             mode: .writing,
             direction: .russianToEnglish,
             selectedTagIDs: selectedTagIDs,
+            selectedTagNames: selectedTagNames,
             cards: cards
         )
     }
