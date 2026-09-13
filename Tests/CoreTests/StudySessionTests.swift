@@ -121,6 +121,37 @@ private extension VocabularyCard {
     #expect(session.encounteredCardIDs == [.fixture(1)])
 }
 
+@Test func flashcardCompletionTracksOnlyCardsRemovedByRemembering() throws {
+    var session = StudySession(
+        cards: [.fixture(id: 1), .fixture(id: 2)],
+        direction: .russianToEnglish
+    )
+
+    session.reveal()
+    try session.forget()
+    #expect(session.completedCardIDs.isEmpty)
+
+    session.reveal()
+    try session.remember()
+    #expect(session.completedCardIDs == [.fixture(2)])
+}
+
+@Test func flashcardSessionRestoresCompletedCardIDs() {
+    let session = StudySession(
+        cards: [.fixture(id: 2)],
+        direction: .russianToEnglish,
+        initialCardCount: 2,
+        forgottenCount: 1,
+        encounteredCardIDs: [.fixture(1)],
+        completedCardIDs: [.fixture(1)],
+        repeatedCardIDs: [],
+        totalAssessmentCount: 1,
+        isRevealed: false
+    )
+
+    #expect(session.completedCardIDs == [.fixture(1)])
+}
+
 @Test func assessmentBeforeRevealIsRejected() {
     var rememberedSession = StudySession(cards: [.fixture(id: 1)], direction: .russianToEnglish)
     #expect(throws: StudySessionError.answerNotRevealed) { try rememberedSession.remember() }
@@ -162,7 +193,7 @@ private extension VocabularyCard {
         direction: .englishToRussian,
         selectedTagIDs: [.fixture(9)],
         originalCardIDs: [.fixture(1), .fixture(2)],
-        queueCardIDs: [.fixture(2), .fixture(1)],
+        queueCardIDs: [.fixture(1)],
         isShowingAnswer: true,
         isRevealed: true,
         forgottenCount: 1,
@@ -171,6 +202,7 @@ private extension VocabularyCard {
         writingResponse: "answer",
         writingEvaluation: .incorrect,
         accumulatedDurationSeconds: 37,
+        completedCardIDs: [.fixture(2)],
         completedResult: result
     )
 
@@ -179,6 +211,7 @@ private extension VocabularyCard {
 
     #expect(decoded == snapshot)
     #expect(decoded.version == StudySessionSnapshot.currentVersion)
+    #expect(decoded.completedCardIDs == [.fixture(2)])
 }
 
 @Test func sessionCanRestoreQueueAndCountersWithoutLosingAssessmentState() {

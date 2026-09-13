@@ -98,6 +98,7 @@ public struct StudySession: Sendable {
     public private(set) var queue: [VocabularyCard]
     public private(set) var forgottenCount = 0
     public private(set) var encounteredCardIDs: Set<UUID> = []
+    public private(set) var completedCardIDs: Set<UUID> = []
     public private(set) var repeatedCardIDs: [UUID] = []
     public private(set) var totalAssessmentCount = 0
     public private(set) var isRevealed = false
@@ -114,6 +115,7 @@ public struct StudySession: Sendable {
         initialCardCount: Int,
         forgottenCount: Int,
         encounteredCardIDs: Set<UUID> = [],
+        completedCardIDs: Set<UUID> = [],
         repeatedCardIDs: [UUID],
         totalAssessmentCount: Int,
         isRevealed: Bool
@@ -123,6 +125,7 @@ public struct StudySession: Sendable {
         queue = cards
         self.forgottenCount = max(0, forgottenCount)
         self.encounteredCardIDs = encounteredCardIDs
+        self.completedCardIDs = completedCardIDs
         self.repeatedCardIDs = repeatedCardIDs
         self.totalAssessmentCount = max(0, totalAssessmentCount)
         self.isRevealed = isRevealed && !cards.isEmpty
@@ -139,8 +142,9 @@ public struct StudySession: Sendable {
     public mutating func remember() throws {
         guard isRevealed else { throw StudySessionError.answerNotRevealed }
         guard !queue.isEmpty else { throw StudySessionError.noCurrentCard }
-        encounteredCardIDs.insert(queue[0].id)
-        queue.removeFirst()
+        let rememberedCard = queue.removeFirst()
+        encounteredCardIDs.insert(rememberedCard.id)
+        completedCardIDs.insert(rememberedCard.id)
         totalAssessmentCount += 1
         isRevealed = false
     }

@@ -65,6 +65,7 @@ public final class WritingSessionViewModel {
                 hasRevealedAnswer: snapshot.isRevealed,
                 forgottenCount: snapshot.forgottenCount,
                 encounteredCardIDs: snapshot.encounteredCardIDs,
+                completedCardIDs: snapshot.completedCardIDs,
                 repeatedCardIDs: snapshot.repeatedCardIDs,
                 totalAssessmentCount: snapshot.totalAssessmentCount
             )
@@ -120,7 +121,7 @@ public final class WritingSessionViewModel {
     public var canAssess: Bool { evaluation == .correct && !session.isComplete }
     public var progressPresentation: StudySessionProgressPresentation {
         StudySessionProgressPresentation(
-            rememberedCount: session.initialCardCount - session.remainingCount,
+            rememberedCount: session.completedCardIDs.count,
             totalCount: session.initialCardCount
         )
     }
@@ -182,7 +183,7 @@ public final class WritingSessionViewModel {
         if session.isComplete {
             result = StudyResult(
                 plannedCardCount: session.initialCardCount,
-                completedCardCount: session.initialCardCount - session.remainingCount,
+                completedCardCount: session.completedCardIDs.count,
                 encounteredCardIDs: session.encounteredCardIDs,
                 repeatedCardIDs: session.repeatedCardIDs,
                 totalAssessmentCount: session.totalAssessmentCount,
@@ -244,6 +245,7 @@ public final class WritingSessionViewModel {
             sessionID: sessionID,
             lastActivityAt: activityDate,
             encounteredCardIDs: session.encounteredCardIDs,
+            completedCardIDs: session.completedCardIDs,
             selectedTagNames: originalSelectedTagNames,
             cardDisplaySnapshots: originalCardDisplaySnapshots,
             completedResult: result

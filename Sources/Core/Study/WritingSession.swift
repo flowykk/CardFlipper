@@ -14,6 +14,7 @@ public struct WritingSession: Sendable {
     public private(set) var hasRevealedAnswer: Bool
     public private(set) var forgottenCount: Int
     public private(set) var encounteredCardIDs: Set<UUID>
+    public private(set) var completedCardIDs: Set<UUID>
     public private(set) var repeatedCardIDs: [UUID]
     public private(set) var totalAssessmentCount: Int
 
@@ -26,6 +27,7 @@ public struct WritingSession: Sendable {
         hasRevealedAnswer = false
         forgottenCount = 0
         encounteredCardIDs = []
+        completedCardIDs = []
         repeatedCardIDs = []
         totalAssessmentCount = 0
     }
@@ -39,6 +41,7 @@ public struct WritingSession: Sendable {
         hasRevealedAnswer: Bool,
         forgottenCount: Int,
         encounteredCardIDs: Set<UUID> = [],
+        completedCardIDs: Set<UUID> = [],
         repeatedCardIDs: [UUID],
         totalAssessmentCount: Int
     ) {
@@ -50,6 +53,7 @@ public struct WritingSession: Sendable {
         self.hasRevealedAnswer = hasRevealedAnswer && !cards.isEmpty
         self.forgottenCount = max(0, forgottenCount)
         self.encounteredCardIDs = encounteredCardIDs
+        self.completedCardIDs = completedCardIDs
         self.repeatedCardIDs = repeatedCardIDs
         self.totalAssessmentCount = max(0, totalAssessmentCount)
     }
@@ -108,8 +112,9 @@ public struct WritingSession: Sendable {
         guard currentCard != nil else { throw WritingSessionError.noCurrentCard }
         guard evaluation == .correct else { throw WritingSessionError.answerNotCorrect }
 
-        encounteredCardIDs.insert(queue[0].id)
-        queue.removeFirst()
+        let rememberedCard = queue.removeFirst()
+        encounteredCardIDs.insert(rememberedCard.id)
+        completedCardIDs.insert(rememberedCard.id)
         resetWritingState()
     }
 

@@ -85,6 +85,45 @@ private func writingCard(
     #expect(session.totalAssessmentCount == 1)
 }
 
+@Test func writingCompletionTracksOnlyCardsRemovedAfterCorrectAnswers() throws {
+    let firstCard = writingCard(id: 1)
+    let secondCard = writingCard(id: 2)
+    var session = WritingSession(cards: [firstCard, secondCard])
+
+    session.setResponse("wrong")
+    _ = session.checkResponse()
+    #expect(session.completedCardIDs.isEmpty)
+
+    session.setResponse("word")
+    _ = session.checkResponse()
+    try session.forget()
+    #expect(session.completedCardIDs.isEmpty)
+
+    session.setResponse("word")
+    _ = session.checkResponse()
+    try session.remember()
+    #expect(session.completedCardIDs == [secondCard.id])
+}
+
+@Test func writingSessionRestoresCompletedCardIDs() {
+    let firstCard = writingCard(id: 1)
+    let session = WritingSession(
+        cards: [writingCard(id: 2)],
+        initialCardCount: 2,
+        response: "",
+        evaluation: .unanswered,
+        isShowingAnswer: false,
+        hasRevealedAnswer: false,
+        forgottenCount: 0,
+        encounteredCardIDs: [firstCard.id],
+        completedCardIDs: [firstCard.id],
+        repeatedCardIDs: [],
+        totalAssessmentCount: 1
+    )
+
+    #expect(session.completedCardIDs == [firstCard.id])
+}
+
 @Test func editingAfterIncorrectAttemptClearsOnlyTheEvaluation() {
     var session = WritingSession(cards: [writingCard()])
     session.setResponse("wrong")

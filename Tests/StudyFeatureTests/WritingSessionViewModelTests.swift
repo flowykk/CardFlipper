@@ -190,6 +190,7 @@ import Testing
         StudyCardDisplaySnapshot(id: .fixture(2), title: "second"),
     ])
     #expect(initialSnapshot.encounteredCardIDs.isEmpty)
+    #expect(initialSnapshot.completedCardIDs.isEmpty)
 
     model.setResponse("wrong")
     instant = instant.addingTimeInterval(15)
@@ -198,6 +199,7 @@ import Testing
     let assessedSnapshot = try #require(store.storedSnapshot)
     #expect(assessedSnapshot.lastActivityAt == instant)
     #expect(assessedSnapshot.encounteredCardIDs == [.fixture(1)])
+    #expect(assessedSnapshot.completedCardIDs.isEmpty)
 }
 
 @MainActor
@@ -221,6 +223,7 @@ import Testing
         accumulatedDurationSeconds: 20,
         sessionID: originalSessionID,
         encounteredCardIDs: [.fixture(1)],
+        completedCardIDs: [],
         selectedTagNames: ["Historical tag"],
         cardDisplaySnapshots: originalDisplays
     )
@@ -249,6 +252,7 @@ import Testing
     )
 
     #expect(model.session.encounteredCardIDs == [.fixture(1)])
+    #expect(model.session.completedCardIDs.isEmpty)
     #expect(model.repeatConfiguration.selectedTagNames == ["Historical tag"])
     #expect(store.storedSnapshot?.sessionID == originalSessionID)
     #expect(store.storedSnapshot?.selectedTagNames == ["Historical tag"])
@@ -269,7 +273,8 @@ import Testing
         forgottenCount: 0,
         repeatedCardIDs: [],
         totalAssessmentCount: 0,
-        accumulatedDurationSeconds: 0
+        accumulatedDurationSeconds: 0,
+        completedCardIDs: []
     )
     let model = WritingSessionViewModel(
         configuration: StudyConfiguration(
@@ -291,6 +296,49 @@ import Testing
     #expect(model.result?.plannedCardCount == 2)
     #expect(model.result?.completedCardCount == 1)
     #expect(model.result?.encounteredCardCount == 1)
+}
+
+@MainActor
+@Test func deletedPendingWritingCardDoesNotCountAsRememberedOrCompletedAfterResume() throws {
+    let store = StudySessionStoreSpy()
+    let original = WritingSessionViewModel(
+        configuration: .fixture.writing,
+        sessionID: .fixture(9_202),
+        selectedTagNames: ["Work"],
+        shuffler: IdentityShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy(),
+        store: store
+    )
+    original.setResponse("wrong")
+    original.checkResponse()
+    let interruptedSnapshot = try #require(store.storedSnapshot)
+    let availableCard = StudyConfiguration.fixture.cards[1]
+
+    let resumed = WritingSessionViewModel(
+        configuration: StudyConfiguration(
+            mode: .writing,
+            direction: .russianToEnglish,
+            selectedTagIDs: [],
+            cards: [availableCard]
+        ),
+        snapshot: interruptedSnapshot,
+        shuffler: IdentityShuffler(),
+        speech: SpeechServiceSpy(),
+        feedback: StudyFeedbackSpy(),
+        store: store
+    )
+
+    #expect(resumed.progressPresentation.positionText == "1/2")
+
+    resumed.setResponse("second")
+    resumed.checkResponse()
+    try resumed.remember()
+
+    #expect(resumed.result?.plannedCardCount == 2)
+    #expect(resumed.result?.completedCardCount == 1)
+    #expect(resumed.result?.encounteredCardCount == 2)
+    #expect(store.storedSnapshot?.completedCardIDs == [availableCard.id])
 }
 
 @MainActor

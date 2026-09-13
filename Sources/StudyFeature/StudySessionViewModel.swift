@@ -123,6 +123,7 @@ public final class StudySessionViewModel {
                 initialCardCount: snapshot.originalCardIDs.count,
                 forgottenCount: snapshot.forgottenCount,
                 encounteredCardIDs: snapshot.encounteredCardIDs,
+                completedCardIDs: snapshot.completedCardIDs,
                 repeatedCardIDs: snapshot.repeatedCardIDs,
                 totalAssessmentCount: snapshot.totalAssessmentCount,
                 isRevealed: snapshot.isRevealed
@@ -177,7 +178,7 @@ public final class StudySessionViewModel {
     }
 
     public var rememberedCount: Int {
-        session.initialCardCount - session.remainingCount
+        session.completedCardIDs.count
     }
 
     public var progressPresentation: StudySessionProgressPresentation {
@@ -241,7 +242,7 @@ public final class StudySessionViewModel {
         if session.isComplete {
             result = StudyResult(
                 plannedCardCount: session.initialCardCount,
-                completedCardCount: session.initialCardCount - session.remainingCount,
+                completedCardCount: session.completedCardIDs.count,
                 encounteredCardIDs: session.encounteredCardIDs,
                 repeatedCardIDs: session.repeatedCardIDs,
                 totalAssessmentCount: session.totalAssessmentCount,
@@ -311,6 +312,7 @@ public final class StudySessionViewModel {
             sessionID: sessionID,
             lastActivityAt: activityDate,
             encounteredCardIDs: session.encounteredCardIDs,
+            completedCardIDs: session.completedCardIDs,
             selectedTagNames: originalSelectedTagNames,
             cardDisplaySnapshots: originalCardDisplaySnapshots,
             completedResult: result

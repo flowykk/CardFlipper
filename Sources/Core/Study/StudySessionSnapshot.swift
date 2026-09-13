@@ -25,6 +25,7 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
     public let lastActivityAt: Date
     public let accumulatedDurationSeconds: Int
     public let encounteredCardIDs: Set<UUID>
+    public let completedCardIDs: Set<UUID>
     public let selectedTagNames: [String]
     public let cardDisplaySnapshots: [StudyCardDisplaySnapshot]
     public let completedResult: StudyResult?
@@ -48,6 +49,7 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
         sessionID: UUID = UUID(),
         lastActivityAt: Date? = nil,
         encounteredCardIDs: Set<UUID> = [],
+        completedCardIDs: Set<UUID>? = nil,
         selectedTagNames: [String] = [],
         cardDisplaySnapshots: [StudyCardDisplaySnapshot] = [],
         completedResult: StudyResult? = nil
@@ -70,6 +72,8 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
         self.lastActivityAt = lastActivityAt ?? startedAt
         self.accumulatedDurationSeconds = max(0, accumulatedDurationSeconds)
         self.encounteredCardIDs = encounteredCardIDs
+        self.completedCardIDs = completedCardIDs
+            ?? Set(originalCardIDs).subtracting(queueCardIDs)
         self.selectedTagNames = selectedTagNames
         self.cardDisplaySnapshots = cardDisplaySnapshots
         self.completedResult = completedResult
@@ -94,6 +98,7 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
         case lastActivityAt
         case accumulatedDurationSeconds
         case encounteredCardIDs
+        case completedCardIDs
         case selectedTagNames
         case cardDisplaySnapshots
         case completedResult
@@ -132,6 +137,10 @@ public struct StudySessionSnapshot: Codable, Equatable, Sendable {
             try container.decode(Int.self, forKey: .accumulatedDurationSeconds)
         )
         encounteredCardIDs = try container.decodeIfPresent(Set<UUID>.self, forKey: .encounteredCardIDs) ?? []
+        completedCardIDs = try container.decodeIfPresent(
+            Set<UUID>.self,
+            forKey: .completedCardIDs
+        ) ?? Set(originalCardIDs).subtracting(queueCardIDs)
         selectedTagNames = try container.decodeIfPresent([String].self, forKey: .selectedTagNames) ?? []
         cardDisplaySnapshots = try container.decodeIfPresent(
             [StudyCardDisplaySnapshot].self,
