@@ -75,6 +75,63 @@ import Testing
     }
 }
 
+@MainActor
+@Test func migratingOriginalUnversionedStorePreservesVocabularyAndSupportsHistory() async throws {
+    let directory = FileManager.default.temporaryDirectory
+        .appendingPathComponent("CardFlipperHistoryMigration-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+
+    let storeURL = directory.appendingPathComponent("default.store")
+    let originalCard: VocabularyCard
+    let originalTag: Core.Tag
+
+    do {
+        let originalSchema = Schema([
+            CardEntity.self,
+            RussianMeaningEntity.self,
+            EnglishVariantEntity.self,
+            UsageExampleEntity.self,
+            TagEntity.self,
+        ])
+        let configuration = ModelConfiguration(
+            "OriginalUnversionedStore",
+            schema: originalSchema,
+            url: storeURL,
+            cloudKitDatabase: .none
+        )
+        let container = try ModelContainer(
+            for: originalSchema,
+            configurations: [configuration]
+        )
+        let repositories = TestRepositories(container: container)
+        originalTag = try await repositories.tags.create(name: "Работа & учёба")
+        originalCard = .fixture(tag: originalTag, isLearned: true)
+        try await repositories.cards.save(originalCard)
+    }
+
+    do {
+        let configuration = ModelConfiguration(
+            "OriginalUnversionedStore",
+            schema: CardFlipperSchema.schema,
+            url: storeURL,
+            cloudKitDatabase: .none
+        )
+        let container = try ModelContainer(
+            for: CardFlipperSchema.schema,
+            migrationPlan: CardFlipperMigrationPlan.self,
+            configurations: [configuration]
+        )
+        let repositories = TestRepositories(container: container)
+        let history = SwiftDataStudyHistoryRepository(container: container)
+
+        #expect(try await repositories.cards.fetchCards() == [originalCard])
+        #expect(try await repositories.tags.fetchTags() == [originalTag])
+        #expect(try history.insertIfNeeded(.fixture()))
+        #expect(try history.fetchHistory() == [.fixture()])
+    }
+}
+
 private func historyEntity(
     selectedTagNamesData: Data = Data(#"["Work"]"#.utf8),
     difficultCardTitlesData: Data = Data(#"["well-being?"]"#.utf8)
