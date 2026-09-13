@@ -15,12 +15,14 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
     private struct StoredStatistics: Codable {
         var completedLessonCount = 0
         var studiedCardCount = 0
+        var encounteredCardCount: Int?
         var forgottenCount = 0
         var lessonsWithoutForgettingCount = 0
         var repeatedCardCount: Int?
         var totalAssessmentCount: Int?
         var writingCompletedLessonCount: Int?
         var writingStudiedCardCount: Int?
+        var writingEncounteredCardCount: Int?
         var writingForgottenCount: Int?
         var writingLessonsWithoutForgettingCount: Int?
         var writingRepeatedCardCount: Int?
@@ -31,6 +33,7 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
             let overall = StudyModeStatistics(
                 completedLessonCount: completedLessonCount,
                 studiedCardCount: studiedCardCount,
+                encounteredCardCount: encounteredCardCount ?? studiedCardCount,
                 forgottenCount: forgottenCount,
                 lessonsWithoutForgettingCount: lessonsWithoutForgettingCount,
                 repeatedCardCount: repeatedCardCount ?? 0,
@@ -39,6 +42,9 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
             let writing = StudyModeStatistics(
                 completedLessonCount: writingCompletedLessonCount ?? 0,
                 studiedCardCount: writingStudiedCardCount ?? 0,
+                encounteredCardCount: writingEncounteredCardCount
+                    ?? writingStudiedCardCount
+                    ?? 0,
                 forgottenCount: writingForgottenCount ?? 0,
                 lessonsWithoutForgettingCount: writingLessonsWithoutForgettingCount ?? 0,
                 repeatedCardCount: writingRepeatedCardCount ?? 0,
@@ -71,7 +77,9 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
         guard stored.recordedSessionIDs.insert(sessionID).inserted else { return }
 
         stored.completedLessonCount += 1
-        stored.studiedCardCount += result.uniqueCardCount
+        stored.encounteredCardCount = (stored.encounteredCardCount ?? stored.studiedCardCount)
+            + result.encounteredCardCount
+        stored.studiedCardCount += result.completedCardCount
         stored.forgottenCount += result.forgottenCount
         stored.repeatedCardCount = (stored.repeatedCardCount ?? 0) + result.repeatedCardCount
         stored.totalAssessmentCount = (stored.totalAssessmentCount ?? 0) + result.totalAssessmentCount
@@ -80,8 +88,11 @@ public final class UserDefaultsStatisticsRepository: StatisticsRepository {
         }
         if mode == .writing {
             stored.writingCompletedLessonCount = (stored.writingCompletedLessonCount ?? 0) + 1
+            stored.writingEncounteredCardCount = (stored.writingEncounteredCardCount
+                ?? stored.writingStudiedCardCount
+                ?? 0) + result.encounteredCardCount
             stored.writingStudiedCardCount = (stored.writingStudiedCardCount ?? 0)
-                + result.uniqueCardCount
+                + result.completedCardCount
             stored.writingForgottenCount = (stored.writingForgottenCount ?? 0)
                 + result.forgottenCount
             stored.writingRepeatedCardCount = (stored.writingRepeatedCardCount ?? 0)

@@ -54,6 +54,40 @@ import Testing
 }
 
 @MainActor
+@Test func partialSessionUsesCompletedCardsForTotalsAndEncounteredCardsForRecall() {
+    let defaults = makeIsolatedDefaults()
+    defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
+    let repository = UserDefaultsStatisticsRepository(defaults: defaults)
+    let sessionID = UUID(uuidString: "00000000-0000-0000-0000-000000000004")!
+    let encounteredCardIDs: Set<UUID> = [
+        UUID(uuidString: "00000000-0000-0000-0000-000000000041")!,
+        UUID(uuidString: "00000000-0000-0000-0000-000000000042")!,
+        UUID(uuidString: "00000000-0000-0000-0000-000000000043")!,
+        UUID(uuidString: "00000000-0000-0000-0000-000000000044")!
+    ]
+    let repeatedCardID = UUID(uuidString: "00000000-0000-0000-0000-000000000041")!
+    let result = StudyResult(
+        plannedCardCount: 10,
+        completedCardCount: 3,
+        encounteredCardIDs: encounteredCardIDs,
+        repeatedCardIDs: [repeatedCardID],
+        totalAssessmentCount: 4,
+        elapsedSeconds: 0
+    )
+
+    repository.record(sessionID: sessionID, mode: .flashcards, result: result)
+
+    #expect(repository.statistics.studiedCardCount == 3)
+    #expect(repository.statistics.encounteredCardCount == 4)
+    #expect(repository.statistics.firstTryRecallPercentage == 75)
+
+    let totalsAfterFirstRecord = repository.statistics
+    repository.record(sessionID: sessionID, mode: .flashcards, result: result)
+
+    #expect(repository.statistics == totalsAfterFirstRecord)
+}
+
+@MainActor
 @Test func legacyTotalsAreMigratedToFlashcardStatistics() throws {
     let defaults = makeIsolatedDefaults()
     defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
@@ -75,6 +109,7 @@ import Testing
 
     #expect(statistics.flashcards.completedLessonCount == 2)
     #expect(statistics.flashcards.studiedCardCount == 9)
+    #expect(statistics.flashcards.encounteredCardCount == 9)
     #expect(statistics.flashcards.repeatedCardCount == 2)
     #expect(statistics.writing == .zero)
 }

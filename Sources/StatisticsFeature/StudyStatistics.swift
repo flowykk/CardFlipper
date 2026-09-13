@@ -5,6 +5,7 @@ public struct StudyModeStatistics: Equatable, Sendable {
 
     public let completedLessonCount: Int
     public let studiedCardCount: Int
+    public let encounteredCardCount: Int
     public let forgottenCount: Int
     public let lessonsWithoutForgettingCount: Int
     public let repeatedCardCount: Int
@@ -13,6 +14,7 @@ public struct StudyModeStatistics: Equatable, Sendable {
     public init(
         completedLessonCount: Int = 0,
         studiedCardCount: Int = 0,
+        encounteredCardCount: Int? = nil,
         forgottenCount: Int = 0,
         lessonsWithoutForgettingCount: Int = 0,
         repeatedCardCount: Int = 0,
@@ -20,6 +22,7 @@ public struct StudyModeStatistics: Equatable, Sendable {
     ) {
         self.completedLessonCount = max(0, completedLessonCount)
         self.studiedCardCount = max(0, studiedCardCount)
+        self.encounteredCardCount = max(0, encounteredCardCount ?? studiedCardCount)
         self.forgottenCount = max(0, forgottenCount)
         self.lessonsWithoutForgettingCount = max(0, lessonsWithoutForgettingCount)
         self.repeatedCardCount = max(0, repeatedCardCount)
@@ -27,17 +30,16 @@ public struct StudyModeStatistics: Equatable, Sendable {
     }
 
     public var firstTryRecallPercentage: Int {
-        guard studiedCardCount > 0 else { return 0 }
-        return Int(
-            (Double(studiedCardCount - repeatedCardCount) / Double(studiedCardCount) * 100)
-                .rounded()
-        )
+        guard encounteredCardCount > 0 else { return 0 }
+        let recalled = max(0, encounteredCardCount - repeatedCardCount)
+        return Int((Double(recalled) / Double(encounteredCardCount) * 100).rounded())
     }
 
     func adding(_ other: Self) -> Self {
         StudyModeStatistics(
             completedLessonCount: completedLessonCount + other.completedLessonCount,
             studiedCardCount: studiedCardCount + other.studiedCardCount,
+            encounteredCardCount: encounteredCardCount + other.encounteredCardCount,
             forgottenCount: forgottenCount + other.forgottenCount,
             lessonsWithoutForgettingCount: lessonsWithoutForgettingCount
                 + other.lessonsWithoutForgettingCount,
@@ -50,6 +52,7 @@ public struct StudyModeStatistics: Equatable, Sendable {
         StudyModeStatistics(
             completedLessonCount: completedLessonCount - other.completedLessonCount,
             studiedCardCount: studiedCardCount - other.studiedCardCount,
+            encounteredCardCount: encounteredCardCount - other.encounteredCardCount,
             forgottenCount: forgottenCount - other.forgottenCount,
             lessonsWithoutForgettingCount: lessonsWithoutForgettingCount
                 - other.lessonsWithoutForgettingCount,
@@ -65,6 +68,7 @@ public struct StudyStatistics: Equatable, Sendable {
 
     public var completedLessonCount: Int { overall.completedLessonCount }
     public var studiedCardCount: Int { overall.studiedCardCount }
+    public var encounteredCardCount: Int { overall.encounteredCardCount }
     public var forgottenCount: Int { overall.forgottenCount }
     public var lessonsWithoutForgettingCount: Int { overall.lessonsWithoutForgettingCount }
     public var repeatedCardCount: Int { overall.repeatedCardCount }
@@ -75,6 +79,7 @@ public struct StudyStatistics: Equatable, Sendable {
     public init(
         completedLessonCount: Int = 0,
         studiedCardCount: Int = 0,
+        encounteredCardCount: Int? = nil,
         forgottenCount: Int = 0,
         lessonsWithoutForgettingCount: Int = 0,
         repeatedCardCount: Int = 0,
@@ -83,6 +88,7 @@ public struct StudyStatistics: Equatable, Sendable {
         flashcards = StudyModeStatistics(
             completedLessonCount: completedLessonCount,
             studiedCardCount: studiedCardCount,
+            encounteredCardCount: encounteredCardCount,
             forgottenCount: forgottenCount,
             lessonsWithoutForgettingCount: lessonsWithoutForgettingCount,
             repeatedCardCount: repeatedCardCount,

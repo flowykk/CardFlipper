@@ -1,6 +1,20 @@
 @testable import StatisticsFeature
 import Testing
 
+@Test func firstTryRecallUsesEncounteredCardsForPartialGames() {
+    let statistics = StudyStatistics(
+        flashcards: StudyModeStatistics(
+            studiedCardCount: 3,
+            encounteredCardCount: 4,
+            repeatedCardCount: 1
+        ),
+        writing: .zero
+    )
+
+    #expect(statistics.flashcards.firstTryRecallPercentage == 75)
+    #expect(statistics.firstTryRecallPercentage == 75)
+}
+
 @Test func statisticsMetricsAreSeparatedByStudyMode() {
     let statistics = StudyStatistics(
         flashcards: StudyModeStatistics(
