@@ -477,7 +477,7 @@ Build display snapshots once when a new session begins; never regenerate them fr
 
 - [ ] **Step 5: Change close-dialog copy semantics**
 
-Keep the current confirmation presentation but route its destructive-looking close action to neutral **Save and Exit** styling and copy. Retain **Continue Game** as cancel. Do not add a discard action. Add exact Russian and English strings to the StudyFeature catalog and extend its localization-catalog test.
+Keep the current confirmation presentation but route its destructive-looking close action to neutral **Save and Exit** styling and copy. The action must call **model.persistSnapshot()** immediately before the exit callback so elapsed time and last activity are current even when the user closes without a recent assessment. Retain **Continue Game** as cancel. Do not add a discard action. Add exact Russian and English strings to the StudyFeature catalog and extend its localization-catalog test.
 
 - [ ] **Step 6: Run StudyFeature tests**
 
@@ -686,6 +686,8 @@ git commit -m "feat: integrate resumable games with history"
 **Files:**
 - Modify: **Tests/CardFlipperUITests/CardFlipperFlowTests.swift**
 - Modify: **Tests/CardFlipperUITests/AccessibilityLayoutTests.swift**
+- Modify: **Sources/CardFlipperApp/AppContainer.swift**
+- Create: **Sources/Data/Persistence/UITestStudyHistorySeed.swift**
 
 **Interfaces:**
 - Consumes: completed feature APIs and accessibility identifiers
@@ -749,6 +751,6 @@ Confirm that all spec requirements have corresponding code/tests and that unrela
 - [ ] **Step 9: Commit end-to-end coverage**
 
 ~~~bash
-git add Tests/CardFlipperUITests/CardFlipperFlowTests.swift Tests/CardFlipperUITests/AccessibilityLayoutTests.swift
+git add Tests/CardFlipperUITests/CardFlipperFlowTests.swift Tests/CardFlipperUITests/AccessibilityLayoutTests.swift Sources/CardFlipperApp/AppContainer.swift Sources/Data/Persistence/UITestStudyHistorySeed.swift
 git commit -m "test: cover study history and resume flows"
 ~~~
