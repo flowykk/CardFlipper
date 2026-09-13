@@ -56,13 +56,14 @@ public final class WritingSessionViewModel {
         if let snapshot {
             let cardsByID = Dictionary(uniqueKeysWithValues: configuration.cards.map { ($0.id, $0) })
             let queue = snapshot.queueCardIDs.compactMap { cardsByID[$0] }
+            let restoresCurrentCard = queue.first?.id == snapshot.queueCardIDs.first
             session = WritingSession(
                 cards: queue,
                 initialCardCount: snapshot.originalCardIDs.count,
-                response: snapshot.writingResponse,
-                evaluation: snapshot.writingEvaluation,
-                isShowingAnswer: snapshot.isShowingAnswer,
-                hasRevealedAnswer: snapshot.isRevealed,
+                response: restoresCurrentCard ? snapshot.writingResponse : "",
+                evaluation: restoresCurrentCard ? snapshot.writingEvaluation : .unanswered,
+                isShowingAnswer: restoresCurrentCard && snapshot.isShowingAnswer,
+                hasRevealedAnswer: restoresCurrentCard && snapshot.isRevealed,
                 forgottenCount: snapshot.forgottenCount,
                 encounteredCardIDs: snapshot.encounteredCardIDs,
                 completedCardIDs: snapshot.completedCardIDs,
@@ -187,7 +188,8 @@ public final class WritingSessionViewModel {
                 encounteredCardIDs: session.encounteredCardIDs,
                 repeatedCardIDs: session.repeatedCardIDs,
                 totalAssessmentCount: session.totalAssessmentCount,
-                elapsedSeconds: elapsedSeconds
+                elapsedSeconds: elapsedSeconds,
+                forgottenCount: session.forgottenCount
             )
             feedback.perform(.completion)
         }

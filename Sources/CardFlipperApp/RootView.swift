@@ -3,6 +3,7 @@ import Core
 import Data
 import DesignSystem
 import LibraryFeature
+import HistoryFeature
 import Observation
 import StudyFeature
 import StatisticsFeature
@@ -11,6 +12,7 @@ import SwiftUI
 enum AppRoute: Hashable {
     case studySetup
     case statistics
+    case history
     case settings
     case tags
 }
@@ -46,13 +48,13 @@ struct ActiveStudy: Equatable, Identifiable {
     let snapshot: StudySessionSnapshot?
 
     init(
-        id: UUID = UUID(),
+        id: UUID? = nil,
         sessionID: UUID = UUID(),
         configuration: StudyConfiguration,
         snapshot: StudySessionSnapshot? = nil
     ) {
-        self.id = id
-        self.sessionID = sessionID
+        self.sessionID = snapshot?.sessionID ?? sessionID
+        self.id = id ?? snapshot?.sessionID ?? sessionID
         self.configuration = configuration
         self.snapshot = snapshot
     }
@@ -60,6 +62,10 @@ struct ActiveStudy: Equatable, Identifiable {
     func repeated(with configuration: StudyConfiguration) -> ActiveStudy {
         ActiveStudy(id: id, configuration: configuration)
     }
+}
+
+enum RootPresentationError: Equatable {
+    case finalization(sessionID: UUID)
 }
 
 @MainActor
@@ -126,6 +132,11 @@ final class RootViewModel {
     let navigation: AppNavigationState
     let studyTimer: StudyTimerController
     private(set) var resumableStudy: ActiveStudy?
+    private(set) var pendingStudyConfiguration: StudyConfiguration?
+    private(set) var isNewGameConflictPresented = false
+    private(set) var presentationError: RootPresentationError?
+
+    var resumableSnapshot: StudySessionSnapshot? { resumableStudy?.snapshot }
 
     private let cards: any CardRepository
     private let tags: any TagRepository
@@ -134,6 +145,13 @@ final class RootViewModel {
     private let shuffler: any CardShuffler
     private let statistics: any StatisticsRepository
     private let studySessionStore: any StudySessionStore
+    private let history: any StudyHistoryRepository
+    private let finalizer: StudyHistoryFinalizer
+    private var failedFinalization: StudySessionSnapshot?
+    private var isPendingRepeat = false
+    private var finalizedSessionIDs: Set<UUID> = []
+    @ObservationIgnored private var cachedStudyModel: (id: UUID, model: StudySessionViewModel)?
+    @ObservationIgnored private var cachedWritingModel: (id: UUID, model: WritingSessionViewModel)?
     let dailyProgress: any DailyProgressRepository
 
     init(
@@ -142,6 +160,7 @@ final class RootViewModel {
         dictionary: any DictionaryService,
         speech: any SpeechService,
         shuffler: any CardShuffler,
+        history: any StudyHistoryRepository,
         statistics: any StatisticsRepository = UserDefaultsStatisticsRepository(),
         dailyProgress: any DailyProgressRepository = UserDefaultsDailyProgressRepository(),
         studySessionStore: any StudySessionStore = UserDefaultsStudySessionStore(),
@@ -156,6 +175,8 @@ final class RootViewModel {
         self.statistics = statistics
         self.dailyProgress = dailyProgress
         self.studySessionStore = studySessionStore
+        self.history = history
+        finalizer = StudyHistoryFinalizer(history: history, statistics: statistics, sessionStore: studySessionStore)
         self.studyTimer = studyTimer ?? StudyTimerController(progress: dailyProgress)
         self.navigation = navigation
         library = LibraryViewModel(cards: cards, tags: tags)
@@ -168,6 +189,7 @@ final class RootViewModel {
             dictionary: container.dictionary,
             speech: container.speech,
             shuffler: container.shuffler,
+            history: container.history,
             statistics: container.statistics,
             dailyProgress: container.dailyProgress,
             studySessionStore: container.studySessionStore,
@@ -257,9 +279,14 @@ final class RootViewModel {
     }
 
     func makeStudySessionModel(for activeStudy: ActiveStudy) -> StudySessionViewModel {
+        if let cachedStudyModel, cachedStudyModel.id == activeStudy.sessionID {
+            return cachedStudyModel.model
+        }
         let today = dailyProgress.progress(for: Date(), calendar: .current)
-        return StudySessionViewModel(
+        let model = StudySessionViewModel(
             configuration: activeStudy.configuration,
+            sessionID: activeStudy.sessionID,
+            selectedTagNames: activeStudy.configuration.selectedTagNames,
             snapshot: activeStudy.snapshot,
             shuffler: shuffler,
             speech: speech,
@@ -267,14 +294,21 @@ final class RootViewModel {
                 elapsedSeconds: today.elapsedSeconds,
                 goalSeconds: today.goalSeconds
             ),
-            store: studySessionStore
+            store: sessionWriteGate(for: activeStudy.sessionID)
         )
+        cachedStudyModel = (activeStudy.sessionID, model)
+        return model
     }
 
     func makeWritingSessionModel(for activeStudy: ActiveStudy) -> WritingSessionViewModel {
+        if let cachedWritingModel, cachedWritingModel.id == activeStudy.sessionID {
+            return cachedWritingModel.model
+        }
         let today = dailyProgress.progress(for: Date(), calendar: .current)
-        return WritingSessionViewModel(
+        let model = WritingSessionViewModel(
             configuration: activeStudy.configuration,
+            sessionID: activeStudy.sessionID,
+            selectedTagNames: activeStudy.configuration.selectedTagNames,
             snapshot: activeStudy.snapshot,
             shuffler: shuffler,
             speech: speech,
@@ -282,19 +316,75 @@ final class RootViewModel {
                 elapsedSeconds: today.elapsedSeconds,
                 goalSeconds: today.goalSeconds
             ),
-            store: studySessionStore
+            store: sessionWriteGate(for: activeStudy.sessionID)
         )
+        cachedWritingModel = (activeStudy.sessionID, model)
+        return model
     }
 
-    func resumeInterruptedStudy() {
+    private func sessionWriteGate(for sessionID: UUID) -> StudySessionWriteGate {
+        StudySessionWriteGate(store: studySessionStore) { [weak self] in
+            guard let self, !finalizedSessionIDs.contains(sessionID) else { return false }
+            return navigation.activeStudy?.sessionID == sessionID
+                || resumableStudy?.sessionID == sessionID
+        }
+    }
+
+    func makeHistoryModel() -> StudyHistoryViewModel {
+        StudyHistoryViewModel(repository: history)
+    }
+
+    func requestStartStudy(_ configuration: StudyConfiguration) {
+        prepareInterruptedStudyIfNeeded()
+        guard studySessionStore.load() != nil else {
+            navigation.startStudy(configuration)
+            return
+        }
+        pendingStudyConfiguration = configuration
+        isNewGameConflictPresented = presentationError == nil
+    }
+
+    func continueInterruptedStudy() {
+        cancelPendingStudy()
         guard let resumableStudy else { return }
         navigation.resumeStudy(resumableStudy)
         self.resumableStudy = nil
     }
 
-    func discardInterruptedStudy() {
-        studySessionStore.clear()
-        resumableStudy = nil
+    func resumeInterruptedStudy() {
+        continueInterruptedStudy()
+    }
+
+    func cancelPendingStudy() {
+        pendingStudyConfiguration = nil
+        isNewGameConflictPresented = false
+        isPendingRepeat = false
+    }
+
+    func repeatStudy(_ configuration: StudyConfiguration) {
+        if let snapshot = studySessionStore.load() {
+            pendingStudyConfiguration = configuration
+            isPendingRepeat = true
+            finalize(snapshot)
+        } else {
+            navigation.repeatStudy(configuration)
+        }
+    }
+
+    func replaceInterruptedStudy() {
+        guard pendingStudyConfiguration != nil, let snapshot = studySessionStore.load() else { return }
+        isNewGameConflictPresented = false
+        finalize(snapshot)
+    }
+
+    func retryFinalization() {
+        guard let snapshot = failedFinalization else { return }
+        finalize(snapshot)
+    }
+
+    func cancelFinalizationError() {
+        presentationError = nil
+        cancelPendingStudy()
     }
 
     var studyStatistics: StudyStatistics {
@@ -307,7 +397,9 @@ final class RootViewModel {
 
     func recordCompletedStudy(sessionID: UUID, mode: StudyMode, result: StudyResult) {
         studyTimer.endSession(id: sessionID)
-        statistics.record(sessionID: sessionID, mode: mode, result: result)
+        guard let snapshot = studySessionStore.load(), snapshot.sessionID == sessionID,
+              snapshot.completedResult != nil else { return }
+        finalize(snapshot)
     }
 
     func studyDidAppear(sessionID: UUID) {
@@ -319,9 +411,15 @@ final class RootViewModel {
     }
 
     func finishStudy(sessionID: UUID) {
+        saveAndExitStudy(sessionID: sessionID)
+    }
+
+    func saveAndExitStudy(sessionID: UUID) {
         studyTimer.endSession(id: sessionID)
-        studySessionStore.clear()
+        cachedStudyModel = nil
+        cachedWritingModel = nil
         navigation.finishStudy()
+        prepareInterruptedStudyIfNeeded()
     }
 
     func studyDidDisappear(sessionID: UUID) {
@@ -334,18 +432,15 @@ final class RootViewModel {
 
     private func prepareInterruptedStudyIfNeeded() {
         guard library.state == .loaded,
-              navigation.activeStudy == nil,
-              resumableStudy == nil,
-              let snapshot = studySessionStore.load() else {
-            return
-        }
+              navigation.activeStudy == nil else { return }
+        resumableStudy = nil
+        guard let snapshot = studySessionStore.load() else { return }
 
         let cardsByID = Dictionary(uniqueKeysWithValues: library.cards.map { ($0.id, $0) })
         let availableCards = snapshot.originalCardIDs.compactMap { cardsByID[$0] }
         let hasAvailableQueuedCard = snapshot.queueCardIDs.contains { cardsByID[$0] != nil }
-        guard !availableCards.isEmpty,
-              snapshot.completedResult != nil || hasAvailableQueuedCard else {
-            studySessionStore.clear()
+        guard snapshot.completedResult == nil, hasAvailableQueuedCard else {
+            finalize(snapshot)
             return
         }
 
@@ -354,10 +449,33 @@ final class RootViewModel {
                 mode: snapshot.mode,
                 direction: snapshot.direction,
                 selectedTagIDs: snapshot.selectedTagIDs,
+                selectedTagNames: snapshot.selectedTagNames,
                 cards: availableCards
             ),
             snapshot: snapshot
         )
+    }
+
+    private func finalize(_ snapshot: StudySessionSnapshot) {
+        do {
+            _ = try finalizer.finalize(snapshot, completedAt: Date())
+            finalizedSessionIDs.insert(snapshot.sessionID)
+            failedFinalization = nil
+            presentationError = nil
+            resumableStudy = nil
+            if let pendingStudyConfiguration {
+                let repeatsCurrentPresentation = isPendingRepeat
+                cancelPendingStudy()
+                if repeatsCurrentPresentation {
+                    navigation.repeatStudy(pendingStudyConfiguration)
+                } else {
+                    navigation.startStudy(pendingStudyConfiguration)
+                }
+            }
+        } catch {
+            failedFinalization = snapshot
+            presentationError = .finalization(sessionID: snapshot.sessionID)
+        }
     }
 }
 
@@ -398,8 +516,21 @@ struct RootView: View {
                 onManageTags: { navigation.path.append(.tags) },
                 onDataChanged: model.libraryChanged
             )
+            .safeAreaInset(edge: .top) {
+                if let snapshot = model.resumableSnapshot {
+                    ResumableStudyBanner(snapshot: snapshot, onResume: model.continueInterruptedStudy)
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                }
+            }
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    HapticButton {
+                        navigation.path.append(.history)
+                    } label: {
+                        Label("history.open", systemImage: "clock.arrow.circlepath")
+                    }
+                    .accessibilityIdentifier("library.history")
                     HapticButton(action: navigation.openNewEditor) {
                         Label("library.add", systemImage: "plus")
                     }
@@ -426,8 +557,14 @@ struct RootView: View {
                 switch route {
                 case .studySetup:
                     StudySetupView(model: model.makeStudySetupModel()) {
-                        navigation.startStudy($0)
+                        model.requestStartStudy($0)
                     }
+                case .history:
+                    StudyHistoryView(
+                        model: model.makeHistoryModel(),
+                        resumableSnapshot: model.resumableSnapshot,
+                        onResume: model.continueInterruptedStudy
+                    )
                 case .statistics:
                     StatisticsView(
                         statistics: model.studyStatistics,
@@ -478,8 +615,8 @@ struct RootView: View {
                     case .flashcards:
                         StudySessionView(
                             model: model.makeStudySessionModel(for: presentation),
-                            onRepeat: navigation.repeatStudy,
-                            onFinish: { model.finishStudy(sessionID: presentation.sessionID) },
+                            onRepeat: model.repeatStudy,
+                            onFinish: { model.saveAndExitStudy(sessionID: presentation.sessionID) },
                             onComplete: {
                                 model.recordCompletedStudy(
                                     sessionID: presentation.sessionID,
@@ -491,8 +628,8 @@ struct RootView: View {
                     case .writing:
                         WritingSessionView(
                             model: model.makeWritingSessionModel(for: presentation),
-                            onRepeat: navigation.repeatStudy,
-                            onFinish: { model.finishStudy(sessionID: presentation.sessionID) },
+                            onRepeat: model.repeatStudy,
+                            onFinish: { model.saveAndExitStudy(sessionID: presentation.sessionID) },
                             onComplete: {
                                 model.recordCompletedStudy(
                                     sessionID: presentation.sessionID,
@@ -521,6 +658,15 @@ struct RootView: View {
                 }
             }
             .id(presentation.sessionID)
+            .alert("study.finalization.failed.title", isPresented: Binding(
+                get: { model.presentationError != nil },
+                set: { _ in }
+            )) {
+                HapticButton("study.finalization.retry", action: model.retryFinalization)
+                HapticButton("common.cancel", role: .cancel, action: model.cancelFinalizationError)
+            } message: {
+                Text("study.finalization.failed.message")
+            }
             .task {
                 model.studyDidAppear(sessionID: presentation.sessionID)
                 while !Task.isCancelled, model.studyTimer.snapshot.isVisible {
@@ -541,20 +687,26 @@ struct RootView: View {
             await model.loadInitialLibrary()
         }
         .alert(
-            "study.resume.title",
+            "study.conflict.title",
             isPresented: Binding(
-                get: { model.resumableStudy != nil },
+                get: { model.isNewGameConflictPresented },
                 set: { _ in }
             )
         ) {
-            HapticButton("study.resume.action", action: model.resumeInterruptedStudy)
-            HapticButton(
-                "study.resume.discard",
-                role: .destructive,
-                action: model.discardInterruptedStudy
-            )
+            HapticButton("study.conflict.continue", action: model.continueInterruptedStudy)
+            HapticButton("study.conflict.startNew", action: model.replaceInterruptedStudy)
+            HapticButton("common.cancel", role: .cancel, action: model.cancelPendingStudy)
         } message: {
-            Text("study.resume.message")
+            Text("study.conflict.message")
+        }
+        .alert("study.finalization.failed.title", isPresented: Binding(
+            get: { model.presentationError != nil && navigation.activeStudy == nil },
+            set: { _ in }
+        )) {
+            HapticButton("study.finalization.retry", action: model.retryFinalization)
+            HapticButton("common.cancel", role: .cancel, action: model.cancelFinalizationError)
+        } message: {
+            Text("study.finalization.failed.message")
         }
         .fileExporter(
             isPresented: $isShowingExporter,

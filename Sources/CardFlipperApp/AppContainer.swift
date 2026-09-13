@@ -29,6 +29,7 @@ final class AppContainer {
     let speech: any SpeechService
     let shuffler: any CardShuffler
     let statistics: any StatisticsRepository
+    let history: any StudyHistoryRepository
     let dailyProgress: any DailyProgressRepository
     let studySessionStore: any StudySessionStore
     let studyTimer: StudyTimerController
@@ -81,6 +82,7 @@ final class AppContainer {
         speech = SystemSpeechService()
         shuffler = SystemCardShuffler()
         statistics = UserDefaultsStatisticsRepository(defaults: defaults)
+        history = SwiftDataStudyHistoryRepository(container: modelContainer)
         studySessionStore = UserDefaultsStudySessionStore(defaults: defaults)
         let dailyProgress = UserDefaultsDailyProgressRepository(defaults: defaults)
         self.dailyProgress = dailyProgress

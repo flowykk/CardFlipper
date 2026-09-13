@@ -71,7 +71,7 @@ let project = Project(
         .app(
             name: "CardFlipper",
             bundleId: "com.danilarahmanov.CardFlipper",
-            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "CardEditorFeature", "StudyFeature", "StatisticsFeature", "StudyTimerWidgetExtension"]
+            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "CardEditorFeature", "StudyFeature", "StatisticsFeature", "HistoryFeature", "StudyTimerWidgetExtension"]
         ),
         .tests(name: "CoreTests", host: "Core"),
         .tests(name: "DataTests", host: "Data"),
@@ -84,7 +84,7 @@ let project = Project(
         .tests(
             name: "CardFlipperAppTests",
             host: "CardFlipper",
-            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "StudyFeature", "StatisticsFeature"]
+            dependencies: ["Core", "Data", "DesignSystem", "LibraryFeature", "StudyFeature", "StatisticsFeature", "HistoryFeature"]
         ),
         .uiTests(name: "CardFlipperUITests", host: "CardFlipper"),
     ],

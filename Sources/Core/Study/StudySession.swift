@@ -12,6 +12,7 @@ public struct StudyResult: Codable, Equatable, Sendable {
     public let repeatedCardIDs: [UUID]
     public let totalAssessmentCount: Int
     public let elapsedSeconds: Int
+    private let recordedForgottenCount: Int?
 
     public init(
         plannedCardCount: Int,
@@ -19,7 +20,8 @@ public struct StudyResult: Codable, Equatable, Sendable {
         encounteredCardIDs: Set<UUID>,
         repeatedCardIDs: [UUID],
         totalAssessmentCount: Int,
-        elapsedSeconds: Int
+        elapsedSeconds: Int,
+        forgottenCount: Int? = nil
     ) {
         self.init(
             plannedCardCount: plannedCardCount,
@@ -27,7 +29,8 @@ public struct StudyResult: Codable, Equatable, Sendable {
             encounteredCardCount: encounteredCardIDs.count,
             repeatedCardIDs: repeatedCardIDs.filter { encounteredCardIDs.contains($0) },
             totalAssessmentCount: totalAssessmentCount,
-            elapsedSeconds: elapsedSeconds
+            elapsedSeconds: elapsedSeconds,
+            forgottenCount: forgottenCount
         )
     }
 
@@ -59,8 +62,21 @@ public struct StudyResult: Codable, Equatable, Sendable {
 
     public var reviewedCardCount: Int { completedCardCount }
     public var uniqueCardCount: Int { completedCardCount }
-    public var forgottenCount: Int { max(0, totalAssessmentCount - completedCardCount) }
+    public var forgottenCount: Int {
+        let count = recordedForgottenCount ?? max(0, totalAssessmentCount - completedCardCount)
+        return min(max(0, count), max(0, totalAssessmentCount))
+    }
     public var repeatedCardCount: Int { repeatedCardIDs.count }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.plannedCardCount == rhs.plannedCardCount
+            && lhs.completedCardCount == rhs.completedCardCount
+            && lhs.encounteredCardCount == rhs.encounteredCardCount
+            && lhs.repeatedCardIDs == rhs.repeatedCardIDs
+            && lhs.totalAssessmentCount == rhs.totalAssessmentCount
+            && lhs.elapsedSeconds == rhs.elapsedSeconds
+            && lhs.forgottenCount == rhs.forgottenCount
+    }
 
     public var recallRatePercentage: Int {
         guard encounteredCardCount > 0 else { return 0 }
@@ -81,7 +97,8 @@ public struct StudyResult: Codable, Equatable, Sendable {
         encounteredCardCount: Int,
         repeatedCardIDs: [UUID],
         totalAssessmentCount: Int,
-        elapsedSeconds: Int
+        elapsedSeconds: Int,
+        forgottenCount: Int? = nil
     ) {
         self.plannedCardCount = max(0, plannedCardCount)
         self.encounteredCardCount = min(self.plannedCardCount, max(0, encounteredCardCount))
@@ -89,6 +106,7 @@ public struct StudyResult: Codable, Equatable, Sendable {
         self.repeatedCardIDs = Array(Self.unique(repeatedCardIDs).prefix(self.encounteredCardCount))
         self.totalAssessmentCount = max(0, totalAssessmentCount)
         self.elapsedSeconds = max(0, elapsedSeconds)
+        recordedForgottenCount = forgottenCount.map { min(max(0, $0), max(0, totalAssessmentCount)) }
     }
 }
 

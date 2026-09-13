@@ -246,7 +246,8 @@ public final class StudySessionViewModel {
                 encounteredCardIDs: session.encounteredCardIDs,
                 repeatedCardIDs: session.repeatedCardIDs,
                 totalAssessmentCount: session.totalAssessmentCount,
-                elapsedSeconds: elapsedSeconds
+                elapsedSeconds: elapsedSeconds,
+                forgottenCount: session.forgottenCount
             )
             feedback.perform(.completion)
         } else {

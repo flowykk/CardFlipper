@@ -1,6 +1,62 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "history.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "History" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "История" } }
+      }
+    },
+    "study.conflict.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You Have a Saved Game" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Есть сохранённая игра" } }
+      }
+    },
+    "study.conflict.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue your saved game, or save its results to history and start the new game." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Продолжите сохранённую игру или сохраните её результаты в историю и начните новую." } }
+      }
+    },
+    "study.conflict.continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue Saved Game" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Продолжить сохранённую игру" } }
+      }
+    },
+    "study.conflict.startNew" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start New Game" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начать новую игру" } }
+      }
+    },
+    "study.finalization.failed.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Save Game Results" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось сохранить результаты игры" } }
+      }
+    },
+    "study.finalization.failed.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your game is still saved. Try again to add its results to history." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ваша игра сохранена. Попробуйте ещё раз добавить её результаты в историю." } }
+      }
+    },
+    "study.finalization.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Retry" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторить" } }
+      }
+    },
     "" : {
 
     },

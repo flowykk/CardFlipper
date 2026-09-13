@@ -1,5 +1,16 @@
 import Foundation
 import Testing
+
+@Test func legacyStudyResultDecodesWithoutExplicitMistakeCount() throws {
+    let payload = Data("""
+    {"plannedCardCount":3,"completedCardCount":2,"encounteredCardCount":2,
+     "repeatedCardIDs":[],"totalAssessmentCount":4,"elapsedSeconds":15}
+    """.utf8)
+    let result = try JSONDecoder().decode(StudyResult.self, from: payload)
+    #expect(result.forgottenCount == 2)
+    #expect(result.completedCardCount == 2)
+    #expect(result.elapsedSeconds == 15)
+}
 @testable import Core
 
 private extension UUID {
