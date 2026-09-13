@@ -43,15 +43,18 @@ public struct MetricTable<Content: View>: View {
 
 public struct MetricTableRow<Leading: View, Trailing: View>: View {
     private let systemImage: String?
+    private let iconColor: Color
     private let leading: Leading
     private let trailing: Trailing
 
     public init(
         systemImage: String? = nil,
+        iconColor: Color = .accentColor,
         @ViewBuilder leading: () -> Leading,
         @ViewBuilder trailing: () -> Trailing
     ) {
         self.systemImage = systemImage
+        self.iconColor = iconColor
         self.leading = leading()
         self.trailing = trailing()
     }
@@ -61,7 +64,7 @@ public struct MetricTableRow<Leading: View, Trailing: View>: View {
             if let systemImage {
                 Image(systemName: systemImage)
                     .font(.title3.weight(.semibold))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(iconColor)
                     .frame(width: 28)
                     .accessibilityHidden(true)
             }

@@ -1,62 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "history.open" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "History" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "История" } }
-      }
-    },
-    "study.conflict.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "You Have a Saved Game" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Есть сохранённая игра" } }
-      }
-    },
-    "study.conflict.message" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue your saved game, or save its results to history and start the new game." } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Продолжите сохранённую игру или сохраните её результаты в историю и начните новую." } }
-      }
-    },
-    "study.conflict.continue" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue Saved Game" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Продолжить сохранённую игру" } }
-      }
-    },
-    "study.conflict.startNew" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start New Game" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начать новую игру" } }
-      }
-    },
-    "study.finalization.failed.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t Save Game Results" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось сохранить результаты игры" } }
-      }
-    },
-    "study.finalization.failed.message" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your game is still saved. Try again to add its results to history." } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ваша игра сохранена. Попробуйте ещё раз добавить её результаты в историю." } }
-      }
-    },
-    "study.finalization.retry" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Retry" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повторить" } }
-      }
-    },
     "" : {
 
     },
@@ -1466,6 +1410,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Редактор карточки"
+          }
+        }
+      }
+    },
+    "history.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "История"
           }
         }
       }
@@ -3071,81 +3032,72 @@
         }
       }
     },
-    "study.mode" : {
+    "study.conflict.continue" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Study Mode" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Режим занятия" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue Saved Game"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжить сохранённую игру"
+          }
+        }
       }
     },
-    "study.mode.flashcards" : {
+    "study.conflict.message" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cards" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Карточки" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue your saved game, or save its results to history and start the new game."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжите сохранённую игру или сохраните её результаты в историю и начните новую."
+          }
+        }
       }
     },
-    "study.mode.writing" : {
+    "study.conflict.startNew" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Writing" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Письмо" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start New Game"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начать новую игру"
+          }
+        }
       }
     },
-    "study.writing.directionHint" : {
+    "study.conflict.title" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Write the English translation of the Russian word" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Введите английский перевод русского слова" } }
-      }
-    },
-    "study.writing.answer.placeholder" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "English translation" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Перевод на английский" } }
-      }
-    },
-    "study.writing.check" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Check Answer" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Проверить ответ" } }
-      }
-    },
-    "study.writing.correct" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Correct" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Правильно" } }
-      }
-    },
-    "study.writing.incorrect" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try again" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Попробуйте ещё раз" } }
-      }
-    },
-    "study.writing.showAnswer" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show Answer" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Показать ответ" } }
-      }
-    },
-    "study.writing.hideAnswer" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Return to Writing" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вернуться к вводу" } }
-      }
-    },
-    "study.writing.next" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Next" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Дальше" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You Have a Saved Game"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Есть сохранённая игра"
+          }
+        }
       }
     },
     "study.direction" : {
@@ -3371,6 +3323,57 @@
         }
       }
     },
+    "study.finalization.failed.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your game is still saved. Try again to add its results to history."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваша игра сохранена. Попробуйте ещё раз добавить её результаты в историю."
+          }
+        }
+      }
+    },
+    "study.finalization.failed.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Save Game Results"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сохранить результаты игры"
+          }
+        }
+      }
+    },
+    "study.finalization.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторить"
+          }
+        }
+      }
+    },
     "study.flipHint" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3505,6 +3508,57 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "study.mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Study Mode"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим занятия"
+          }
+        }
+      }
+    },
+    "study.mode.flashcards" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cards"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Карточки"
+          }
+        }
+      }
+    },
+    "study.mode.writing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Writing"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Письмо"
           }
         }
       }
@@ -3854,6 +3908,7 @@
       }
     },
     "study.resume.message" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3933,6 +3988,142 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Начать"
+          }
+        }
+      }
+    },
+    "study.writing.answer.placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English translation"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевод на английский"
+          }
+        }
+      }
+    },
+    "study.writing.check" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check Answer"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверить ответ"
+          }
+        }
+      }
+    },
+    "study.writing.correct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Correct"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Правильно"
+          }
+        }
+      }
+    },
+    "study.writing.directionHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write the English translation of the Russian word"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите английский перевод русского слова"
+          }
+        }
+      }
+    },
+    "study.writing.hideAnswer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Return to Writing"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вернуться к вводу"
+          }
+        }
+      }
+    },
+    "study.writing.incorrect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Попробуйте ещё раз"
+          }
+        }
+      }
+    },
+    "study.writing.next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дальше"
+          }
+        }
+      }
+    },
+    "study.writing.showAnswer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Answer"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать ответ"
           }
         }
       }

@@ -17,32 +17,24 @@ public struct ResumableStudyBanner: View {
 
     public var body: some View {
         HapticButton(action: onResume) {
-            VStack(alignment: .leading, spacing: 8) {
-                ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline, spacing: 12) {
-                        modeText
-                        Spacer(minLength: 8)
-                        continueText
-                    }
+            MetricTable(backgroundStyle: Color.accentColor) {
+                MetricTableRow(systemImage: modeSystemImage, iconColor: foregroundColor) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: HistoryPresentation.dateTime(snapshot.lastActivityAt))
+                            .font(.body)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        modeText
-                        continueText
+                        Text(verbatim: progress)
+                            .font(.caption)
+                            .monospacedDigit()
+                            .lineLimit(1)
                     }
+                } trailing: {
+                    continueText
                 }
-
-                Text(verbatim: progress)
-                    .font(.subheadline)
-                    .monospacedDigit()
-
-                Text(verbatim: lastActivity)
-                    .font(.footnote)
             }
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-            .padding()
             .foregroundStyle(foregroundColor)
-            .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 18))
             .contentShape(RoundedRectangle(cornerRadius: 18))
         }
         .buttonStyle(.plain)
@@ -53,11 +45,6 @@ public struct ResumableStudyBanner: View {
     private var foregroundColor: Color {
         let resolvedAccent = Color(Color.accentColor.resolve(in: environment))
         return AccessibleAccent.preferredForegroundColor(over: resolvedAccent, scheme: colorScheme)
-    }
-
-    private var modeText: some View {
-        Text(verbatim: mode)
-            .font(.headline)
     }
 
     private var continueText: some View {
@@ -72,6 +59,15 @@ public struct ResumableStudyBanner: View {
 
     private var mode: String {
         HistoryPresentation.mode(snapshot.mode)
+    }
+
+    private var modeSystemImage: String {
+        switch snapshot.mode {
+        case .flashcards:
+            "rectangle.stack.fill"
+        case .writing:
+            "keyboard.fill"
+        }
     }
 
     private var progress: String {

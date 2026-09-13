@@ -151,6 +151,7 @@ final class RootViewModel {
     private let finalizer: StudyHistoryFinalizer
     private var failedFinalization: StudySessionSnapshot?
     private var isPendingRepeat = false
+    private var shouldOpenStudySetupAfterFinalization = false
     private var finalizedSessionIDs: Set<UUID> = []
     @ObservationIgnored private var cachedStudyModel: (id: UUID, model: StudySessionViewModel)?
     @ObservationIgnored private var cachedWritingModel: (id: UUID, model: WritingSessionViewModel)?
@@ -339,6 +340,16 @@ final class RootViewModel {
         StudyHistoryViewModel(repository: history)
     }
 
+    func requestOpenStudySetup() {
+        prepareInterruptedStudyIfNeeded()
+        guard studySessionStore.load() != nil else {
+            navigation.openStudySetup()
+            return
+        }
+        shouldOpenStudySetupAfterFinalization = true
+        isNewGameConflictPresented = presentationError == nil
+    }
+
     func requestStartStudy(_ configuration: StudyConfiguration) {
         prepareInterruptedStudyIfNeeded()
         guard studySessionStore.load() != nil else {
@@ -364,6 +375,7 @@ final class RootViewModel {
         pendingStudyConfiguration = nil
         isNewGameConflictPresented = false
         isPendingRepeat = false
+        shouldOpenStudySetupAfterFinalization = false
     }
 
     func repeatStudy(_ configuration: StudyConfiguration, sessionID: UUID, presentationID: UUID) {
@@ -378,7 +390,8 @@ final class RootViewModel {
     }
 
     func replaceInterruptedStudy() {
-        guard pendingStudyConfiguration != nil, let snapshot = studySessionStore.load() else { return }
+        guard pendingStudyConfiguration != nil || shouldOpenStudySetupAfterFinalization,
+              let snapshot = studySessionStore.load() else { return }
         isNewGameConflictPresented = false
         finalize(snapshot)
     }
@@ -491,6 +504,9 @@ final class RootViewModel {
                 } else {
                     navigation.startStudy(pendingStudyConfiguration)
                 }
+            } else if shouldOpenStudySetupAfterFinalization {
+                cancelPendingStudy()
+                navigation.openStudySetup()
             }
         } catch {
             failedFinalization = snapshot
@@ -531,7 +547,7 @@ struct RootView: View {
                 model: model.library,
                 onAddCard: navigation.openNewEditor,
                 onEditCard: { navigation.openEditor(cardID: $0.id) },
-                onStartStudy: navigation.openStudySetup,
+                onStartStudy: model.requestOpenStudySetup,
                 onImportCards: { isShowingImporter = true },
                 onManageTags: { navigation.path.append(.tags) },
                 onDataChanged: model.libraryChanged
@@ -590,7 +606,7 @@ struct RootView: View {
                         statistics: model.studyStatistics,
                         progress: model.dailyProgress,
                         libraryCardCount: model.libraryCardCount,
-                        onStartStudy: navigation.openStudySetup
+                        onStartStudy: model.requestOpenStudySetup
                     )
                 case .settings:
                     SettingsView(
@@ -668,8 +684,8 @@ struct RootView: View {
                             Text(verbatim: StudyTimerCopy.summary(
                                 model.studyTimer.snapshot
                             ))
-                            .font(.caption.weight(.semibold))
-                            .monospacedDigit()
+                            .font(.system(.subheadline, design: .monospaced).weight(.semibold))
+                            .padding(.horizontal, 8)
                             .fixedSize(horizontal: true, vertical: false)
                             .accessibilityLabel(Text(verbatim: StudyTimerCopy.summary(
                                 model.studyTimer.snapshot

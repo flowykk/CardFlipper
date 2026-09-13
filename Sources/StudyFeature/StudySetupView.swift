@@ -92,22 +92,30 @@ public struct StudySetupView: View {
 
                 Text(verbatim: localizedCount("study.matchingCount", model.matchingCards.count))
                     .contentTransition(.numericText())
-
-                HapticButton {
-                    guard let configuration = model.configuration else { return }
-                    onStart(configuration)
-                } label: {
-                    Label("study.start", systemImage: "play.fill")
-                        .foregroundStyle(.white)
-                }
-                .buttonStyle(PrimaryActionButtonStyle())
-                .disabled(!model.canStart)
-                .accessibilityIdentifier("study.start")
             }
         }
         .animation(modeTransitionAnimation, value: model.mode)
         .accessibilityIdentifier("study.setup")
         .navigationTitle("study.setup.title")
+        .safeAreaInset(edge: .bottom) {
+            startButton
+        }
+    }
+
+    private var startButton: some View {
+        HapticButton {
+            guard let configuration = model.configuration else { return }
+            onStart(configuration)
+        } label: {
+            Label("study.start", systemImage: "play.fill")
+                .foregroundStyle(.white)
+        }
+        .buttonStyle(PrimaryActionButtonStyle())
+        .disabled(!model.canStart)
+        .accessibilityIdentifier("study.start")
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
     }
 
     private var modeTransitionAnimation: Animation {
