@@ -82,6 +82,21 @@ private extension VocabularyCard {
     #expect(result.recallRatePercentage == 75)
 }
 
+@Test func studyResultExcludesUnencounteredRepeatsFromPartialRecall() {
+    let result = StudyResult(
+        plannedCardCount: 10,
+        completedCardCount: 6,
+        encounteredCardIDs: [.fixture(1), .fixture(2), .fixture(3), .fixture(4)],
+        repeatedCardIDs: [.fixture(1), .fixture(9), .fixture(9)],
+        totalAssessmentCount: 7,
+        elapsedSeconds: 60
+    )
+
+    #expect(result.completedCardCount == 4)
+    #expect(result.repeatedCardIDs == [.fixture(1)])
+    #expect(result.recallRatePercentage == 75)
+}
+
 @Test func constructingFlashcardSessionDoesNotEncounterCards() {
     let session = StudySession(cards: [.fixture(id: 1)], direction: .russianToEnglish)
 

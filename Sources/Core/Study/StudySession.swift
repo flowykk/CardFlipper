@@ -25,7 +25,7 @@ public struct StudyResult: Codable, Equatable, Sendable {
             plannedCardCount: plannedCardCount,
             completedCardCount: completedCardCount,
             encounteredCardCount: encounteredCardIDs.count,
-            repeatedCardIDs: repeatedCardIDs,
+            repeatedCardIDs: repeatedCardIDs.filter { encounteredCardIDs.contains($0) },
             totalAssessmentCount: totalAssessmentCount,
             elapsedSeconds: elapsedSeconds
         )
@@ -84,9 +84,9 @@ public struct StudyResult: Codable, Equatable, Sendable {
         elapsedSeconds: Int
     ) {
         self.plannedCardCount = max(0, plannedCardCount)
-        self.completedCardCount = min(self.plannedCardCount, max(0, completedCardCount))
         self.encounteredCardCount = min(self.plannedCardCount, max(0, encounteredCardCount))
-        self.repeatedCardIDs = Self.unique(repeatedCardIDs)
+        self.completedCardCount = min(self.encounteredCardCount, max(0, completedCardCount))
+        self.repeatedCardIDs = Array(Self.unique(repeatedCardIDs).prefix(self.encounteredCardCount))
         self.totalAssessmentCount = max(0, totalAssessmentCount)
         self.elapsedSeconds = max(0, elapsedSeconds)
     }
