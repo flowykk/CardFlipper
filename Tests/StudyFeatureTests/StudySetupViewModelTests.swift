@@ -148,3 +148,33 @@ import Testing
 
     #expect(model.configuration?.selectedTagNames == ["Exam", "Work"])
 }
+
+@MainActor
+@Test func untaggedStudyFilterCombinesWithTagsAndLearningStatus() {
+    let untagged = VocabularyCard.fixture(id: 1, isLearned: true)
+    let work = VocabularyCard.fixture(id: 2, tags: [.work])
+    let exam = VocabularyCard.fixture(id: 3, tags: [.exam])
+    let model = StudySetupViewModel(cards: [untagged, work, exam], tags: [.work, .exam])
+    model.includesUntagged = true
+    #expect(model.matchingCards == [untagged])
+    #expect(model.configuration?.selectedTagNames.isEmpty == false)
+    model.toggleTag(Tag.work.id)
+    #expect(model.matchingCards == [untagged, work])
+    model.learningFilter = .learned
+    #expect(model.matchingCards == [untagged])
+    model.chooseMode(.writing)
+    #expect(model.configuration?.cards == [untagged])
+    model.includesUntagged = false
+    #expect(!model.canStart)
+    #expect(model.configuration == nil)
+}
+
+@MainActor
+@Test func untaggedStudyFilterWorksWhenNoTagsExist() {
+    let card = VocabularyCard.fixture(id: 1)
+    let model = StudySetupViewModel(cards: [card], tags: [])
+    model.includesUntagged = true
+    #expect(model.matchingCards == [card])
+    model.includesUntagged = false
+    #expect(model.matchingCards == [card])
+}

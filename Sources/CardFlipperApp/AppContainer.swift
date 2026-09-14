@@ -4,6 +4,10 @@ import Foundation
 import SwiftData
 import StatisticsFeature
 
+enum ResumeBannerPreference {
+    static let key = "study.hiddenResumeSessionID"
+}
+
 #if DEBUG
 struct AppLaunchConfiguration: Equatable {
     let usesInMemoryStore: Bool
@@ -27,6 +31,7 @@ struct AppLaunchConfiguration: Equatable {
 
 @MainActor
 final class AppContainer {
+    let preferences: UserDefaults
     let modelContainer: ModelContainer
     let cards: any CardRepository
     let tags: any TagRepository
@@ -64,7 +69,12 @@ final class AppContainer {
             let preservedSnapshot = configuration.preservesStudySession
                 ? UserDefaultsStudySessionStore(defaults: defaults).load()
                 : nil
+            let preservedHiddenSession = configuration.preservesStudySession
+                ? defaults.string(forKey: ResumeBannerPreference.key) : nil
             defaults.removePersistentDomain(forName: suiteName)
+            if let preservedHiddenSession {
+                defaults.set(preservedHiddenSession, forKey: ResumeBannerPreference.key)
+            }
             self.init(modelContainer: container, defaults: defaults)
             if let preservedSnapshot {
                 studySessionStore.save(preservedSnapshot)
@@ -86,6 +96,7 @@ final class AppContainer {
         liveActivityClient: any StudyTimerLiveActivityClient = SystemStudyTimerLiveActivityClient()
     ) {
         self.modelContainer = modelContainer
+        preferences = defaults
         cards = SwiftDataCardRepository(container: modelContainer)
         tags = SwiftDataTagRepository(container: modelContainer)
         dictionary = FreeDictionaryClient()

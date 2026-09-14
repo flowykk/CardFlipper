@@ -71,17 +71,14 @@ public struct StudySetupView: View {
             }
 
             Section {
-                if model.tags.isEmpty {
-                    Label("study.allCards", systemImage: AppSymbol.library)
-                } else {
-                    ForEach(model.tags) { tag in
-                        tagButton(tag)
-                    }
+                untaggedButton
+                ForEach(model.tags) { tag in
+                    tagButton(tag)
                 }
             } header: {
                 Text("library.filter")
             } footer: {
-                if model.selectedTagIDs.isEmpty {
+                if model.selectedTagIDs.isEmpty && !model.includesUntagged {
                     Text("study.allCards")
                 }
             }
@@ -171,6 +168,25 @@ public struct StudySetupView: View {
             get: { model.mode },
             set: { model.chooseMode($0) }
         )
+    }
+
+    private var untaggedButton: some View {
+        HapticButton(feedback: .selection) {
+            model.includesUntagged.toggle()
+        } label: {
+            HStack {
+                Text("tagFilter.untagged", bundle: .module)
+                    .foregroundStyle(.primary)
+                Spacer()
+                Image(systemName: model.includesUntagged ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(model.includesUntagged ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+                    .accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(model.includesUntagged ? .isSelected : [])
+        .accessibilityIdentifier("study.tags.untagged")
     }
 
     private func tagButton(_ tag: Tag) -> some View {

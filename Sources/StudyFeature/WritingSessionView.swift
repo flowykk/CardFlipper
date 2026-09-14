@@ -11,6 +11,7 @@ public struct WritingSessionView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.scenePhase) private var scenePhase
 
+    private let onEdit: (VocabularyCard) -> Void
     private let onRepeat: (StudyConfiguration) -> Void
     private let onFinish: () -> Void
     private let onComplete: (StudyResult) -> Void
@@ -19,12 +20,14 @@ public struct WritingSessionView: View {
         model: WritingSessionViewModel,
         onRepeat: @escaping (StudyConfiguration) -> Void,
         onFinish: @escaping () -> Void,
-        onComplete: @escaping (StudyResult) -> Void
+        onComplete: @escaping (StudyResult) -> Void,
+        onEdit: @escaping (VocabularyCard) -> Void = { _ in }
     ) {
         _model = State(initialValue: model)
         self.onRepeat = onRepeat
         self.onFinish = onFinish
         self.onComplete = onComplete
+        self.onEdit = onEdit
     }
 
     public var body: some View {
@@ -45,6 +48,25 @@ public struct WritingSessionView: View {
         }
         .toolbar {
             if model.result == nil {
+                if model.canEditCard {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        HapticButton {
+                            if let card = model.session.currentCard {
+                                onEdit(card)
+                            }
+                        } label: {
+                            Label {
+                                Text("study.edit", bundle: .module)
+                            } icon: {
+                                Image(systemName: "pencil")
+                            }
+                        }
+                        .accessibilityIdentifier("study.edit")
+                    }
+                    if #available(iOS 26.0, *) {
+                        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     HapticButton(role: .destructive) {
                         model.requestExit()
@@ -381,6 +403,10 @@ public struct WritingSessionView: View {
                 .monospacedDigit()
             ProgressView(value: model.progressPresentation.fractionCompleted)
                 .accessibilityHidden(true)
+                .animation(
+                    reduceMotion ? nil : .easeInOut(duration: 0.35),
+                    value: model.progressPresentation.fractionCompleted
+                )
         }
         .padding(.horizontal)
         .padding(.vertical, 8)

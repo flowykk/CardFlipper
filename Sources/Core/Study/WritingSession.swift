@@ -58,6 +58,17 @@ public struct WritingSession: Sendable {
         self.totalAssessmentCount = max(0, totalAssessmentCount)
     }
 
+    public mutating func updateCard(_ card: VocabularyCard) {
+        if let currentCard, currentCard.id == card.id {
+            let previousAnswers = Set(currentCard.englishVariants.map { TextNormalizer.searchKey($0.text) })
+            let updatedAnswers = Set(card.englishVariants.map { TextNormalizer.searchKey($0.text) })
+            if previousAnswers != updatedAnswers {
+                evaluation = .unanswered
+            }
+        }
+        queue = queue.map { $0.id == card.id ? card : $0 }
+    }
+
     public var currentCard: VocabularyCard? { queue.first }
     public var remainingCount: Int { queue.count }
     public var isComplete: Bool { queue.isEmpty }

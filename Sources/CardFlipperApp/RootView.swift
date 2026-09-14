@@ -9,6 +9,11 @@ import StudyFeature
 import StatisticsFeature
 import SwiftUI
 
+struct StudyEditorPresentation: Identifiable {
+    let id: UUID
+    let model: CardEditorViewModel
+}
+
 enum AppRoute: Hashable {
     case studySetup
     case statistics
@@ -132,6 +137,8 @@ final class AppNavigationState {
 final class RootViewModel {
     let library: LibraryViewModel
     let navigation: AppNavigationState
+    var studyEditor: StudyEditorPresentation?
+    var importPreview: CardImportPreview?
     let studyTimer: StudyTimerController
     private(set) var resumableStudy: ActiveStudy?
     private(set) var pendingStudyConfiguration: StudyConfiguration?
@@ -233,9 +240,21 @@ final class RootViewModel {
         try await CardTransferCoordinator(cards: cards).prepareExport()
     }
 
-    func importCards(_ imported: [VocabularyCard]) async throws -> CardMergeResult {
-        let result = CardMergeService.merge(existing: try await cards.fetchCards(), imported: imported)
-        for card in result.cards {
+    func makeImportPreview(_ imported: [VocabularyCard], fileName: String) async throws -> CardImportPreview {
+        CardImportPreview(fileName: fileName, existing: try await cards.fetchCards(), imported: imported)
+    }
+
+    func prepareImport(_ imported: [VocabularyCard], fileName: String) async throws {
+        importPreview = try await makeImportPreview(imported, fileName: fileName)
+    }
+
+    func confirmImport(_ preview: CardImportPreview) async throws {
+        let current = try await cards.fetchCards()
+        guard Dictionary(uniqueKeysWithValues: current.map { ($0.id, $0) })
+                == Dictionary(uniqueKeysWithValues: preview.originalCards.map { ($0.id, $0) }) else {
+            throw CardImportError.libraryChanged
+        }
+        for card in preview.cardsToSave {
             var resolvedTags: [Tag] = []
             for tag in card.tags {
                 resolvedTags.append(try await tags.create(name: tag.name))
@@ -251,7 +270,7 @@ final class RootViewModel {
             )
             try await cards.save(resolvedCard)
         }
-        return result
+        await libraryChanged()
     }
 
     func makeEditorModel(for presentation: AppEditorPresentation) -> CardEditorViewModel? {
@@ -275,6 +294,41 @@ final class RootViewModel {
                 speech: speech
             )
         }
+    }
+
+    func editStudyCard(_ card: VocabularyCard) {
+        guard studyEditor == nil, let study = navigation.activeStudy else { return }
+        let canEdit: Bool
+        switch study.configuration.mode {
+        case .flashcards:
+            let session = makeStudySessionModel(for: study)
+            canEdit = session.canEditCard && session.session.currentCard?.id == card.id
+        case .writing:
+            let session = makeWritingSessionModel(for: study)
+            canEdit = session.canEditCard && session.session.currentCard?.id == card.id
+        }
+        guard canEdit else { return }
+        studyEditor = StudyEditorPresentation(
+            id: card.id,
+            model: .edit(card: card, cards: cards, tags: tags, dictionary: dictionary, speech: speech)
+        )
+        cachedStudyModel?.model.setEditing(true)
+        cachedWritingModel?.model.setEditing(true)
+        studyTimer.setEditing(true)
+    }
+
+    func studyEditorSaved(_ editor: CardEditorViewModel) async {
+        guard let card = editor.savedCard else { return }
+        cachedStudyModel?.model.applyEditedCard(card)
+        cachedWritingModel?.model.applyEditedCard(card)
+        await loadLibrary()
+    }
+
+    func studyEditorDismissed() {
+        studyEditor = nil
+        cachedStudyModel?.model.setEditing(false)
+        cachedWritingModel?.model.setEditing(false)
+        studyTimer.setEditing(false)
     }
 
     func makeStudySetupModel() -> StudySetupViewModel {
@@ -516,6 +570,7 @@ final class RootViewModel {
 }
 
 struct RootView: View {
+    @AppStorage(ResumeBannerPreference.key) private var hiddenResumeSessionID = ""
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var model: RootViewModel
@@ -535,6 +590,7 @@ struct RootView: View {
         appearanceSettings: AppearanceSettings = AppearanceSettings(),
         iconSettings: AppIconSettings = AppIconSettings()
     ) {
+        _hiddenResumeSessionID = AppStorage(wrappedValue: "", ResumeBannerPreference.key, store: container.preferences)
         _model = State(initialValue: RootViewModel(container: container))
         _appearanceSettings = State(initialValue: appearanceSettings)
         _iconSettings = State(initialValue: iconSettings)
@@ -554,11 +610,19 @@ struct RootView: View {
                 onManageTags: { navigation.path.append(.tags) },
                 onDataChanged: model.libraryChanged
             )
-            .safeAreaInset(edge: .top) {
-                if let snapshot = model.resumableSnapshot {
-                    ResumableStudyBanner(snapshot: snapshot, onResume: model.continueInterruptedStudy)
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if let snapshot = model.resumableSnapshot,
+                   hiddenResumeSessionID != snapshot.sessionID.uuidString {
+                    ResumableStudyBanner(
+                        snapshot: snapshot,
+                        onResume: model.continueInterruptedStudy,
+                        onHide: {
+                            hiddenResumeSessionID = snapshot.sessionID.uuidString
+                        },
+                        verticalPadding: 8
+                    )
+                    .id(snapshot.sessionID)
+                    .padding(.horizontal)
                 }
             }
             .toolbar {
@@ -655,7 +719,8 @@ struct RootView: View {
                                     mode: presentation.configuration.mode,
                                     result: $0
                                 )
-                            }
+                            },
+                            onEdit: model.editStudyCard
                         )
                     case .writing:
                         WritingSessionView(
@@ -669,18 +734,17 @@ struct RootView: View {
                                     mode: presentation.configuration.mode,
                                     result: $0
                                 )
-                            }
+                            },
+                            onEdit: model.editStudyCard
                         )
                     }
                 }
                 .toolbar {
                     if model.studyTimer.snapshot.isVisible {
                         ToolbarItem(placement: .topBarLeading) {
-                            Text(verbatim: dynamicTypeSize.isAccessibilitySize
-                                 ? StudyDurationFormatter.string(
-                                    seconds: model.studyTimer.snapshot.sessionElapsedSeconds
-                                 )
-                                 : StudyTimerCopy.summary(model.studyTimer.snapshot))
+                            Text(verbatim: StudyDurationFormatter.string(
+                                seconds: model.studyTimer.snapshot.sessionElapsedSeconds
+                            ))
                             .font(.system(.subheadline, design: .monospaced).weight(.semibold))
                             .padding(.horizontal, 8)
                             .fixedSize(horizontal: true, vertical: false)
@@ -691,6 +755,12 @@ struct RootView: View {
                         }
                     }
                 }
+            }
+            .sheet(item: $model.studyEditor, onDismiss: model.studyEditorDismissed) { editor in
+                CardEditorView(
+                    model: editor.model,
+                    onSaved: { await model.studyEditorSaved(editor.model) }
+                )
             }
             .id(presentation.sessionID)
             .alert("study.finalization.failed.title", isPresented: Binding(
@@ -778,18 +848,18 @@ struct RootView: View {
                 do {
                     let data = try Data(contentsOf: url)
                     let document = try JSONDecoder().decode(CardTransferDocument.self, from: data)
-                    let summary = try await model.importCards(document.decodedCards())
-                    let format = String(localized: "settings.cards.import.success")
-                    transferMessage = String.localizedStringWithFormat(
-                        format,
-                        summary.addedCount,
-                        summary.mergedCount
-                    )
-                    await model.libraryChanged()
+                    try await model.prepareImport(document.decodedCards(), fileName: url.lastPathComponent)
                 } catch {
                     transferMessage = String(localized: "settings.cards.import.failed")
                 }
             }
+        }
+        .sheet(item: $model.importPreview) { preview in
+            CardImportPreviewView(
+                preview: preview,
+                onConfirm: model.confirmImport,
+                onRefresh: { try await model.makeImportPreview($0.importedCards, fileName: $0.fileName) }
+            )
         }
         .alert("settings.cards.import.result", isPresented: Binding(
             get: { transferMessage != nil },

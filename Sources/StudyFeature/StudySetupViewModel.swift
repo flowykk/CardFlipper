@@ -30,6 +30,7 @@ public final class StudySetupViewModel {
     public private(set) var mode: StudyMode
     public private(set) var direction: StudyDirection?
     public private(set) var selectedTagIDs: Set<UUID>
+    public var includesUntagged = false
     public var learningFilter: CardLearningFilter = .all
     public let cards: [VocabularyCard]
     public let tags: [Tag]
@@ -46,10 +47,11 @@ public final class StudySetupViewModel {
 
     public var matchingCards: [VocabularyCard] {
         let statusMatchingCards = cards.filter(learningFilter.matches)
-        guard !selectedTagIDs.isEmpty else { return statusMatchingCards }
+        guard !selectedTagIDs.isEmpty || includesUntagged else { return statusMatchingCards }
 
         return statusMatchingCards.filter { card in
-            !selectedTagIDs.isDisjoint(with: card.tags.map(\.id))
+            (includesUntagged && card.tags.isEmpty)
+                || !selectedTagIDs.isDisjoint(with: card.tags.map(\.id))
         }
     }
 
@@ -64,9 +66,8 @@ public final class StudySetupViewModel {
             mode: mode,
             direction: direction,
             selectedTagIDs: selectedTagIDs,
-            selectedTagNames: selectedTagIDs.isEmpty
-                ? []
-                : tags.filter { selectedTagIDs.contains($0.id) }.map(\.name),
+            selectedTagNames: tags.filter { selectedTagIDs.contains($0.id) }.map(\.name)
+                + (includesUntagged ? [String(localized: "tagFilter.untagged", bundle: .module)] : []),
             cards: matchingCards
         )
     }

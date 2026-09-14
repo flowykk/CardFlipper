@@ -71,7 +71,7 @@ public final class StudySessionViewModel {
     public private(set) var isShowingUsageExamples = false
     public var isExitConfirmationPresented = false
 
-    public let repeatConfiguration: StudyConfiguration
+    public private(set) var repeatConfiguration: StudyConfiguration
 
     private let sessionID: UUID
     private let originalSelectedTagNames: [String]
@@ -82,6 +82,8 @@ public final class StudySessionViewModel {
     private let store: (any StudySessionStore)?
     private let now: @MainActor () -> Date
     private let sessionStartedAt: Date
+    private var editingStartedAt: Date?
+    private var editingDuration: TimeInterval = 0
     private let segmentStartedAt: Date
     private let accumulatedDurationAtStart: Int
     private let initialDailyGoalProgress: StudyDailyGoalProgress?
@@ -288,6 +290,31 @@ public final class StudySessionViewModel {
         speech.speak(example.text)
     }
 
+    public var canEditCard: Bool { isShowingAnswer && !session.isComplete && result == nil }
+
+    public func setEditing(_ isEditing: Bool) {
+        if isEditing {
+            guard editingStartedAt == nil else { return }
+            editingStartedAt = now()
+        } else if let startedAt = editingStartedAt {
+            editingDuration += max(0, now().timeIntervalSince(startedAt))
+            editingStartedAt = nil
+        }
+        persistSnapshot()
+    }
+
+    public func applyEditedCard(_ card: VocabularyCard) {
+        session.updateCard(card)
+        repeatConfiguration = StudyConfiguration(
+            mode: repeatConfiguration.mode,
+            direction: repeatConfiguration.direction,
+            selectedTagIDs: repeatConfiguration.selectedTagIDs,
+            selectedTagNames: repeatConfiguration.selectedTagNames,
+            cards: repeatConfiguration.cards.map { $0.id == card.id ? card : $0 }
+        )
+        persistSnapshot()
+    }
+
     public func requestExit() {
         isExitConfirmationPresented = true
     }
@@ -327,7 +354,7 @@ public final class StudySessionViewModel {
 
     private func elapsedSeconds(at activityDate: Date) -> Int {
         accumulatedDurationAtStart
-            + max(0, Int(activityDate.timeIntervalSince(segmentStartedAt).rounded(.down)))
+            + max(0, Int(((editingStartedAt ?? activityDate).timeIntervalSince(segmentStartedAt) - editingDuration).rounded(.down)))
     }
 
     private var isEnglishSideVisible: Bool {

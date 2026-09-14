@@ -137,3 +137,26 @@ private final class ActivitySpy: StudyTimerLiveActivityClient {
     }
     func end(finalSnapshot: StudyTimerSnapshot) { endCount += 1 }
 }
+
+@MainActor
+@Test func editingPauseSurvivesSceneChangesAndResumesOnlyInForeground() {
+    let fixture = TimerFixture()
+    fixture.timer.setSceneActive(true)
+    fixture.timer.startSession(id: UUID())
+    fixture.advance(10)
+    fixture.timer.setEditing(true)
+    fixture.advance(70)
+    fixture.timer.setSceneActive(false)
+    fixture.timer.setSceneActive(true)
+    fixture.timer.tick()
+    #expect(fixture.timer.snapshot.sessionElapsedSeconds == 10)
+    fixture.timer.setSceneActive(false)
+    fixture.timer.setEditing(false)
+    fixture.advance(20)
+    fixture.timer.tick()
+    #expect(fixture.timer.snapshot.sessionElapsedSeconds == 10)
+    fixture.timer.setSceneActive(true)
+    fixture.advance(5)
+    fixture.timer.tick()
+    #expect(fixture.timer.snapshot.sessionElapsedSeconds == 15)
+}

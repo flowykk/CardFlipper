@@ -50,7 +50,7 @@ final class CardFlipperFlowTests: XCTestCase {
         newest.tap()
         assertHistoryDetail("completedAt", contains: "2026")
         assertHistoryDetail("startedAt", contains: "2026")
-        assertHistoryDetail("duration", contains: "61 seconds")
+        assertHistoryDetail("duration", contains: "1 min 01 sec")
         assertHistoryDetail("mode", contains: "Writing")
         assertHistoryDetail("direction", contains: "Russian to English")
         assertHistoryDetail("progress", contains: "2 of 3")
@@ -66,10 +66,41 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("history-detail-metrics")
         app.navigationBars.buttons.firstMatch.tap()
         older.tap()
-        assertHistoryDetail("duration", contains: "1 second")
+        assertHistoryDetail("duration", contains: "0 min 01 sec")
         assertHistoryDetail("direction", contains: "English to Russian")
         assertHistoryDetail("tags", contains: "All Cards")
         XCTAssertFalse(app.staticTexts["history.difficult.book"].exists)
+    }
+
+    func testResumeBannerCanHideAndResumeFromHistoryAfterRelaunch() {
+        launchHistory(arguments: ["-uiTestResume"])
+        let banner = app.buttons["study.resume.banner"]
+        let compact = app.buttons["study.resume.compact"]
+        XCTAssertTrue(banner.waitForExistence(timeout: 5))
+        banner.swipeRight()
+        XCTAssertTrue(banner.exists)
+        XCTAssertFalse(compact.exists)
+        banner.swipeLeft()
+        XCTAssertTrue(banner.waitForNonExistence(timeout: 5))
+        XCTAssertFalse(compact.exists)
+        XCTAssertTrue(app.buttons["library.card"].firstMatch.isHittable)
+        snap("resume-hidden-library")
+        app.terminate()
+        launchHistory(arguments: ["-uiTestSeed", "-uiTestPreserveStudySession"])
+        XCTAssertFalse(banner.exists)
+        XCTAssertFalse(compact.exists)
+        tap("library.history")
+        XCTAssertTrue(banner.waitForExistence(timeout: 5))
+        banner.tap()
+        let progress = app.descendants(matching: .any)["study.progress"].firstMatch
+        XCTAssertTrue(progress.waitForExistence(timeout: 5))
+        XCTAssertEqual(progress.label, "2/2")
+        rememberCurrentCard()
+        assertExists("study.result")
+        tap("study.finish")
+        XCTAssertTrue(app.buttons["library.study"].waitForExistence(timeout: 5))
+        XCTAssertFalse(compact.exists)
+        XCTAssertFalse(banner.exists)
     }
 
     func testHistoryResumeSurvivesRelaunchAndCompletionAppearsInHistory() {
@@ -189,7 +220,7 @@ final class CardFlipperFlowTests: XCTestCase {
         tap("library.history")
         historyRow(902).tap()
         assertHistoryDetail("mode", contains: "Письмо")
-        assertHistoryDetail("duration", contains: "61 секунда")
+        assertHistoryDetail("duration", contains: "1 мин 01 сек")
         assertHistoryDetail("direction", contains: "С русского на английский")
         assertHistoryDetail("progress", contains: "2 из 3")
         assertHistoryDetail("recall", contains: "50% вспоминания")
@@ -593,6 +624,36 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertTrue(firstCard.staticTexts["книга"].waitForExistence(timeout: 3))
     }
 
+    func testUntaggedFilterWorksInLibraryAndStudySetup() {
+        launch(seed: true)
+        tap("library.add")
+        assertExists("editor.root")
+        fillRequiredFields(russian: "без тега", english: "untaggedword")
+        tap("editor.save")
+        waitForCardCount(4)
+        tap("library.filters")
+        tap("library.tags.untagged")
+        tap("library.filters.done")
+        waitForCardCount(1)
+        XCTAssertTrue(app.buttons["library.card"].firstMatch.label.contains("untaggedword"))
+        tap("library.filters")
+        tap("Основы")
+        tap("library.filters.done")
+        waitForCardCount(4)
+        tap("library.filters")
+        tap("library.filters.reset")
+        XCTAssertFalse(app.buttons["library.tags.untagged"].isSelected)
+        tap("library.filters.done")
+        waitForCardCount(4)
+        tap("library.study")
+        tap("study.tags.untagged")
+        tap("study.start")
+        assertExists("study.card.prompt")
+        XCTAssertTrue(app.staticTexts["untaggedword"].exists)
+        XCTAssertEqual(app.descendants(matching: .any)["study.progress"].firstMatch.label, "1/1")
+        snap("untagged-study-card")
+    }
+
     func testLearningFiltersAreAvailableInLibraryAndStudySetup() throws {
         launch(seed: true)
 
@@ -951,6 +1012,50 @@ final class CardFlipperFlowTests: XCTestCase {
         let cards = app.buttons.matching(identifier: "library.card")
         XCTAssertTrue(cards.element(boundBy: 0).staticTexts["Reusable"].exists)
         XCTAssertTrue(cards.element(boundBy: 1).staticTexts["Reusable"].exists)
+    }
+
+    func testEditFlashcardDuringGame() {
+        verifyEditingDuringGame(writing: false)
+    }
+
+    func testEditWritingCardDuringGame() {
+        verifyEditingDuringGame(writing: true)
+    }
+
+    private func verifyEditingDuringGame(writing: Bool) {
+        launch(seed: true)
+        tap("library.study")
+        tap(writing ? "study.mode.writing" : "study.direction.russianToEnglish")
+        tap("study.start")
+        let edit = app.buttons["study.edit"]
+        assertExists(writing ? "study.writing.card" : "study.card.prompt")
+        XCTAssertFalse(edit.exists)
+        tapEmptyCardSpace(writing ? "study.writing.card" : "study.card.prompt")
+        XCTAssertTrue(edit.waitForExistence(timeout: 5))
+        tapEmptyCardSpace(writing ? "study.writing.card" : "study.card.answer")
+        XCTAssertTrue(edit.waitForNonExistence(timeout: 5))
+        tapEmptyCardSpace(writing ? "study.writing.card" : "study.card.prompt")
+        XCTAssertTrue(edit.waitForExistence(timeout: 5))
+        let progress = app.descendants(matching: .any)["study.progress"].firstMatch.label
+        edit.tap()
+        assertExists("editor.root")
+        tap("editor.cancel")
+        XCTAssertTrue(edit.waitForExistence(timeout: 5))
+        edit.tap()
+        let field = app.textFields["editor.english.0"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        let original = field.value as? String ?? ""
+        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: original.count) + "updatedword")
+        tap("editor.save")
+        XCTAssertTrue(edit.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.textFields["editor.english.0"].exists)
+        XCTAssertEqual(app.descendants(matching: .any)["study.progress"].firstMatch.label, progress)
+        snap(writing ? "writing-card-edited" : "flashcard-edited")
+        edit.tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertEqual(field.value as? String, "updatedword")
+        tap("editor.cancel")
     }
 
     private func launch(seed: Bool, accent: String? = nil) {

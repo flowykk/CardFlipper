@@ -13,6 +13,7 @@ public final class StudyTimerController {
 
     private var sessionID: UUID?
     private var sceneIsActive = false
+    private var isEditing = false
     private var activeSegmentStart: Date?
     private var committedSessionSeconds = 0
     private var nextCheckpoint: Date?
@@ -35,9 +36,10 @@ public final class StudyTimerController {
             endSession(id: existing)
         }
         sessionID = id
+        isEditing = false
         committedSessionSeconds = 0
         let date = now()
-        if sceneIsActive {
+        if sceneIsActive && !isEditing {
             beginSegment(at: date)
         }
         refresh(at: date, visible: true)
@@ -49,7 +51,7 @@ public final class StudyTimerController {
         sceneIsActive = isActive
         guard sessionID != nil else { return }
         let date = now()
-        if isActive {
+        if isActive && !isEditing {
             beginSegment(at: date)
             refresh(at: date, visible: true)
             liveActivity.publish(snapshot: snapshot, phase: .running)
@@ -60,12 +62,26 @@ public final class StudyTimerController {
         }
     }
 
+    public func setEditing(_ editing: Bool) {
+        guard isEditing != editing else { return }
+        isEditing = editing
+        guard sessionID != nil else { return }
+        let date = now()
+        if sceneIsActive && !isEditing {
+            beginSegment(at: date)
+        } else {
+            commitSegment(endingAt: date)
+        }
+        refresh(at: date, visible: true)
+        liveActivity.publish(snapshot: snapshot, phase: sceneIsActive && !isEditing ? .running : .paused)
+    }
+
     public func tick() {
         guard sessionID != nil else { return }
         let date = now()
         if let checkpoint = nextCheckpoint, date >= checkpoint {
             commitSegment(endingAt: date)
-            if sceneIsActive { beginSegment(at: date) }
+            if sceneIsActive && !isEditing { beginSegment(at: date) }
         }
         refresh(at: date, visible: true)
     }

@@ -2,21 +2,22 @@
 import Foundation
 import Testing
 
-@Test func historyDurationUsesEnglishAndRussianPluralForms() {
-    let examples: [(String, Int, String)] = [
-        ("en", 0, "0 seconds"), ("en", 1, "1 second"), ("en", 2, "2 seconds"),
-        ("ru", 0, "0 секунд"), ("ru", 1, "1 секунда"), ("ru", 2, "2 секунды"),
-        ("ru", 5, "5 секунд"), ("ru", 11, "11 секунд"), ("ru", 21, "21 секунда"),
-        ("ru", 61, "61 секунда"),
-    ]
-    for (language, seconds, expected) in examples {
+@Test func historyDurationUsesMinutesAndSecondsInBothLanguages() {
+    for (language, expected) in [("en", "2 min 05 sec"), ("ru", "2 мин 05 сек")] {
         let actual = String(
             format: HistoryLocalization.string("history.duration.format", language: language),
             locale: Locale(identifier: language),
-            arguments: [seconds]
+            arguments: [2, 5]
         )
         #expect(actual == expected)
     }
+}
+
+@Test(arguments: [(0, 0, 0), (1, 0, 1), (59, 0, 59), (60, 1, 0), (61, 1, 1), (125, 2, 5), (3661, 61, 1)])
+func historyDurationConvertsTotalSeconds(seconds: Int, minutes: Int, remainder: Int) {
+    #expect(HistoryPresentation.duration(seconds) == HistoryLocalization.format(
+        "history.duration.format", minutes, remainder
+    ))
 }
 
 @Test func historyCatalogResolvesEverySupportedKeyInEnglishAndRussian() {

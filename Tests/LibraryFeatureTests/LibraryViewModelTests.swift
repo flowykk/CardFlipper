@@ -484,3 +484,27 @@ func searchMatchesEitherLanguage(query: String, expectedID: UUID) async {
     #expect(model.visibleCards == [VocabularyCard.examCard])
     #expect(model.selectedBulkCardIDs == [VocabularyCard.workCard.id])
 }
+
+@MainActor
+@Test func untaggedLibraryFilterCombinesWithTagsSearchAndLearningStatus() async {
+    let untagged = VocabularyCard.fixture(id: .fixture(500), russian: "слово", english: "word", isLearned: true)
+    let model = LibraryViewModel(
+        cards: CardRepositoryFake([untagged, .workCard, .examCard]),
+        tags: TagRepositoryFake([.work, .exam])
+    )
+    await model.load()
+    model.includesUntagged = true
+    #expect(model.visibleCards == [untagged])
+    model.selectedTagIDs = [Tag.work.id]
+    #expect(model.visibleCards == [untagged, .workCard])
+    model.searchText = "word"
+    #expect(model.visibleCards == [untagged])
+    model.searchText = ""
+    model.learningFilter = .unlearned
+    #expect(model.visibleCards == [.workCard])
+    model.learningFilter = .all
+    model.includesUntagged = false
+    #expect(model.visibleCards == [.workCard])
+    model.selectedTagIDs = []
+    #expect(model.visibleCards.count == 3)
+}

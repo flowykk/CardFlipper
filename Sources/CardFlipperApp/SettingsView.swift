@@ -100,6 +100,7 @@ struct SettingsView: View {
                 }
                 .accessibilityIdentifier("settings.cards.aiHelp")
             }
+            .tint(.black)
         }
         .navigationTitle("settings.title")
         .onChange(of: scenePhase, initial: true) { _, phase in

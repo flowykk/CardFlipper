@@ -6,6 +6,7 @@ public struct LibraryFiltersSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     private let tags: [Tag]
+    @Binding private var includesUntagged: Bool
     @Binding private var selectedTagIDs: Set<UUID>
     @Binding private var learningFilter: CardLearningFilter
     @Binding private var showsRussianMeanings: Bool
@@ -14,12 +15,14 @@ public struct LibraryFiltersSheet: View {
     public init(
         tags: [Tag],
         selectedTagIDs: Binding<Set<UUID>>,
+        includesUntagged: Binding<Bool>,
         learningFilter: Binding<CardLearningFilter>,
         showsRussianMeanings: Binding<Bool>,
         onManageTags: @escaping () -> Void
     ) {
         self.tags = tags
         _selectedTagIDs = selectedTagIDs
+        _includesUntagged = includesUntagged
         _learningFilter = learningFilter
         _showsRussianMeanings = showsRussianMeanings
         self.onManageTags = onManageTags
@@ -42,6 +45,7 @@ public struct LibraryFiltersSheet: View {
                 }
 
                 Section("library.filters.tags") {
+                    untaggedButton
                     ForEach(tags) { tag in
                         tagButton(tag)
                     }
@@ -88,6 +92,25 @@ public struct LibraryFiltersSheet: View {
         }
     }
 
+    private var untaggedButton: some View {
+        HapticButton(feedback: .selection) {
+            includesUntagged.toggle()
+        } label: {
+            HStack {
+                Text("tagFilter.untagged")
+                    .foregroundStyle(.primary)
+                Spacer()
+                Image(systemName: includesUntagged ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(includesUntagged ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+                    .accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(includesUntagged ? .isSelected : [])
+        .accessibilityIdentifier("library.tags.untagged")
+    }
+
     private func tagButton(_ tag: Tag) -> some View {
         let isSelected = selectedTagIDs.contains(tag.id)
 
@@ -117,11 +140,12 @@ public struct LibraryFiltersSheet: View {
     }
 
     private var canReset: Bool {
-        !selectedTagIDs.isEmpty || learningFilter != .all || showsRussianMeanings
+        !selectedTagIDs.isEmpty || includesUntagged || learningFilter != .all || showsRussianMeanings
     }
 
     private func reset() {
         selectedTagIDs = []
+        includesUntagged = false
         learningFilter = .all
         showsRussianMeanings = false
     }

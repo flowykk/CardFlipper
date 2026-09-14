@@ -212,3 +212,27 @@ private func writingCard(
     #expect(session.repeatedCardIDs == [firstCard.id])
     #expect(session.totalAssessmentCount == 2)
 }
+
+@Test func editingAnswerResetsWritingEvaluationButPreservesProgressAndReveal() {
+    var session = WritingSession(cards: [writingCard()])
+    session.setResponse("word")
+    session.checkResponse()
+    session.toggleAnswer()
+    session.updateCard(writingCard(englishVariants: ["replacement"]))
+    #expect(session.evaluation == .unanswered)
+    #expect(session.response == "word")
+    #expect(session.hasRevealedAnswer)
+    #expect(session.isShowingAnswer)
+    #expect(session.totalAssessmentCount == 1)
+    #expect(session.remainingCount == 1)
+    session.setResponse("replacement")
+    #expect(session.checkResponse() == .correct)
+}
+
+@Test func editingUnchangedAnswerPreservesWritingEvaluation() {
+    var session = WritingSession(cards: [writingCard()])
+    session.setResponse("word")
+    session.checkResponse()
+    session.updateCard(writingCard())
+    #expect(session.evaluation == .correct)
+}

@@ -23,7 +23,13 @@ final class AppCardRepositoryFake: CardRepository {
         return fetchedCards
     }
 
-    func save(_ card: VocabularyCard) async throws {}
+    func save(_ card: VocabularyCard) async throws {
+        if let index = fetchedCards.firstIndex(where: { $0.id == card.id }) {
+            fetchedCards[index] = card
+        } else {
+            fetchedCards.append(card)
+        }
+    }
 
     func addTags(ids: Set<UUID>, toCardIDs cardIDs: Set<UUID>) async throws {}
     func delete(id: UUID) async throws {}

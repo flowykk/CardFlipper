@@ -849,3 +849,36 @@ private func makeSession(
         now: now
     )
 }
+
+@MainActor
+@Test func editingFlashcardUpdatesRepeatsWithoutAdvancingAndExcludesEditingTime() throws {
+    var date = Date(timeIntervalSince1970: 100)
+    let store = StudySessionStoreSpy()
+    let card = VocabularyCard.fixture(id: 1)
+    let model = StudySessionViewModel(
+        configuration: StudyConfiguration(direction: .russianToEnglish, selectedTagIDs: [], cards: [card]),
+        speech: SpeechServiceSpy(), feedback: StudyFeedbackSpy(), store: store, now: { date }
+    )
+    #expect(!model.canEditCard)
+    model.toggleCardSide()
+    #expect(model.canEditCard)
+    date = date.addingTimeInterval(10)
+    model.setEditing(true)
+    date = date.addingTimeInterval(60)
+    model.persistSnapshot()
+    #expect(store.storedSnapshot?.accumulatedDurationSeconds == 10)
+    let edited = VocabularyCard.fixture(id: 1, english: "updated")
+    model.applyEditedCard(edited)
+    model.setEditing(false)
+    #expect(model.session.currentCard == edited)
+    #expect(model.isShowingAnswer)
+    #expect(model.session.totalAssessmentCount == 0)
+    #expect(model.repeatConfiguration.cards == [edited])
+    date = date.addingTimeInterval(5)
+    try model.forget()
+    #expect(model.session.currentCard == edited)
+    model.toggleCardSide()
+    try model.remember()
+    #expect(model.result?.elapsedSeconds == 15)
+    #expect(!model.canEditCard)
+}

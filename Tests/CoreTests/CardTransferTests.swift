@@ -90,3 +90,46 @@ import Testing
 
     #expect(result.cards[0].isLearned)
 }
+
+@Test func importPreviewClassifiesFinalCardsAndExcludesUnrelatedLibraryCards() throws {
+    let existing = VocabularyCard.fixture(id: UUID(), russian: "работа", english: "work")
+    let unchanged = VocabularyCard.fixture(id: UUID(), russian: "книга", english: "book")
+    let unrelated = VocabularyCard.fixture(id: UUID(), russian: "кот", english: "cat")
+    let addition = VocabularyCard.fixture(id: UUID(), russian: "дом", english: "house")
+    let update = VocabularyCard.fixture(id: UUID(), russian: "работа", english: "job")
+    let preview = CardImportPreview(fileName: "words.json", existing: [existing, unchanged, unrelated],
+                                    imported: [addition, update, unchanged, addition])
+    #expect(preview.changes.filter { $0.kind == .added }.count == 1)
+    #expect(preview.changes.filter { $0.kind == .updated }.count == 1)
+    #expect(preview.changes.filter { $0.kind == .unchanged }.count == 1)
+    #expect(preview.cardsToSave.count == 2)
+    let changed = try #require(preview.changes.first { $0.kind == .updated })
+    #expect(changed.before == existing)
+    #expect(changed.card.englishVariants.map(\.text) == ["work", "job"])
+}
+
+@Test func importPreviewTreatsTimestampOnlyChangesAsUnchanged() {
+    let card = VocabularyCard.fixture()
+    let preview = CardImportPreview(fileName: "words.json", existing: [card],
+                                    imported: [card.updating(updatedAt: card.updatedAt.addingTimeInterval(30))])
+    #expect(preview.cardsToSave.isEmpty)
+    #expect(preview.changes.first?.kind == .unchanged)
+}
+
+@Test func importPreviewKeepsUnrelatedCardWithCollidingIdentifier() throws {
+    let id = UUID()
+    let existing = VocabularyCard.fixture(id: id, russian: "работа", english: "work")
+    let imported = VocabularyCard.fixture(id: id, russian: "дом", english: "house")
+    let preview = CardImportPreview(fileName: "words.json", existing: [existing], imported: [imported])
+    let addition = try #require(preview.cardsToSave.first)
+    #expect(addition.id != existing.id)
+    #expect(addition.englishVariants.map(\.text) == ["house"])
+    #expect(preview.changes.first?.kind == .added)
+    #expect(preview.originalCards == [existing])
+}
+
+@Test func emptyImportPreviewHasNoChanges() {
+    let preview = CardImportPreview(fileName: "empty.json", existing: [.fixture()], imported: [])
+    #expect(preview.changes.isEmpty)
+    #expect(preview.cardsToSave.isEmpty)
+}

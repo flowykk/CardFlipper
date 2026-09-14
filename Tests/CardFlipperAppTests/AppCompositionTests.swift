@@ -1171,3 +1171,71 @@ private final class AppIconClientStub: AppIconClient {
     #expect(settings.selectedIcon == .midnight3D)
     #expect(settings.errorMessage != nil)
 }
+
+@MainActor
+@Test(arguments: [StudyMode.flashcards, .writing])
+func studyEditorRequiresRevealAndUpdatesLibraryAndActiveSession(mode: StudyMode) async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let root = makeRootModel(cards: AppCardRepositoryFake([card]))
+    await root.loadLibrary()
+    root.requestStartStudy(StudyConfiguration(mode: mode, direction: .russianToEnglish, selectedTagIDs: [], cards: [card]))
+    let active = try #require(root.navigation.activeStudy)
+    root.editStudyCard(card)
+    #expect(root.studyEditor == nil)
+    if mode == .flashcards {
+        root.makeStudySessionModel(for: active).toggleCardSide()
+    } else {
+        root.makeWritingSessionModel(for: active).toggleAnswer()
+    }
+    root.editStudyCard(card)
+    let editor = try #require(root.studyEditor?.model)
+    editor.englishVariants[0].text = "replacement"
+    _ = await editor.save()
+    #expect(editor.didSave)
+    await root.studyEditorSaved(editor)
+    root.studyEditorDismissed()
+    #expect(root.library.cards.first?.englishVariants.first?.text == "replacement")
+    #expect(root.navigation.activeStudy == active)
+    if mode == .flashcards {
+        let session = root.makeStudySessionModel(for: active)
+        #expect(session.session.currentCard?.englishVariants.first?.text == "replacement")
+        #expect(session.session.totalAssessmentCount == 0)
+        #expect(session.repeatConfiguration.cards.first?.englishVariants.first?.text == "replacement")
+    } else {
+        let session = root.makeWritingSessionModel(for: active)
+        #expect(session.session.currentCard?.englishVariants.first?.text == "replacement")
+        session.setResponse("replacement")
+        session.checkResponse()
+        #expect(session.evaluation == .correct)
+    }
+}
+
+@MainActor
+@Test func importPreviewDoesNotWriteUntilConfirmation() async throws {
+    let original = VocabularyCard.appFixture(id: 1, russian: "работа", english: "work")
+    let added = VocabularyCard.appFixture(id: 2, russian: "дом", english: "house")
+    let update = VocabularyCard.appFixture(id: 3, russian: "работа", english: "job")
+    let repository = AppCardRepositoryFake([original])
+    let root = makeRootModel(cards: repository)
+    try await root.prepareImport([added, update], fileName: "words.json")
+    let preview = try #require(root.importPreview)
+    #expect(repository.fetchedCards == [original])
+    #expect(preview.fileName == "words.json")
+    try await root.confirmImport(preview)
+    #expect(repository.fetchedCards.count == 2)
+    #expect(repository.fetchedCards.first?.englishVariants.map(\.text) == ["work", "job"])
+    #expect(root.library.cards.count == 2)
+}
+
+@MainActor
+@Test func importRejectsConfirmationWhenLibraryChangedSincePreview() async throws {
+    let card = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let added = VocabularyCard.appFixture(id: 2, russian: "дом", english: "house")
+    let repository = AppCardRepositoryFake([card])
+    let root = makeRootModel(cards: repository)
+    try await root.prepareImport([added], fileName: "words.json")
+    let preview = try #require(root.importPreview)
+    repository.fetchedCards = []
+    await #expect(throws: CardImportError.libraryChanged) { try await root.confirmImport(preview) }
+    #expect(repository.fetchedCards.isEmpty)
+}

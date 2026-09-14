@@ -387,3 +387,32 @@ private let configurationWithUsageExamples = StudyConfiguration(
         )
     ]
 )
+
+@MainActor
+@Test func writingEditorPausePreservesDraftAndExcludesTimeAfterCancellation() throws {
+    var date = Date(timeIntervalSince1970: 100)
+    let store = StudySessionStoreSpy()
+    let model = WritingSessionViewModel(
+        configuration: StudyConfiguration(mode: .writing, direction: .russianToEnglish,
+                                          selectedTagIDs: [], cards: [.fixture(id: 1)]),
+        speech: SpeechServiceSpy(), feedback: StudyFeedbackSpy(), store: store, now: { date }
+    )
+    model.setResponse("wo")
+    #expect(!model.canEditCard)
+    model.toggleAnswer()
+    #expect(model.canEditCard)
+    date = date.addingTimeInterval(10)
+    model.setEditing(true)
+    date = date.addingTimeInterval(60)
+    model.persistSnapshot()
+    #expect(store.storedSnapshot?.accumulatedDurationSeconds == 10)
+    model.setEditing(false)
+    #expect(model.response == "wo")
+    #expect(model.isShowingAnswer)
+    date = date.addingTimeInterval(5)
+    model.setResponse("word")
+    model.checkResponse()
+    try model.remember()
+    #expect(model.result?.elapsedSeconds == 15)
+    #expect(!model.canEditCard)
+}

@@ -99,6 +99,7 @@ public final class CardEditorViewModel {
     public private(set) var isPresented = true
     public private(set) var isSaving = false
     public private(set) var didSave = false
+    public private(set) var savedCard: VocabularyCard?
     public private(set) var hasAttemptedSave = false
     public var expandedMetadataVariantIDs: Set<UUID>
 
@@ -593,6 +594,7 @@ public final class CardEditorViewModel {
             )
             try await cardRepository.save(card)
             guard !Task.isCancelled else { return .failed }
+            savedCard = card
             didSave = true
             isPresented = false
             return .saved

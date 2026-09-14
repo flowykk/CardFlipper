@@ -169,6 +169,7 @@ public struct LibraryView: View {
                 LibraryFiltersSheet(
                     tags: model.tags,
                     selectedTagIDs: $model.selectedTagIDs,
+                    includesUntagged: $model.includesUntagged,
                     learningFilter: $model.learningFilter,
                     showsRussianMeanings: $showsRussianMeanings,
                     onManageTags: {
@@ -281,6 +282,7 @@ public struct LibraryView: View {
                 HapticButton("library.clearFilters") {
                     model.searchText = ""
                     model.selectedTagIDs = []
+                    model.includesUntagged = false
                     model.learningFilter = .all
                 }
                 .buttonStyle(.bordered)
@@ -385,7 +387,7 @@ public struct LibraryView: View {
     }
 
     private var activeFilterCount: Int {
-        model.selectedTagIDs.count + (model.learningFilter == .all ? 0 : 1)
+        model.selectedTagIDs.count + (model.includesUntagged ? 1 : 0) + (model.learningFilter == .all ? 0 : 1)
     }
 
     private var activeFilterAccessibilityValue: String {

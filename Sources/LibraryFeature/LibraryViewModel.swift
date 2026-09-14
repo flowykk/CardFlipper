@@ -21,6 +21,7 @@ public final class LibraryViewModel {
     public private(set) var tags: [Tag] = []
     public var searchText = ""
     public var selectedTagIDs: Set<UUID> = []
+    public var includesUntagged = false
     public var learningFilter: CardLearningFilter = .all
     public private(set) var state: LoadState = .idle
     public private(set) var isBulkTagSelectionActive = false
@@ -47,7 +48,8 @@ public final class LibraryViewModel {
 
         return cards.filter { card in
             let cardTagIDs = Set(card.tags.map(\.id))
-            let tagMatches = selectedTagIDs.isEmpty
+            let tagMatches = (selectedTagIDs.isEmpty && !includesUntagged)
+                || (includesUntagged && card.tags.isEmpty)
                 || !cardTagIDs.isDisjoint(with: selectedTagIDs)
             let textMatches = query.isEmpty
                 || card.searchableValues.contains {

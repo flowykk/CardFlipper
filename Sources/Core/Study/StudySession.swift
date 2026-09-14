@@ -191,6 +191,10 @@ public struct StudySession: Sendable {
         self.isRevealed = isRevealed && !cards.isEmpty
     }
 
+    public mutating func updateCard(_ card: VocabularyCard) {
+        queue = queue.map { $0.id == card.id ? card : $0 }
+    }
+
     public var currentCard: VocabularyCard? { queue.first }
     public var remainingCount: Int { queue.count }
     public var isComplete: Bool { queue.isEmpty }

@@ -190,7 +190,8 @@ enum HistoryPresentation {
     }
 
     static func duration(_ seconds: Int) -> String {
-        HistoryLocalization.format("history.duration.format", seconds)
+        let duration = max(0, seconds)
+        return HistoryLocalization.format("history.duration.format", duration / 60, duration % 60)
     }
 
     static func tags(_ names: [String]) -> String {
