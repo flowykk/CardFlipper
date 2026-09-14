@@ -34,18 +34,30 @@ struct StudyEnglishVariantsView: View {
                         .accessibilityValue(Text(verbatim: partsOfSpeechText))
                 }
 
-                HapticButton {
-                    onSpeak(variant.id)
-                } label: {
-                    Label("card.speak", systemImage: "speaker.wave.2.fill")
-                        .padding(.vertical, 4)
-                }
-                .buttonStyle(.bordered)
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
-                .accessibilityIdentifier(speakAccessibilityIdentifier)
-                .accessibilityHint(Text(verbatim: variant.text))
+                StudySpeakButton(
+                    accessibilityIdentifier: speakAccessibilityIdentifier,
+                    accessibilityHint: variant.text,
+                    action: { onSpeak(variant.id) }
+                )
             }
         }
+    }
+}
+
+struct StudySpeakButton: View {
+    let accessibilityIdentifier: String
+    var accessibilityHint: String? = nil
+    let action: () -> Void
+
+    var body: some View {
+        HapticButton(action: action) {
+            Label("card.speak", systemImage: "speaker.wave.2.fill")
+                .padding(.vertical, 4)
+        }
+        .buttonStyle(.bordered)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+        .accessibilityIdentifier(accessibilityIdentifier)
+        .accessibilityHint(Text(verbatim: accessibilityHint ?? ""))
     }
 }

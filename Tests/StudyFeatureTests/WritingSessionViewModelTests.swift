@@ -41,7 +41,7 @@ import Testing
 }
 
 @MainActor
-@Test func revealingWritingAnswerMarksDifficultAndUnlocksMetadataSpeech() {
+@Test func writingEnglishSpeechIsAvailableBeforeAndAfterRevealingAnswer() {
     let speech = SpeechServiceSpy()
     let feedback = StudyFeedbackSpy()
     let model = makeWritingSession(
@@ -57,7 +57,7 @@ import Testing
 
     #expect(model.isShowingAnswer)
     #expect(model.difficultCards.map(\.id) == [StudyConfiguration.singleCard.cards[0].id])
-    #expect(speech.spokenTexts == ["word"])
+    #expect(speech.spokenTexts == ["word", "word"])
     #expect(feedback.events == [.reveal])
 }
 

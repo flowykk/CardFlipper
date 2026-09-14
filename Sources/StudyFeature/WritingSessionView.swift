@@ -180,6 +180,13 @@ public struct WritingSessionView: View {
                         .font(.largeTitle.weight(.semibold))
                         .multilineTextAlignment(.center)
                 }
+
+                if let variant = card.englishVariants.first {
+                    StudySpeakButton(
+                        accessibilityIdentifier: "study.writing.prompt.speak",
+                        action: { model.speakEnglish(variantID: variant.id) }
+                    )
+                }
             }
         }
     }

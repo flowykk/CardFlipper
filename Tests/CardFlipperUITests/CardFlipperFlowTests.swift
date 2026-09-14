@@ -781,6 +781,7 @@ final class CardFlipperFlowTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(checkButton.frame.width, 44)
         XCTAssertFalse(app.buttons["study.writing.showAnswer"].exists)
         XCTAssertFalse(app.buttons["study.writing.hideAnswer"].exists)
+        assertExists("study.writing.prompt.speak")
 
         let answer: String
         if writingCard.buttons["книга"].exists {

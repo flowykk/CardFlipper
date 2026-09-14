@@ -204,8 +204,7 @@ public final class WritingSessionViewModel {
     }
 
     public func speakEnglish(variantID: UUID) {
-        guard isShowingAnswer,
-              let variant = session.currentCard?.englishVariants.first(where: { $0.id == variantID })
+        guard let variant = session.currentCard?.englishVariants.first(where: { $0.id == variantID })
         else { return }
         speech.speak(variant.text)
     }

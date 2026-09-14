@@ -42,11 +42,13 @@ public struct StudySetupView: View {
                         "study.direction",
                         selection: directionSelection.withSelectionFeedback()
                     ) {
-                        Text("study.russianToEnglish")
+                        Text(verbatim: "🇷🇺 → 🇬🇧")
                             .tag(0)
+                            .accessibilityLabel("study.russianToEnglish")
                             .accessibilityIdentifier("study.direction.russianToEnglish")
-                        Text("study.englishToRussian")
+                        Text(verbatim: "🇬🇧 → 🇷🇺")
                             .tag(1)
+                            .accessibilityLabel("study.englishToRussian")
                             .accessibilityIdentifier("study.direction.englishToRussian")
                     }
                     .pickerStyle(.segmented)
