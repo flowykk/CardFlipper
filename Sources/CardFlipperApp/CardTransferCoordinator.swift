@@ -1,3 +1,4 @@
+import CardEditorFeature
 import Core
 import DesignSystem
 import LibraryFeature
@@ -33,18 +34,19 @@ enum CardImportError: Error, Equatable {
 
 struct CardImportPreviewView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var preview: CardImportPreview
+    @Bindable var model: CardImportPreviewModel
     @State private var isWorking = false
     @State private var errorKey: String?
+    @State private var editor: ImportEditorPresentation?
     private let onConfirm: (CardImportPreview) async throws -> Void
     private let onRefresh: (CardImportPreview) async throws -> CardImportPreview
 
     init(
-        preview: CardImportPreview,
+        model: CardImportPreviewModel,
         onConfirm: @escaping (CardImportPreview) async throws -> Void,
         onRefresh: @escaping (CardImportPreview) async throws -> CardImportPreview
     ) {
-        _preview = State(initialValue: preview)
+        self.model = model
         self.onConfirm = onConfirm
         self.onRefresh = onRefresh
     }
@@ -53,7 +55,7 @@ struct CardImportPreviewView: View {
         NavigationStack {
             List {
                 Section {
-                    Label(preview.fileName, systemImage: "doc")
+                    Label(model.preview.fileName, systemImage: "doc")
                         .font(.subheadline)
                 } footer: {
                     Text("import.preview.explanation")
@@ -72,7 +74,7 @@ struct CardImportPreviewView: View {
                     }
                 }
 
-                if preview.cardsToSave.isEmpty {
+                if model.preview.cardsToSave.isEmpty {
                     Section {
                         Label("import.preview.noChanges", systemImage: "checkmark.circle")
                     }
@@ -104,25 +106,44 @@ struct CardImportPreviewView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(PrimaryActionButtonStyle())
-                .disabled(isWorking || preview.cardsToSave.isEmpty || errorKey != nil)
+                .disabled(isWorking || model.preview.cardsToSave.isEmpty || errorKey != nil)
                 .accessibilityIdentifier("import.preview.confirm")
                 .padding()
                 .background(.bar)
             }
         }
         .interactiveDismissDisabled(isWorking)
+        .sheet(item: $editor) { presentation in
+            CardEditorView(
+                model: presentation.model,
+                onSaved: model.editorSaved,
+                onCancel: { editor = nil }
+            )
+        }
     }
 
     @ViewBuilder
     private func changeSection(
-        _ kind: CardImportChangeKind, title: LocalizedStringKey, symbol: String, color: Color
+        _ kind: CardImportChangeKind,
+        title: LocalizedStringKey,
+        symbol: String,
+        color: Color
     ) -> some View {
-        let changes = preview.changes.filter { $0.kind == kind }
+        let changes = model.preview.changes.filter { $0.kind == kind }
         if !changes.isEmpty {
             Section {
                 ForEach(changes) { change in
                     VStack(alignment: .leading, spacing: 10) {
-                        VocabularyCardRow(card: change.card, showRussianMeanings: true)
+                        HapticButton {
+                            if let editorModel = model.makeEditorModel(cardID: change.id) {
+                                editor = ImportEditorPresentation(model: editorModel)
+                            }
+                        } label: {
+                            VocabularyCardRow(card: change.card, showRussianMeanings: true)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("import.preview.card.\(change.id)")
                         if kind == .updated, let before = change.before {
                             DisclosureGroup("import.preview.before") {
                                 VocabularyCardRow(card: before, showRussianMeanings: true)
@@ -130,7 +151,6 @@ struct CardImportPreviewView: View {
                             .font(.subheadline)
                         }
                     }
-                    .accessibilityIdentifier("import.preview.card.\(change.id)")
                 }
             } header: {
                 HStack {
@@ -144,11 +164,11 @@ struct CardImportPreviewView: View {
     }
 
     private func confirm() async {
-        guard !isWorking, !preview.cardsToSave.isEmpty, errorKey == nil else { return }
+        guard !isWorking, !model.preview.cardsToSave.isEmpty, errorKey == nil else { return }
         isWorking = true
         defer { isWorking = false }
         do {
-            try await onConfirm(preview)
+            try await onConfirm(model.preview)
             FeedbackGenerator.shared.successfulSave()
             dismiss()
         } catch {
@@ -162,10 +182,16 @@ struct CardImportPreviewView: View {
         isWorking = true
         defer { isWorking = false }
         do {
-            preview = try await onRefresh(preview)
+            let preview = try await onRefresh(model.preview)
+            await model.replacePreview(preview)
             errorKey = nil
         } catch {
             errorKey = "import.preview.failed"
         }
     }
+}
+
+private struct ImportEditorPresentation: Identifiable {
+    let id = UUID()
+    let model: CardEditorViewModel
 }

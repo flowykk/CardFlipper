@@ -46,6 +46,135 @@ enum AppEditorPresentation: Equatable, Identifiable {
     }
 }
 
+@MainActor
+@Observable
+final class CardImportPreviewModel: Identifiable {
+    let id = UUID()
+    private(set) var preview: CardImportPreview
+
+    private let store: CardImportDraftStore
+    private let dictionary: any DictionaryService
+    private let speech: any SpeechService
+
+    init(
+        preview: CardImportPreview,
+        availableTags: [Tag] = [],
+        dictionary: any DictionaryService,
+        speech: any SpeechService
+    ) throws {
+        try CardImportValidator.validate(preview.importedCards)
+        self.preview = preview
+        store = CardImportDraftStore(cards: preview.draftCards, tags: availableTags)
+        self.dictionary = dictionary
+        self.speech = speech
+    }
+
+    func makeEditorModel(cardID: UUID) -> CardEditorViewModel? {
+        guard let card = preview.changes.first(where: { $0.id == cardID })?.card else {
+            return nil
+        }
+        return .edit(
+            card: card,
+            cards: store,
+            tags: store,
+            dictionary: dictionary,
+            speech: speech
+        )
+    }
+
+    func editorSaved() async {
+        guard let cards = try? await store.fetchCards() else { return }
+        preview = preview.replacingEditedCards(cards)
+        await store.replaceCards(preview.draftCards)
+    }
+
+    func replacePreview(_ preview: CardImportPreview) async {
+        self.preview = preview
+        await store.replaceCards(preview.draftCards)
+    }
+}
+
+@MainActor
+private final class CardImportDraftStore: CardRepository, TagRepository {
+    private var cards: [VocabularyCard]
+    private var tags: [Tag]
+
+    init(cards: [VocabularyCard], tags: [Tag]) {
+        self.cards = cards
+        self.tags = (tags + cards.flatMap(\.tags)).reduce(into: []) { result, tag in
+            guard !result.contains(where: { $0.id == tag.id }) else { return }
+            result.append(tag)
+        }
+    }
+
+    func fetchCards() async throws -> [VocabularyCard] {
+        cards
+    }
+
+    func save(_ card: VocabularyCard) async throws {
+        guard let index = cards.firstIndex(where: { $0.id == card.id }) else {
+            cards.append(card)
+            return
+        }
+        cards[index] = card
+    }
+
+    func replaceCards(_ cards: [VocabularyCard]) {
+        self.cards = cards
+        tags = (tags + cards.flatMap(\.tags)).reduce(into: []) { result, tag in
+            guard !result.contains(where: { $0.id == tag.id }) else { return }
+            result.append(tag)
+        }
+    }
+
+    func addTags(ids: Set<UUID>, toCardIDs cardIDs: Set<UUID>) async throws {
+        let selectedTags = tags.filter { ids.contains($0.id) }
+        for index in cards.indices where cardIDs.contains(cards[index].id) {
+            cards[index] = cards[index].updating(tags: selectedTags)
+        }
+    }
+
+    func delete(id: UUID) async throws {
+        tags.removeAll { $0.id == id }
+        for index in cards.indices {
+            cards[index] = cards[index].updating(
+                tags: cards[index].tags.filter { $0.id != id }
+            )
+        }
+    }
+
+    func duplicateCandidates(
+        for draft: CardDraft,
+        excluding id: UUID?
+    ) async throws -> [VocabularyCard] {
+        let russianValues = Set(draft.russianMeanings.map(TextNormalizer.searchKey))
+        let englishValues = Set(draft.englishVariants.map { TextNormalizer.searchKey($0.text) })
+        return cards.filter { card in
+            guard card.id != id else { return false }
+            let cardRussian = Set(card.russianMeanings.map { TextNormalizer.searchKey($0.text) })
+            let cardEnglish = Set(card.englishVariants.map { TextNormalizer.searchKey($0.text) })
+            return !cardRussian.isDisjoint(with: russianValues)
+                || !cardEnglish.isDisjoint(with: englishValues)
+        }
+    }
+
+    func fetchTags() async throws -> [Tag] {
+        tags.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    func create(name: String) async throws -> Tag {
+        let normalizedName = TextNormalizer.searchKey(name)
+        guard !normalizedName.isEmpty else { throw TagRepositoryError.emptyName }
+        if let existing = tags.first(where: { TextNormalizer.searchKey($0.name) == normalizedName }) {
+            return existing
+        }
+        let tag = Tag(id: UUID(), name: name.trimmingCharacters(in: .whitespacesAndNewlines))
+        tags.append(tag)
+        return tag
+    }
+
+}
+
 struct ActiveStudy: Equatable, Identifiable {
     let id: UUID
     /// A fresh owner for every model/presentation lifetime, including resumes of the same session.
@@ -138,7 +267,7 @@ final class RootViewModel {
     let library: LibraryViewModel
     let navigation: AppNavigationState
     var studyEditor: StudyEditorPresentation?
-    var importPreview: CardImportPreview?
+    var importPreview: CardImportPreviewModel?
     let studyTimer: StudyTimerController
     private(set) var resumableStudy: ActiveStudy?
     private(set) var pendingStudyConfiguration: StudyConfiguration?
@@ -148,6 +277,7 @@ final class RootViewModel {
     var resumableSnapshot: StudySessionSnapshot? { resumableStudy?.snapshot }
 
     private let cards: any CardRepository
+    private let cardImporter: any CardImportRepository
     private let tags: any TagRepository
     private let dictionary: any DictionaryService
     private let speech: any SpeechService
@@ -166,6 +296,7 @@ final class RootViewModel {
 
     init(
         cards: any CardRepository,
+        cardImporter: any CardImportRepository,
         tags: any TagRepository,
         dictionary: any DictionaryService,
         speech: any SpeechService,
@@ -178,6 +309,7 @@ final class RootViewModel {
         navigation: AppNavigationState = AppNavigationState()
     ) {
         self.cards = cards
+        self.cardImporter = cardImporter
         self.tags = tags
         self.dictionary = dictionary
         self.speech = speech
@@ -195,6 +327,7 @@ final class RootViewModel {
     convenience init(container: AppContainer) {
         self.init(
             cards: container.cards,
+            cardImporter: container.cardImporter,
             tags: container.tags,
             dictionary: container.dictionary,
             speech: container.speech,
@@ -240,36 +373,54 @@ final class RootViewModel {
         try await CardTransferCoordinator(cards: cards).prepareExport()
     }
 
-    func makeImportPreview(_ imported: [VocabularyCard], fileName: String) async throws -> CardImportPreview {
-        CardImportPreview(fileName: fileName, existing: try await cards.fetchCards(), imported: imported)
+    func makeImportPreview(
+        _ imported: [VocabularyCard],
+        fileName: String,
+        replacingCardIDs: Set<UUID> = []
+    ) async throws -> CardImportPreview {
+        try CardImportValidator.validate(imported)
+        let existing = try await cards.fetchCards()
+        try CardImportValidator.validate(
+            imported,
+            against: existing,
+            replacingCardIDs: replacingCardIDs
+        )
+        return CardImportPreview(
+            fileName: fileName,
+            existing: existing,
+            imported: imported,
+            replacingCardIDs: replacingCardIDs
+        )
+    }
+
+    func makeImportPreviewModel(
+        _ imported: [VocabularyCard],
+        fileName: String
+    ) async throws -> CardImportPreviewModel {
+        try CardImportPreviewModel(
+            preview: await makeImportPreview(imported, fileName: fileName),
+            availableTags: await tags.fetchTags(),
+            dictionary: dictionary,
+            speech: speech
+        )
     }
 
     func prepareImport(_ imported: [VocabularyCard], fileName: String) async throws {
-        importPreview = try await makeImportPreview(imported, fileName: fileName)
+        importPreview = try await makeImportPreviewModel(imported, fileName: fileName)
     }
 
     func confirmImport(_ preview: CardImportPreview) async throws {
         let current = try await cards.fetchCards()
         guard Dictionary(uniqueKeysWithValues: current.map { ($0.id, $0) })
-                == Dictionary(uniqueKeysWithValues: preview.originalCards.map { ($0.id, $0) }) else {
+            == Dictionary(uniqueKeysWithValues: preview.originalCards.map { ($0.id, $0) }) else {
             throw CardImportError.libraryChanged
         }
-        for card in preview.cardsToSave {
-            var resolvedTags: [Tag] = []
-            for tag in card.tags {
-                resolvedTags.append(try await tags.create(name: tag.name))
-            }
-            let resolvedCard = VocabularyCard(
-                id: card.id,
-                russianMeanings: card.russianMeanings,
-                englishVariants: card.englishVariants,
-                tags: resolvedTags,
-                createdAt: card.createdAt,
-                updatedAt: card.updatedAt,
-                isLearned: card.isLearned
-            )
-            try await cards.save(resolvedCard)
-        }
+        let cardsToSaveIDs = Set(preview.cardsToSave.map(\.id))
+        let replacingCardIDs = preview.replacingCardIDs.intersection(cardsToSaveIDs)
+        _ = try await cardImporter.importCards(
+            preview.cardsToSave,
+            replacingCardIDs: replacingCardIDs
+        )
         await libraryChanged()
     }
 
@@ -591,9 +742,19 @@ struct RootView: View {
         iconSettings: AppIconSettings = AppIconSettings()
     ) {
         _hiddenResumeSessionID = AppStorage(wrappedValue: "", ResumeBannerPreference.key, store: container.preferences)
-        _model = State(initialValue: RootViewModel(container: container))
+        let rootModel = RootViewModel(container: container)
         _appearanceSettings = State(initialValue: appearanceSettings)
         _iconSettings = State(initialValue: iconSettings)
+#if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-uiTestImportReview") {
+            rootModel.importPreview = try! CardImportPreviewModel(
+                preview: Self.importPreviewFixture,
+                dictionary: container.dictionary,
+                speech: container.speech
+            )
+        }
+#endif
+        _model = State(initialValue: rootModel)
     }
 
     var body: some View {
@@ -854,11 +1015,17 @@ struct RootView: View {
                 }
             }
         }
-        .sheet(item: $model.importPreview) { preview in
+        .sheet(item: $model.importPreview) { previewModel in
             CardImportPreviewView(
-                preview: preview,
+                model: previewModel,
                 onConfirm: model.confirmImport,
-                onRefresh: { try await model.makeImportPreview($0.importedCards, fileName: $0.fileName) }
+                onRefresh: { preview in
+                    try await model.makeImportPreview(
+                        preview.importedCards,
+                        fileName: preview.fileName,
+                        replacingCardIDs: preview.replacingCardIDs
+                    )
+                }
             )
         }
         .alert("settings.cards.import.result", isPresented: Binding(
@@ -891,6 +1058,101 @@ struct RootView: View {
             }
         }
     }
+
+#if DEBUG
+    private static var importPreviewFixture: CardImportPreview {
+        let unchanged = simpleImportFixture(
+            cardID: 2,
+            russianID: 2,
+            englishID: 2,
+            russian: "дом",
+            english: "house"
+        )
+        let changedBefore = simpleImportFixture(
+            cardID: 3,
+            russianID: 3,
+            englishID: 3,
+            russian: "работа",
+            english: "work"
+        )
+        let changedImport = simpleImportFixture(
+            cardID: 4,
+            russianID: 4,
+            englishID: 4,
+            russian: "работа",
+            english: "job"
+        )
+        return CardImportPreview(
+            fileName: "cards.json",
+            existing: [unchanged, changedBefore],
+            imported: [importReviewFixture, changedImport, unchanged]
+        )
+    }
+
+    private static func simpleImportFixture(
+        cardID: Int,
+        russianID: Int,
+        englishID: Int,
+        russian: String,
+        english: String
+    ) -> VocabularyCard {
+        VocabularyCard(
+            id: UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", cardID))!,
+            russianMeanings: [
+                RussianMeaning(
+                    id: UUID(uuidString: String(format: "00000000-0000-0000-1000-%012d", russianID))!,
+                    text: russian
+                ),
+            ],
+            englishVariants: [
+                EnglishVariant(
+                    id: UUID(uuidString: String(format: "00000000-0000-0000-2000-%012d", englishID))!,
+                    text: english,
+                    ipa: nil,
+                    partsOfSpeech: []
+                ),
+            ],
+            tags: [],
+            createdAt: Date(timeIntervalSince1970: 100),
+            updatedAt: Date(timeIntervalSince1970: 200)
+        )
+    }
+
+    private static var importReviewFixture: VocabularyCard {
+        VocabularyCard(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+            russianMeanings: [
+                RussianMeaning(
+                    id: UUID(uuidString: "00000000-0000-0000-0000-000000001001")!,
+                    text: "книга"
+                ),
+            ],
+            englishVariants: [
+                EnglishVariant(
+                    id: UUID(uuidString: "00000000-0000-0000-0000-000000002001")!,
+                    text: "book",
+                    ipa: "bʊk",
+                    partsOfSpeech: [.noun],
+                    usageExamples: [
+                        UsageExample(
+                            id: UUID(uuidString: "00000000-0000-0000-0000-000000003001")!,
+                            text: "This book is easy to read.",
+                            partOfSpeech: .noun
+                        ),
+                    ]
+                ),
+            ],
+            tags: [
+                Tag(
+                    id: UUID(uuidString: "00000000-0000-0000-0000-000000000100")!,
+                    name: "Основы"
+                ),
+            ],
+            createdAt: Date(timeIntervalSince1970: 100),
+            updatedAt: Date(timeIntervalSince1970: 200)
+        )
+    }
+#endif
 }
 
 struct AppStartupView: View {
