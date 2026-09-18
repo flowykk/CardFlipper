@@ -4,6 +4,10 @@ import Testing
 @testable import Core
 @testable import Data
 
+private enum TestRepositoryError: Error {
+    case forcedFailure
+}
+
 @MainActor
 @Test func savingAndFetchingPreservesOrderedValuesAndTags() async throws {
     let container = try ModelContainerFactory.makeInMemory()
@@ -16,6 +20,110 @@ import Testing
     let fetched = try await cardRepository.fetchCards()
 
     #expect(fetched == [card])
+}
+
+@MainActor
+@Test func cardImportCommitsEditedCardsInOneBatch() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let importer = SwiftDataCardImportRepository(container: container)
+    let cards = SwiftDataCardRepository(container: container)
+    let imported = VocabularyCard.fixture()
+
+    let result = try await importer.importCards([imported])
+
+    #expect(result.addedCount == 1)
+    #expect(try await cards.fetchCards() == [imported])
+}
+
+@MainActor
+@Test func cardImportRollsBackAllPreparedChangesWhenCommitFails() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let cards = SwiftDataCardRepository(container: container)
+    let original = VocabularyCard.fixture()
+    try await cards.save(original)
+    let imported = VocabularyCard.singleValueFixture(
+        id: TestIDs.secondCard,
+        russianMeaningID: TestIDs.secondRussianMeaning,
+        englishVariantID: TestIDs.secondEnglishVariant,
+        russian: "экзамен",
+        english: "exam",
+        updatedAt: TestDates.updated
+    )
+    let importer = SwiftDataCardImportRepository(container: container) {
+        throw TestRepositoryError.forcedFailure
+    }
+
+    await #expect(throws: TestRepositoryError.forcedFailure) {
+        try await importer.importCards([imported])
+    }
+    #expect(try await cards.fetchCards() == [original])
+}
+
+@MainActor
+@Test func cardImportRejectsAnIDCollisionWithTheExistingLibrary() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let cards = SwiftDataCardRepository(container: container)
+    let original = VocabularyCard.fixture()
+    try await cards.save(original)
+    let conflicting = VocabularyCard.singleValueFixture(
+        id: original.id,
+        russianMeaningID: TestIDs.secondRussianMeaning,
+        englishVariantID: TestIDs.secondEnglishVariant,
+        russian: "экзамен",
+        english: "exam",
+        updatedAt: TestDates.updated
+    )
+    let importer = SwiftDataCardImportRepository(container: container)
+
+    await #expect(throws: CardImportValidationError.duplicateCardID(original.id)) {
+        try await importer.importCards([conflicting])
+    }
+    #expect(try await cards.fetchCards() == [original])
+}
+
+@MainActor
+@Test func cardImportReplacesAnEditedPreviewCardExactly() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let cards = SwiftDataCardRepository(container: container)
+    let original = VocabularyCard.fixture()
+    try await cards.save(original)
+    let replacement = VocabularyCard.singleValueFixture(
+        id: original.id,
+        russianMeaningID: TestIDs.secondRussianMeaning,
+        englishVariantID: TestIDs.secondEnglishVariant,
+        russian: "полностью новое значение",
+        english: "replacement",
+        updatedAt: TestDates.updated
+    )
+    let importer = SwiftDataCardImportRepository(container: container)
+
+    let result = try await importer.importCards(
+        [replacement],
+        replacingCardIDs: [original.id]
+    )
+
+    #expect(result.addedCount == 0)
+    #expect(result.mergedCount == 1)
+    #expect(result.affectedCardIDs == [original.id])
+    #expect(try await cards.fetchCards() == [replacement])
+}
+
+@MainActor
+@Test func cardImportAddsReplacementWhoseTargetWasDeleted() async throws {
+    let container = try ModelContainerFactory.makeInMemory()
+    let cards = SwiftDataCardRepository(container: container)
+    let imported = VocabularyCard.fixture()
+    let importer = SwiftDataCardImportRepository(container: container)
+
+    let result = try await importer.importCards(
+        [imported],
+        replacingCardIDs: [imported.id]
+    )
+
+    #expect(result.addedCount == 1)
+    #expect(result.mergedCount == 0)
+    #expect(result.affectedCardIDs == [imported.id])
+    #expect(try await cards.fetchCards() == [imported])
 }
 
 @MainActor

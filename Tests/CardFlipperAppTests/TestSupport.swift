@@ -37,6 +37,24 @@ final class AppCardRepositoryFake: CardRepository {
 }
 
 @MainActor
+final class AppCardImportRepositoryFake: CardImportRepository {
+    private(set) var importedCards: [VocabularyCard] = []
+    private(set) var replacingCardIDs: Set<UUID> = []
+    private(set) var importCallCount = 0
+    var result = CardMergeResult(cards: [], addedCount: 0, mergedCount: 0)
+
+    func importCards(
+        _ cards: [VocabularyCard],
+        replacingCardIDs: Set<UUID>
+    ) async throws -> CardMergeResult {
+        importCallCount += 1
+        importedCards = cards
+        self.replacingCardIDs = replacingCardIDs
+        return result
+    }
+}
+
+@MainActor
 final class AppTagRepositoryFake: TagRepository {
     var fetchedTags: [Tag]
 

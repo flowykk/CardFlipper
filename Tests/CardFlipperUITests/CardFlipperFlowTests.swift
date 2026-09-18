@@ -468,6 +468,37 @@ final class CardFlipperFlowTests: XCTestCase {
         snap("library-empty-actions")
     }
 
+    func testImportPreviewOpensEditorDirectlyFromCard() {
+        continueAfterFailure = false
+        app.launchArguments = [
+            "-uiTesting",
+            "-uiTestImportReview",
+            "-AppleLanguages", "(en)",
+            "-AppleLocale", "en_US",
+        ]
+        app.launch()
+
+        assertExists("import.preview")
+        XCTAssertTrue(app.staticTexts["New"].exists)
+        XCTAssertTrue(app.staticTexts["Changed"].exists)
+        XCTAssertTrue(app.staticTexts["Unchanged"].exists)
+        let card = app.buttons[
+            "import.preview.card.00000000-0000-0000-0000-000000000001"
+        ]
+        XCTAssertTrue(card.waitForExistence(timeout: 3))
+        XCTAssertTrue(card.label.contains("книга"))
+        XCTAssertTrue(card.label.contains("book"))
+        snap("import-preview-list")
+        card.tap()
+
+        let russian = app.textFields["editor.russian.0"]
+        XCTAssertTrue(russian.waitForExistence(timeout: 3))
+        XCTAssertEqual(russian.value as? String, "книга")
+        XCTAssertFalse(app.buttons["import.review.edit"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["import.review.info.status"].exists)
+        snap("import-preview-direct-editor")
+    }
+
     func testTagManagementShowsLifecycleActionsAndAffectedCardCount() {
         launch(seed: true)
 

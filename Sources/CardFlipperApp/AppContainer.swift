@@ -29,6 +29,7 @@ struct AppLaunchConfiguration: Equatable {
 final class AppContainer {
     let modelContainer: ModelContainer
     let cards: any CardRepository
+    let cardImporter: any CardImportRepository
     let tags: any TagRepository
     let dictionary: any DictionaryService
     let speech: any SpeechService
@@ -87,6 +88,7 @@ final class AppContainer {
     ) {
         self.modelContainer = modelContainer
         cards = SwiftDataCardRepository(container: modelContainer)
+        cardImporter = SwiftDataCardImportRepository(container: modelContainer)
         tags = SwiftDataTagRepository(container: modelContainer)
         dictionary = FreeDictionaryClient()
         speech = SystemSpeechService()
