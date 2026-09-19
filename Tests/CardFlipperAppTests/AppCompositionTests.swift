@@ -609,6 +609,144 @@ func completedLegacyRecoveryAddsHistoryWithoutDuplicatingPreviouslyRecordedStati
 }
 
 @MainActor
+@Test func editingImportedCardUpdatesThePreviewDraft() async throws {
+    let original = VocabularyCard.appFixture(
+        id: 1,
+        russian: "слово",
+        english: "word"
+    )
+    let model = try CardImportPreviewModel(
+        preview: CardImportPreview(
+            fileName: "cards.json",
+            existing: [original],
+            imported: [original]
+        ),
+        dictionary: AppDictionaryServiceFake(),
+        speech: AppSpeechServiceFake()
+    )
+    let editor = try #require(model.makeEditorModel(cardID: original.id))
+    editor.russianMeanings[0].text = "термин"
+
+    #expect(await editor.save() == .saved)
+    await model.editorSaved()
+
+    #expect(model.preview.changes.first?.card.russianMeanings.map(\.text) == ["термин"])
+    #expect(model.preview.changes.first?.card.id == original.id)
+    #expect(model.preview.changes.first?.kind == .updated)
+    #expect(original.russianMeanings.map(\.text) == ["слово"])
+}
+
+@MainActor
+@Test func importedTagsRemainAvailableWhileEditing() async throws {
+    let tag = Tag(id: .appFixture(700), name: "Работа")
+    let base = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let card = VocabularyCard(
+        id: base.id,
+        russianMeanings: base.russianMeanings,
+        englishVariants: base.englishVariants,
+        tags: [tag],
+        createdAt: base.createdAt,
+        updatedAt: base.updatedAt
+    )
+    let model = try CardImportPreviewModel(
+        preview: CardImportPreview(fileName: "cards.json", existing: [], imported: [card]),
+        dictionary: AppDictionaryServiceFake(),
+        speech: AppSpeechServiceFake()
+    )
+    let editor = try #require(model.makeEditorModel(cardID: card.id))
+
+    await editor.loadTags()
+
+    #expect(editor.availableTags == [tag])
+    #expect(editor.selectedTagIDs == [tag.id])
+}
+
+@MainActor
+@Test func importEditorDetectsDuplicatesAgainstUnaffectedLibraryCards() async throws {
+    let existing = VocabularyCard.appFixture(id: 1, russian: "работа", english: "work")
+    let imported = VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")
+    let model = try CardImportPreviewModel(
+        preview: CardImportPreview(
+            fileName: "cards.json",
+            existing: [existing],
+            imported: [imported]
+        ),
+        dictionary: AppDictionaryServiceFake(),
+        speech: AppSpeechServiceFake()
+    )
+    let editor = try #require(model.makeEditorModel(cardID: imported.id))
+    editor.russianMeanings[0].text = "работа"
+
+    #expect(await editor.save() == .needsDuplicateConfirmation)
+}
+
+@MainActor
+@Test func importEditorIncludesTagsWithoutCards() async throws {
+    let orphanTag = Tag(id: .appFixture(700), name: "Архив")
+    let imported = VocabularyCard.appFixture(id: 2, russian: "книга", english: "book")
+    let root = makeRootModel(
+        cards: AppCardRepositoryFake(),
+        tags: AppTagRepositoryFake([orphanTag])
+    )
+    let preview = try await root.makeImportPreviewModel([imported], fileName: "cards.json")
+    let editor = try #require(preview.makeEditorModel(cardID: imported.id))
+
+    await editor.loadTags()
+
+    #expect(editor.availableTags == [orphanTag])
+}
+
+@MainActor
+@Test func refreshedPreviewKeepsEditedReplacementIdentity() async throws {
+    let original = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let cards = AppCardRepositoryFake([original])
+    let root = makeRootModel(cards: cards)
+    let model = try await root.makeImportPreviewModel([original], fileName: "cards.json")
+    let editor = try #require(model.makeEditorModel(cardID: original.id))
+    editor.russianMeanings[0].text = "термин"
+    #expect(await editor.save() == .saved)
+    await model.editorSaved()
+
+    let refreshed = try await root.makeImportPreview(
+        model.preview.importedCards,
+        fileName: model.preview.fileName,
+        replacingCardIDs: model.preview.replacingCardIDs
+    )
+
+    #expect(refreshed.changes.first?.card.id == original.id)
+    #expect(refreshed.changes.first?.card.russianMeanings.map(\.text) == ["термин"])
+    #expect(refreshed.changes.first?.kind == .updated)
+}
+
+@MainActor
+@Test func confirmingImportPersistsTheEditedPreviewDraftOnlyOnce() async throws {
+    let original = VocabularyCard.appFixture(id: 1, russian: "слово", english: "word")
+    let importer = AppCardImportRepositoryFake()
+    importer.result = CardMergeResult(cards: [original], addedCount: 0, mergedCount: 1)
+    let root = RootViewModel(
+        cards: AppCardRepositoryFake([original]),
+        cardImporter: importer,
+        tags: AppTagRepositoryFake(),
+        dictionary: AppDictionaryServiceFake(),
+        speech: AppSpeechServiceFake(),
+        shuffler: AppIdentityShuffler(),
+        history: AppHistoryRepositoryFake()
+    )
+    let preview = try await root.makeImportPreviewModel([original], fileName: "cards.json")
+    let editor = try #require(preview.makeEditorModel(cardID: original.id))
+    editor.russianMeanings[0].text = "термин"
+    #expect(await editor.save() == .saved)
+    await preview.editorSaved()
+
+    try await root.confirmImport(preview.preview)
+
+    #expect(importer.importedCards.count == 1)
+    #expect(importer.importCallCount == 1)
+    #expect(importer.replacingCardIDs == [original.id])
+    #expect(importer.importedCards.first?.russianMeanings.map(\.text) == ["термин"])
+}
+
+@MainActor
 @Test func appOffersTenIconsWithLoadablePreviewsAndDeclaredAlternates() throws {
     #expect(AppIconSettings.AppIcon.allCases.count == 10)
     let icons = try #require(Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any])
@@ -1047,6 +1185,7 @@ private func lightSRGBComponents(of color: Color) -> (red: Double, green: Double
     let timer = StudyTimerController(progress: progress)
     let model = RootViewModel(
         cards: AppCardRepositoryFake(),
+        cardImporter: AppCardImportRepositoryFake(),
         tags: AppTagRepositoryFake(),
         dictionary: AppDictionaryServiceFake(),
         speech: AppSpeechServiceFake(),
@@ -1078,6 +1217,7 @@ private func makeRootModel(
 ) -> RootViewModel {
     RootViewModel(
         cards: cards,
+        cardImporter: AppCardImportRepositoryFake(),
         tags: tags,
         dictionary: AppDictionaryServiceFake(),
         speech: AppSpeechServiceFake(),

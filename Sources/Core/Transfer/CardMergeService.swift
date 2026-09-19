@@ -6,7 +6,12 @@ public struct CardMergeResult: Sendable {
     public let mergedCount: Int
     public let affectedCardIDs: Set<UUID>
 
-    public init(cards: [VocabularyCard], addedCount: Int, mergedCount: Int, affectedCardIDs: Set<UUID> = []) {
+    public init(
+        cards: [VocabularyCard],
+        addedCount: Int,
+        mergedCount: Int,
+        affectedCardIDs: Set<UUID> = []
+    ) {
         self.cards = cards
         self.addedCount = addedCount
         self.mergedCount = mergedCount
@@ -22,29 +27,28 @@ public enum CardMergeService {
         var result = existing
         var added = 0
         var merged = 0
-        var affectedIDs: Set<UUID> = []
+        var affectedCardIDs: Set<UUID> = []
 
         for importedCard in imported {
             if let index = result.firstIndex(where: { cardsMatch($0, importedCard) }) {
                 result[index] = merge(result[index], importedCard)
-                affectedIDs.insert(result[index].id)
+                affectedCardIDs.insert(result[index].id)
                 merged += 1
             } else {
-                // An unrelated imported card must not overwrite a card that shares its ID.
                 let card = result.contains(where: { $0.id == importedCard.id })
-                    ? VocabularyCard(
-                        id: UUID(), russianMeanings: importedCard.russianMeanings,
-                        englishVariants: importedCard.englishVariants, tags: importedCard.tags,
-                        createdAt: importedCard.createdAt, updatedAt: importedCard.updatedAt,
-                        isLearned: importedCard.isLearned
-                    )
+                    ? importedCard.replacingID(with: UUID())
                     : importedCard
                 result.append(card)
-                affectedIDs.insert(card.id)
+                affectedCardIDs.insert(card.id)
                 added += 1
             }
         }
-        return CardMergeResult(cards: result, addedCount: added, mergedCount: merged, affectedCardIDs: affectedIDs)
+        return CardMergeResult(
+            cards: result,
+            addedCount: added,
+            mergedCount: merged,
+            affectedCardIDs: affectedCardIDs
+        )
     }
 
     private static func cardsMatch(_ lhs: VocabularyCard, _ rhs: VocabularyCard) -> Bool {
@@ -90,8 +94,24 @@ public enum CardMergeService {
     }
 }
 
-public enum CardImportChangeKind: CaseIterable, Sendable {
-    case added, updated, unchanged
+private extension VocabularyCard {
+    func replacingID(with id: UUID) -> VocabularyCard {
+        VocabularyCard(
+            id: id,
+            russianMeanings: russianMeanings,
+            englishVariants: englishVariants,
+            tags: tags,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            isLearned: isLearned
+        )
+    }
+}
+
+public enum CardImportChangeKind: CaseIterable, Equatable, Sendable {
+    case added
+    case updated
+    case unchanged
 }
 
 public struct CardImportChange: Identifiable, Sendable {
@@ -107,30 +127,71 @@ public struct CardImportPreview: Identifiable, Sendable {
     public let originalCards: [VocabularyCard]
     public let importedCards: [VocabularyCard]
     public let changes: [CardImportChange]
+    public let replacingCardIDs: Set<UUID>
 
     public var cardsToSave: [VocabularyCard] {
         changes.filter { $0.kind != .unchanged }.map(\.card)
     }
 
-    public init(fileName: String, existing: [VocabularyCard], imported: [VocabularyCard]) {
+    public var draftCards: [VocabularyCard] {
+        let changesByID = Dictionary(uniqueKeysWithValues: changes.map { ($0.id, $0.card) })
+        let existingIDs = Set(originalCards.map(\.id))
+        return originalCards.map { changesByID[$0.id] ?? $0 }
+            + changes.filter { !existingIDs.contains($0.id) }.map(\.card)
+    }
+
+    public init(
+        fileName: String,
+        existing: [VocabularyCard],
+        imported: [VocabularyCard],
+        replacingCardIDs: Set<UUID> = []
+    ) {
         self.fileName = fileName
         originalCards = existing
-        importedCards = imported
-        let result = CardMergeService.merge(existing: existing, imported: imported)
+        let importedByID = Dictionary(uniqueKeysWithValues: imported.map { ($0.id, $0) })
+        let existingIDs = Set(existing.map(\.id))
+        let replacements = replacingCardIDs
+            .intersection(importedByID.keys)
+            .intersection(existingIDs)
+        let replacementCardsByID = importedByID.filter { replacements.contains($0.key) }
+        let stagedExisting = existing.map { replacementCardsByID[$0.id] ?? $0 }
+        let additions = imported.filter { !replacements.contains($0.id) }
+        let merged = CardMergeService.merge(existing: stagedExisting, imported: additions)
+        let affectedCardIDs = merged.affectedCardIDs.union(replacements)
         let originals = Dictionary(uniqueKeysWithValues: existing.map { ($0.id, $0) })
-        changes = result.cards.filter { result.affectedCardIDs.contains($0.id) }.map { card in
-            let before = originals[card.id]
-            let kind: CardImportChangeKind
-            if let before {
-                let sameContent = before.russianMeanings == card.russianMeanings
-                    && before.englishVariants == card.englishVariants
-                    && before.tags == card.tags
-                    && before.isLearned == card.isLearned
-                kind = sameContent ? .unchanged : .updated
-            } else {
-                kind = .added
+        changes = merged.cards
+            .filter { affectedCardIDs.contains($0.id) }
+            .map { card in
+                let before = originals[card.id]
+                let kind: CardImportChangeKind
+                if let before {
+                    kind = before.hasSameImportContent(as: card) ? .unchanged : .updated
+                } else {
+                    kind = .added
+                }
+                return CardImportChange(card: card, before: before, kind: kind)
             }
-            return CardImportChange(card: card, before: before, kind: kind)
-        }
+        importedCards = changes.map(\.card)
+        self.replacingCardIDs = Set(changes.compactMap { $0.before?.id })
+    }
+
+    public func replacingEditedCards(_ editedCards: [VocabularyCard]) -> CardImportPreview {
+        return CardImportPreview(
+            fileName: fileName,
+            existing: originalCards,
+            imported: editedCards.filter { card in
+                changes.contains { $0.id == card.id }
+            },
+            replacingCardIDs: replacingCardIDs
+        )
+    }
+}
+
+private extension VocabularyCard {
+    func hasSameImportContent(as other: VocabularyCard) -> Bool {
+        russianMeanings == other.russianMeanings
+            && englishVariants == other.englishVariants
+            && tags == other.tags
+            && isLearned == other.isLearned
     }
 }
